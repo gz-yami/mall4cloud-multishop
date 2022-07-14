@@ -43,11 +43,11 @@
 
           <!-- 商品标题 -->
           <el-form-item label="商品标题" prop="name">
-            <el-input v-model="dataForm.name" placeholder="商品标题组成：商品描述+属性" :disabled="!dataForm.categoryId" style="width:90%" />
+            <el-input v-model.trim="dataForm.name" placeholder="商品标题组成：商品描述+属性" :disabled="!dataForm.categoryId" style="width:90%" />
           </el-form-item>
           <!-- 商品卖点 -->
           <el-form-item label="商品卖点" prop="sellingPoint">
-            <el-input v-model="dataForm.sellingPoint" type="textarea" placeholder="商品卖点" :disabled="!dataForm.categoryId" style="width:90%" />
+            <el-input v-model.trim="dataForm.sellingPoint" type="textarea" placeholder="商品卖点" :disabled="!dataForm.categoryId" style="width:90%" />
           </el-form-item>
           <!-- 商品品牌 -->
           <el-form-item label="所属品牌">
