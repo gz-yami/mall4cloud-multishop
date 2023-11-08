@@ -1,16 +1,34 @@
 <template>
-  <el-dialog :title="dataForm.roleId? $t('table.edit'): $t('table.create')" :visible.sync="visible">
-    <el-form ref="dataForm" :rules="dataRule" :model="dataForm" label-position="right" label-width="80px">
+  <el-dialog
+    v-model:visible="visible"
+    :title="dataForm.roleId? $t('table.edit'): $t('table.create')"
+  >
+    <el-form
+      ref="dataForm"
+      :rules="dataRule"
+      :model="dataForm"
+      label-position="right"
+      label-width="80px"
+    >
       <!-- 角色名称 -->
-      <el-form-item :label="$t('rbac.role.roleName')" prop="roleName">
+      <el-form-item
+        :label="$t('rbac.role.roleName')"
+        prop="roleName"
+      >
         <el-input v-model="dataForm.roleName" />
       </el-form-item>
       <!-- 备注 -->
-      <el-form-item :label="$t('rbac.role.remark')" prop="remark">
+      <el-form-item
+        :label="$t('rbac.role.remark')"
+        prop="remark"
+      >
         <el-input v-model="dataForm.remark" />
       </el-form-item>
       <!-- 权限 -->
-      <el-form-item size="mini" label="授权">
+      <el-form-item
+        size="mini"
+        label="授权"
+      >
         <el-tree
           ref="menuListTree"
           :data="menuWithPermissions"
@@ -20,14 +38,19 @@
         />
       </el-form-item>
     </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="visible = false">
-        {{ $t('table.cancel') }}
-      </el-button>
-      <el-button type="primary" @click="dataFormSubmit()">
-        {{ $t('table.confirm') }}
-      </el-button>
-    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="visible = false">
+          {{ $t('table.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="dataFormSubmit()"
+        >
+          {{ $t('table.confirm') }}
+        </el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -37,7 +60,9 @@ import * as menuApi from '@/api/rbac/menu'
 import { treeDataTranslate } from '@/utils'
 
 export default {
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -68,12 +93,13 @@ export default {
       }
     }
   },
+
   methods: {
-    init(roleId) {
+    init (roleId) {
       this.dataForm.roleId = roleId || 0
       this.visible = true
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         this.$refs.menuListTree.setCheckedKeys([])
         menuApi.listWithPermissions().then(menuWithPermissions => {
           this.iniMenuWithPermissions = menuWithPermissions
@@ -118,7 +144,7 @@ export default {
       })
     },
     // 把菜单和菜单资源数据生成树状结构（参数为数据menuWithPermissions）
-    menuWithPermissionToTree(menuWithPermissions) {
+    menuWithPermissionToTree (menuWithPermissions) {
       const tempMenus = []
       const permissionMenuIds = []
       for (const key in menuWithPermissions) {
@@ -160,13 +186,13 @@ export default {
     //   }
     // },
     // 数组对比，选出两数组不同的元素
-    arrContrDiff(arr1, arr2) {
-      return arr1.concat(arr2).filter(function(v, i, arr) {
+    arrContrDiff (arr1, arr2) {
+      return arr1.concat(arr2).filter(function (v, i, arr) {
         return arr.indexOf(v) === arr.lastIndexOf(v)
       })
     },
     // 表单提交
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (valid) {
           const menuCheckedKeys = [].concat(this.$refs.menuListTree.getCheckedKeys(), this.$refs.menuListTree.getHalfCheckedKeys())
@@ -194,7 +220,7 @@ export default {
               onClose: () => {
                 this.visible = false
                 this.$emit('refreshDataList')
-                this.$refs['dataForm'].resetFields()
+                this.$refs.dataForm.resetFields()
               }
             })
           })

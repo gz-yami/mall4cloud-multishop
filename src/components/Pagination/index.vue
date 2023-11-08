@@ -1,9 +1,12 @@
 <template>
-  <div :class="{ hidden: hidden }" class="pagination-container">
+  <div
+    :class="{ hidden: hidden }"
+    class="pagination-container"
+  >
     <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
       :background="background"
-      :current-page.sync="currentPage"
-      :page-size.sync="pageSize"
       :layout="layout"
       :page-sizes="pageSizes"
       :total="total"
@@ -19,6 +22,7 @@ import { scrollTo } from '@/utils/scroll-to'
 
 export default {
   name: 'Pagination',
+
   props: {
     total: {
       required: true,
@@ -55,6 +59,8 @@ export default {
       default: false
     }
   },
+  emits: ['update:page', 'update:limit', 'pagination', 'pagination'],
+
   computed: {
     currentPage: {
       get () {
@@ -73,6 +79,7 @@ export default {
       }
     }
   },
+
   methods: {
     handleSizeChange (val) {
       this.$emit('pagination', { pageNum: this.currentPage, pageSize: val })

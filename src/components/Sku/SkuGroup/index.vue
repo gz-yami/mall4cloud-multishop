@@ -5,8 +5,8 @@
       <div class="spec-select">
         <div class="sel-box">
           <el-select
-            size="mini"
             v-model="skuValue"
+            size="mini"
             placeholder="请选择"
             allow-create
             filterable
@@ -14,7 +14,8 @@
             :popper-append-to-body="false"
             :filter-method="filterMethod"
             style="min-width:100px"
-            @change="handleSelectSku">
+            @change="handleSelectSku"
+          >
             <el-option
               v-for="item in ease.skuTreeData"
               :key="item[optionValue]"
@@ -23,16 +24,24 @@
             />
           </el-select>
         </div>
-<!--        <div v-if="index === 0 && ease.showAddSkuImage" class="sel-add-img">-->
-<!--          <el-checkbox v-model="hasSkuImage"  @change="handleCheckedSkuImage">添加属性图片</el-checkbox>-->
-<!--        </div>-->
+        <!--        <div v-if="index === 0 && ease.showAddSkuImage" class="sel-add-img">-->
+        <!--          <el-checkbox v-model="hasSkuImage"  @change="handleCheckedSkuImage">添加属性图片</el-checkbox>-->
+        <!--        </div>-->
       </div>
-      <div class="del-btn" @click="onSkuRemove(sku, index)">删除属性</div>
+      <div
+        class="del-btn"
+        @click="onSkuRemove(sku, index)"
+      >
+        删除属性
+      </div>
     </div>
     <!-- sku值 -->
-    <sku-container :sku="sku" :hasSkuImage="hasSkuImage" :onSkuLeafChange="handleSkuLeafChange"/>
+    <sku-container
+      :sku="sku"
+      :has-sku-image="hasSkuImage"
+      :on-sku-leaf-change="handleSkuLeafChange"
+    />
   </div>
-
 </template>
 
 <script>
@@ -52,7 +61,7 @@ export default {
     },
     sku: {
       type: Object,
-      default() {
+      default () {
         return {}
       }
     },
@@ -76,16 +85,14 @@ export default {
     }
   },
 
-  data() {
+  data () {
     return {
       currentValue: '',
       currentSku: '',
       skuValue: '',
       newsSkuText: '',
       skus: this.sku,
-      hasSkuImage: this.sku.leaf
-        ? this.sku.leaf.some(item => item.imgUrl)
-        : false
+      hasSkuImage: this.sku.leaf ? this.sku.leaf.some(item => item.imgUrl) : false
     }
   },
 
@@ -93,7 +100,7 @@ export default {
     sku: {
       deep: true,
       immediate: true,
-      handler(sku) {
+      handler (sku) {
         if (sku[this.optionText]) {
           this.$nextTick(() => {
             this.skuValue = sku[this.optionText]
@@ -105,7 +112,7 @@ export default {
   },
 
   methods: {
-    filterMethod(keyword) {
+    filterMethod (keyword) {
       // let { optionText } = this
       // if (this.ease.skuTreeData.some(item => item[optionText] === keyword)) return
 
@@ -113,16 +120,16 @@ export default {
     },
 
     // 选择sku
-    handleSelectSku(value) {
+    handleSelectSku (value) {
       if (value.length > 10) {
         this.$message({
-          message: `属性名长度不可超过10个字符`,
+          message: '属性名长度不可超过10个字符',
           duration: 1500
         })
         this.skuValue = ''
         return
       }
-      let { index, optionValue } = this
+      const { index, optionValue } = this
       // 当切换当前属性时，把当前属性重新放入可选择列表中
       console.log(value)
       console.log(this.currentSku)
@@ -132,17 +139,17 @@ export default {
       }
 
       if (typeof (value) === 'number') {
-        let sku = this.ease.skuTreeData.find(item => item[optionValue] === value)
+        const sku = this.ease.skuTreeData.find(item => item[optionValue] === value)
         sku.leaf = []
         if (this.onSkuChange(sku, index) === false) {
           this.skuValue = ''
         } else {
-          this.ease.skuTreeData.some((item,idx) => {
+          this.ease.skuTreeData.some((item, idx) => {
             // 列表删除已选中属性
             if (item[optionValue] === value) {
               console.log(this.ease)
               this.currentSku = this.ease.skuTreeData[idx]
-              this.ease.skuTreeData.splice(idx,1)
+              this.ease.skuTreeData.splice(idx, 1)
             }
             return false
           })
@@ -153,7 +160,7 @@ export default {
       this.createSku(value)
     },
     // 创建sku
-    createSku(text) {
+    createSku (text) {
       let { sku, index, optionValue, optionText } = this
 
       this.ease.onCreateGroup(text).then(data => {
@@ -161,7 +168,7 @@ export default {
           sku = {
             [optionValue]: data,
             [optionText]: text,
-            leaf: [],
+            leaf: []
           }
 
           this.onSkuChange(sku, index)
@@ -170,8 +177,8 @@ export default {
     },
 
     // 添加图片复选框
-    handleCheckedSkuImage(checked) {
-      let { sku, index } = this
+    handleCheckedSkuImage (checked) {
+      const { sku, index } = this
       sku.leaf = sku.leaf.map(item => {
         item.is_show = checked
         return item
@@ -179,8 +186,8 @@ export default {
       this.onSkuChange(sku, index)
     },
 
-    handleSkuLeafChange(leaf) {
-      let { sku, index } = this
+    handleSkuLeafChange (leaf) {
+      const { sku, index } = this
       sku.leaf = leaf
       this.onSkuChange(sku, index)
     }

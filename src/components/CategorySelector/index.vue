@@ -1,65 +1,102 @@
 <template>
   <div class="category-selector">
-    <el-dialog 
-        :title="this.$i18n.t('components.selector.categorySelector')" 
-        :visible.sync="visible" 
-        :append-to-body="visible"
-        @close="onClose"
-        width="1000px">
+    <el-dialog
+      v-model:visible="visible"
+      :title="$i18n.t('components.selector.categorySelector')"
+      :append-to-body="visible"
+      width="1000px"
+      @close="onClose"
+    >
       <div class="prod-category clearfix">
         <div class="category">
           <!-- 分类 -->
-          <div v-if="firstCategorys.dataList.length" class="category-box">
-            <el-input v-model="firstCategorys.name" :placeholder="this.$i18n.t('components.selector.chooseProdCateg')" :disabled="true"></el-input>
+          <div
+            v-if="firstCategorys.dataList.length"
+            class="category-box"
+          >
+            <el-input
+              v-model="firstCategorys.name"
+              :placeholder="$i18n.t('components.selector.chooseProdCateg')"
+              :disabled="true"
+            />
             <ul class="category-list">
               <li
+                v-for="(item,index) in firstCategorys.dataList"
+                :key="item.categoryId"
                 class="category-item"
                 :class="item.categoryId==firstCategorys.id?'active':''"
                 @click="selectFirstCategorys(item.categoryId, index)"
-                v-for="(item,index) in firstCategorys.dataList"
-                :key="item.categoryId"
-              >{{item.name}}</li>
+              >
+                {{ item.name }}
+              </li>
             </ul>
           </div>
           <!-- 分类 -->
-          <div class="category-box" v-if="secondCategorys.dataList.length && firstCategorys.id!=0">
-            <el-input :placeholder="this.$i18n.t('components.selector.chooseProdCateg')" v-model="secondCategorys.name" :disabled="true"></el-input>
+          <div
+            v-if="secondCategorys.dataList.length && firstCategorys.id!=0"
+            class="category-box"
+          >
+            <el-input
+              v-model="secondCategorys.name"
+              :placeholder="$i18n.t('components.selector.chooseProdCateg')"
+              :disabled="true"
+            />
             <ul class="category-list">
               <li
+                v-for="(item,index) in secondCategorys.dataList"
+                :key="item.categoryId"
                 class="category-item"
                 :class="isCreateCategory?'prohibit-sel':item.categoryId==secondCategorys.id?'active':''"
                 @click="selectSecondCategorys(item.categoryId,index)"
-                v-for="(item,index) in secondCategorys.dataList"
-                :key="item.categoryId"
-              >{{item.name}}</li>
+              >
+                {{ item.name }}
+              </li>
             </ul>
           </div>
           <!-- 分类 -->
-          <div v-if="showthreeCategorys && threeCategorys.dataList.length > 0 && secondCategorys.id!=0" class="category-box">
-            <el-input :placeholder="this.$i18n.t('components.selector.chooseProdCateg')" v-model="threeCategorys.name" :disabled="true"></el-input>
+          <div
+            v-if="showthreeCategorys && threeCategorys.dataList.length > 0 && secondCategorys.id!=0"
+            class="category-box"
+          >
+            <el-input
+              v-model="threeCategorys.name"
+              :placeholder="$i18n.t('components.selector.chooseProdCateg')"
+              :disabled="true"
+            />
             <ul class="category-list">
               <li
+                v-for="(item,index) in threeCategorys.dataList"
+                :key="item.categoryId"
                 class="category-item"
                 :class="[isCreateCategory?'prohibit-sel':item.categoryId==threeCategorys.id?'active':'']"
                 @click="selectThreeCategorys(item.categoryId,index)"
-                v-for="(item,index) in threeCategorys.dataList"
-                :key="item.categoryId"
-              >{{item.name}}</li>
+              >
+                {{ item.name }}
+              </li>
             </ul>
           </div>
         </div>
         <!-- 当前选择 -->
         <div class="current-selected">
-          <span class="blod">{{$t("components.selector.currCho")}}：</span>
-          <span class="select-item">{{firstCategorys.name}}</span>
-          <span class="select-item" v-if="!isCreateCategory && secondCategorys.id">&nbsp;>&nbsp;&nbsp;{{secondCategorys.name}}</span>
-          <span v-if="showthreeCategorys && threeCategorys.id" class="select-item">&nbsp;>&nbsp;&nbsp;{{threeCategorys.name}}</span>
+          <span class="blod">{{ $t("components.selector.currCho") }}：</span>
+          <span class="select-item">{{ firstCategorys.name }}</span>
+          <span
+            v-if="!isCreateCategory && secondCategorys.id"
+            class="select-item"
+          >&nbsp;>&nbsp;&nbsp;{{ secondCategorys.name }}</span>
+          <span
+            v-if="showthreeCategorys && threeCategorys.id"
+            class="select-item"
+          >&nbsp;>&nbsp;&nbsp;{{ threeCategorys.name }}</span>
         </div>
         <!-- 确认 -->
         <div class="read-rule">
-          <div class="read-rule-txt"
+          <div
+            class="read-rule-txt"
             :class="buttonHighlight?'todo':''"
-            @click="optionsConfirm">{{$t("components.selector.haveReadFol")}}
+            @click="optionsConfirm"
+          >
+            {{ $t("components.selector.haveReadFol") }}
           </div>
         </div>
       </div>
@@ -70,7 +107,13 @@
 <script>
 import * as api from '@/api/product/category'
 export default {
-  data() {
+
+  props: {
+    // categoryList: Array
+  },
+  emits: ['getCategorySelected'],
+
+  data () {
     return {
       visible: false,
       allDataList: [],
@@ -95,18 +138,15 @@ export default {
       parentId: 0,
       isCreateCategory: false, // 是否创建(店铺)分类选择
       showthreeCategorys: false, // 是否显示第三级分类
-      buttonHighlight: false, // 按钮高亮
+      buttonHighlight: false // 按钮高亮
     }
-  },
-  props: {
-    // categoryList: Array
   },
 
   methods: {
     /**
      * 初始化
      */
-    init(type, key) {
+    init (type, key) {
       this.visible = true
       console.log('分类选择器key:', key)
       if (key === 'platform') {
@@ -123,22 +163,22 @@ export default {
         this.showthreeCategorys = false // 店铺分类，最高二级
       }
 
-      this.isCreateCategory = type && type === 1 ? true : false
+      this.isCreateCategory = !!(type && type === 1)
     },
-    show() {
+    show () {
       this.visible = true
     },
-    hide() {
+    hide () {
       this.visible = false
     },
 
     // 选中第一个分类
-    selectFirstCategorys(categoryId, index) {
+    selectFirstCategorys (categoryId, index) {
       this.secondCategorys.dataList = this.allDataList.filter(item => item.parentId === categoryId)
       this.firstCategorys.name = this.firstCategorys.dataList[index].name
       this.parentId = this.firstCategorys.id = categoryId
       this.secondCategorys.id = 0
-      if(this.showthreeCategorys) this.threeCategorys.id = 0
+      if (this.showthreeCategorys) this.threeCategorys.id = 0
 
       if (this.isCreateCategory || (!this.isCreateCategory && this.secondCategorys.dataList.length == 0)) { // 创建分类
         this.buttonHighlight = true
@@ -147,16 +187,16 @@ export default {
       }
     },
     // 选中第二个分类
-    selectSecondCategorys(categoryId, index) {
+    selectSecondCategorys (categoryId, index) {
       if (this.isCreateCategory) {
         return
       }
       this.threeCategorys.dataList = this.allDataList.filter(item => item.parentId === categoryId)
       this.parentId = this.secondCategorys.id = categoryId
       this.secondCategorys.name = this.secondCategorys.dataList[index].name
-      if(this.showthreeCategorys) this.threeCategorys.id = 0
+      if (this.showthreeCategorys) this.threeCategorys.id = 0
 
-      if (!this.isCreateCategory && !this.buttonHighlight && !this.showthreeCategorys) { //非创建分类&&店铺分类
+      if (!this.isCreateCategory && !this.buttonHighlight && !this.showthreeCategorys) { // 非创建分类&&店铺分类
         this.buttonHighlight = true
       } else {
         this.buttonHighlight = false
@@ -164,7 +204,7 @@ export default {
       console.log('buttonHighlight：', this.buttonHighlight)
     },
     // 选中第三个分类
-    selectThreeCategorys(categoryId, index) {
+    selectThreeCategorys (categoryId, index) {
       if (this.isCreateCategory) {
         return
       }
@@ -173,7 +213,7 @@ export default {
       this.buttonHighlight = true
     },
     // 新增 / 修改
-    optionsConfirm() {
+    optionsConfirm () {
       // 平台分类 & 没有第三级分类
       if (this.showthreeCategorys && !this.threeCategorys.id) {
         return
@@ -187,7 +227,7 @@ export default {
         return
       }
       // this.$store.commit('common/removeMainActiveTab')
-      var selectedCategorys = []
+      const selectedCategorys = []
       if (this.firstCategorys.id) {
         selectedCategorys.push(this.firstCategorys.name)
       }
@@ -201,7 +241,7 @@ export default {
     },
 
     // 关闭
-    onClose() {
+    onClose () {
       this.allDataList = []
       // 第一个分类
       this.firstCategorys = {

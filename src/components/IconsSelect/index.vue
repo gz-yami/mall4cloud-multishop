@@ -1,17 +1,31 @@
 <template>
-  <el-tabs class="icons-container" type="border-card">
+  <el-tabs
+    class="icons-container"
+    type="border-card"
+  >
     <el-tab-pane label="Icons">
       <div class="grid">
-        <el-button v-for="item of svgIcons" :key="item" @click="selectIcon(getIconCode(item))">
+        <el-button
+          v-for="item of svgIcons"
+          :key="item"
+          @click="selectIcon(getIconCode(item))"
+        >
           <div class="icon-item">
-            <svg-icon :icon-class="item" class-name="disabled" />
+            <svg-icon
+              :icon-class="item"
+              class-name="disabled"
+            />
           </div>
         </el-button>
       </div>
     </el-tab-pane>
     <el-tab-pane label="Element-UI Icons">
       <div class="grid">
-        <el-button v-for="item of elementIcons" :key="item" @click="selectIcon(getElementIconCode(item))">
+        <el-button
+          v-for="item of elementIcons"
+          :key="item"
+          @click="selectIcon(getElementIconCode(item))"
+        >
           <div class="icon-item">
             <i :class="'el-icon-' + item" />
           </div>
@@ -27,20 +41,23 @@ import elementIcons from './element-icons'
 
 export default {
   name: 'Icons',
-  data() {
+  emits: ['selectIcon'],
+
+  data () {
     return {
       svgIcons,
       elementIcons
     }
   },
+
   methods: {
-    getIconCode(symbol) {
+    getIconCode (symbol) {
       return `${symbol}`
     },
-    getElementIconCode(symbol) {
+    getElementIconCode (symbol) {
       return `el-icon-${symbol}`
     },
-    selectIcon(text) {
+    selectIcon (text) {
       this.$emit('selectIcon', text)
     }
   }

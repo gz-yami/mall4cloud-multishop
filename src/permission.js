@@ -9,7 +9,7 @@ NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 const whiteList = ['/login'] // no redirect whitelist
 
-router.beforeEach(async(to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // start progress bar
   NProgress.start()
 
@@ -51,7 +51,7 @@ router.beforeEach(async(to, from, next) => {
           // 404 page must be placed at the end !!!
           accessRoutes.push({ path: '*', redirect: '/404', hidden: true })
           // dynamically add accessible routes
-          router.addRoutes(accessRoutes)
+          accessRoutes.forEach(item => router.addRoute(item))
 
           // hack method to ensure that addRoutes is complete
           // set the replace: true, so the navigation will not leave a history record
@@ -65,7 +65,7 @@ router.beforeEach(async(to, from, next) => {
       }
     }
   } else {
-    /* has no token*/
+    /* has no token */
 
     if (whiteList.indexOf(to.path) !== -1) {
       // in the free login whitelist, go directly

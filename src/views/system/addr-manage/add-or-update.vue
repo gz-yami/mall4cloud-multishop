@@ -1,11 +1,36 @@
 <template>
   <div class="addr-manage">
-    <el-dialog :title="dataForm.areaId? $t('table.edit'): $t('table.create')" :close-on-click-modal="false" :destroy-on-close="true" :visible.sync="visible" width="650px" @close="closeDialog">
-      <el-form ref="dataForm" :rules="rules" :model="dataForm" label-position="left" label-width="90px" style="width: 500px; margin-left:50px;">
-        <el-form-item class="addr-item" prop="areaName" label="地区名称">
-          <el-input v-model="dataForm.areaName" placeholder="请输入名称" />
+    <el-dialog
+      v-model:visible="visible"
+      :title="dataForm.areaId? $t('table.edit'): $t('table.create')"
+      :close-on-click-modal="false"
+      :destroy-on-close="true"
+      width="650px"
+      @close="closeDialog"
+    >
+      <el-form
+        ref="dataForm"
+        :rules="rules"
+        :model="dataForm"
+        label-position="left"
+        label-width="90px"
+        style="width: 500px; margin-left:50px;"
+      >
+        <el-form-item
+          class="addr-item"
+          prop="areaName"
+          label="地区名称"
+        >
+          <el-input
+            v-model="dataForm.areaName"
+            placeholder="请输入名称"
+          />
         </el-form-item>
-        <el-form-item class="addr-item" label="上级地区" prop="">
+        <el-form-item
+          class="addr-item"
+          label="上级地区"
+          prop=""
+        >
           <el-cascader
             v-model="selectedOptions"
             expand-trigger="hover"
@@ -18,14 +43,19 @@
           />
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="visible = false">
-          {{ $t('table.cancel') }}
-        </el-button>
-        <el-button type="primary" @click="dataFormSubmit()">
-          {{ $t('table.confirm') }}
-        </el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="visible = false">
+            {{ $t('table.cancel') }}
+          </el-button>
+          <el-button
+            type="primary"
+            @click="dataFormSubmit()"
+          >
+            {{ $t('table.confirm') }}
+          </el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -34,7 +64,9 @@
 import * as api from '@/api/system/addr-manage'
 import { treeDataTranslate } from '@/utils'
 export default {
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       disableSelector: false, // 是否禁用选择上级分类
@@ -58,15 +90,16 @@ export default {
       }
     }
   },
+
   methods: {
-    init(areaId, level) {
+    init (areaId, level) {
       this.visible = true
       this.dataForm.areaId = areaId || 0
       this.visible = true
       this.isSubmit = false
       this.selectedOptions = []
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         if (this.dataForm.areaId) {
           api.get(areaId).then((data) => {
             this.dataForm = data
@@ -83,12 +116,12 @@ export default {
       })
     },
 
-    handleChange(val) {
+    handleChange (val) {
       this.dataForm.parentId = val[val.length - 1]
     },
 
     // 关闭弹窗时
-    closeDialog() {
+    closeDialog () {
       this.dataForm = {
         areaId: '',
         areaName: null,
@@ -100,7 +133,7 @@ export default {
     /**
      * 表单提交
      */
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (!valid) {
           return
@@ -129,7 +162,7 @@ export default {
             onClose: () => {
               this.visible = false
               this.$emit('refreshDataList')
-              this.$refs['dataForm'].resetFields()
+              this.$refs.dataForm.resetFields()
             }
           })
         })

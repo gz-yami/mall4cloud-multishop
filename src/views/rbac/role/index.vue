@@ -2,8 +2,24 @@
   <div class="app-container">
     <!-- 搜索相关区域 -->
     <div class="filter-container">
-      <el-button size="mini" icon="el-icon-search" class="filter-item" @click="getPage()">{{ $t('table.search') }}</el-button>
-      <el-button v-permission="['rbac:role:save']" size="mini" icon="el-icon-plus" type="primary" class="filter-item" @click="addOrUpdateHandle()">{{ $t('table.create') }}</el-button>
+      <el-button
+        size="mini"
+        icon="el-icon-search"
+        class="filter-item"
+        @click="getPage()"
+      >
+        {{ $t('table.search') }}
+      </el-button>
+      <el-button
+        v-permission="['rbac:role:save']"
+        size="mini"
+        icon="el-icon-plus"
+        type="primary"
+        class="filter-item"
+        @click="addOrUpdateHandle()"
+      >
+        {{ $t('table.create') }}
+      </el-button>
     </div>
 
     <!-- 列表相关区域 -->
@@ -16,44 +32,83 @@
       style="width: 100%;"
     >
       <!-- 创建时间 -->
-      <el-table-column :label="$t('table.createTime')" prop="createTime" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('table.createTime')"
+        prop="createTime"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.createTime }}</span>
         </template>
       </el-table-column>
       <!-- 更新时间 -->
-      <el-table-column :label="$t('table.updateTime')" prop="updateTime" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('table.updateTime')"
+        prop="updateTime"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.updateTime }}</span>
         </template>
       </el-table-column>
       <!-- 角色名称 -->
-      <el-table-column :label="$t('rbac.role.roleName')" prop="roleName" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('rbac.role.roleName')"
+        prop="roleName"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.roleName }}</span>
         </template>
       </el-table-column>
       <!-- 备注 -->
-      <el-table-column :label="$t('rbac.role.remark')" prop="remark" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('rbac.role.remark')"
+        prop="remark"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.remark }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.actions')" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="{row}">
-          <el-button v-permission="['rbac:role:update']" type="text" @click="addOrUpdateHandle(row.roleId)">
+      <el-table-column
+        :label="$t('table.actions')"
+        align="center"
+        width="230"
+        class-name="small-padding fixed-width"
+      >
+        <template #default="{row}">
+          <el-button
+            v-permission="['rbac:role:update']"
+            type="text"
+            @click="addOrUpdateHandle(row.roleId)"
+          >
             {{ $t('table.edit') }}
           </el-button>
-          <el-button v-permission="['rbac:role:delete']" type="text" @click="deleteHandle(row.roleId)">
+          <el-button
+            v-permission="['rbac:role:delete']"
+            type="text"
+            @click="deleteHandle(row.roleId)"
+          >
             {{ $t('table.delete') }}
           </el-button>
         </template>
       </el-table-column>
     </el-table>
     <!-- 分页条 -->
-    <pagination v-show="pageVO.total>0" :total="pageVO.total" :page.sync="pageQuery.pageNum" :limit.sync="pageQuery.pageSize" @pagination="getPage()" />
+    <pagination
+      v-show="pageVO.total>0"
+      v-model:page="pageQuery.pageNum"
+      v-model:limit="pageQuery.pageSize"
+      :total="pageVO.total"
+      @pagination="getPage()"
+    />
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getPage()" />
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refresh-data-list="getPage()"
+    />
   </div>
 </template>
 
@@ -67,7 +122,7 @@ export default {
   name: '',
   components: { Pagination, AddOrUpdate },
   directives: { permission },
-  data() {
+  data () {
     return {
       // 查询的参数
       pageQuery: {
@@ -88,31 +143,31 @@ export default {
       addOrUpdateVisible: false
     }
   },
-  mounted() {
+  mounted () {
     this.getPage()
   },
   methods: {
-    getPage() {
+    getPage () {
       this.pageLoading = true
       api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
         this.pageVO = pageVO
         this.pageLoading = false
       })
     },
-    addOrUpdateHandle(roleId) {
+    addOrUpdateHandle (roleId) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.addOrUpdate.init(roleId)
       })
     },
-    deleteHandle(roleId) {
+    deleteHandle (roleId) {
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
         type: 'warning'
       }).then(() => this.deleteById(roleId))
     },
-    deleteById(roleId) {
+    deleteById (roleId) {
       api.deleteById(roleId).then(() => {
         this.$message({
           message: this.$t('table.actionSuccess'),

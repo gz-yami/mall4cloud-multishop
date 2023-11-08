@@ -1,57 +1,83 @@
 <template>
   <div class="category-group">
     <div class="category classify-show">
-      <div v-if="selectedCategorys.length > 0 & single" class="category-sel1 classify">
+      <div
+        v-if="selectedCategorys.length > 0 & single"
+        class="category-sel1 classify"
+      >
         <!-- 商品详情/分类 -->
-          <span v-if="selectedCategorys[0]">{{ selectedCategorys[0] }}</span>
-          <span v-if="selectedCategorys[1]">&nbsp;>&nbsp;{{ selectedCategorys[1] }}</span>
-          <span v-if="selectedCategorys[2]">&nbsp;>&nbsp;{{ selectedCategorys[2] }}</span>
+        <span v-if="selectedCategorys[0]">{{ selectedCategorys[0] }}</span>
+        <span v-if="selectedCategorys[1]">&nbsp;>&nbsp;{{ selectedCategorys[1] }}</span>
+        <span v-if="selectedCategorys[2]">&nbsp;>&nbsp;{{ selectedCategorys[2] }}</span>
       </div>
-      <div v-if="showCategorySelectBtn && single" class="change-category change-classify" @click="selectOrReviseCategory">{{ selectedCategorys.length?'修改':'选择' }}分类</div>
+      <div
+        v-if="showCategorySelectBtn && single"
+        class="change-category change-classify"
+        @click="selectOrReviseCategory"
+      >
+        {{ selectedCategorys.length?'修改':'选择' }}分类
+      </div>
       <!-- 品牌/属性 -->
-      <div v-if="selectedCategorys.length > 0 & multiple" class="category-sel2">
-        <p v-for="(item,index) in selectedCategorys" :key="index">
+      <div
+        v-if="selectedCategorys.length > 0 & multiple"
+        class="category-sel2"
+      >
+        <p
+          v-for="(item,index) in selectedCategorys"
+          :key="index"
+        >
           <span v-if="item.firstCategoryName">{{ item.firstCategoryName }}</span>
           <span v-if="item.secondCategoryName">&nbsp;>&nbsp;{{ item.secondCategoryName }}</span>
           <span v-if="item.threeCategoryName">&nbsp;>&nbsp;{{ item.threeCategoryName }}</span>
-          <span class="del-cate" @click="deleteCategoryItemOfSelected(index)">×</span>
+          <span
+            class="del-cate"
+            @click="deleteCategoryItemOfSelected(index)"
+          >×</span>
         </p>
       </div>
-      <div v-if="multiple" class="change-category" @click="selectOrReviseCategory">选择分类</div>
+      <div
+        v-if="multiple"
+        class="change-category"
+        @click="selectOrReviseCategory"
+      >
+        选择分类
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
+
   props: {
     selectedCategorys: {
       type: Array,
-      default() {
+      default () {
         return []
       }
     },
     showCategorySelectBtn: {
       type: Boolean,
-      default() {
+      default () {
         return true
       }
     },
     multiple: {
       type: Boolean,
-      default() {
+      default () {
         return false
       }
     },
     single: {
       type: Boolean,
-      default() {
+      default () {
         return false
       }
-    },
+    }
   },
+  emits: ['selectOrReviseCategory', 'deleteCategoryItemOfSelected'],
 
-  data() {
+  data () {
     return {
 
     }
@@ -59,12 +85,12 @@ export default {
 
   methods: {
     // 选择/修改分类
-    selectOrReviseCategory() {
+    selectOrReviseCategory () {
       this.$emit('selectOrReviseCategory')
     },
 
     // 删除
-    deleteCategoryItemOfSelected(index) {
+    deleteCategoryItemOfSelected (index) {
       console.log('组件内删除分类index：', index)
       this.$emit('deleteCategoryItemOfSelected', index)
     }

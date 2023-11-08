@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :visible.sync="operateDialogVisible"
+    v-model:visible="operateDialogVisible"
     :close-on-click-modal="false"
     title="下线管理"
     :lock-scroll="true"
@@ -13,40 +13,99 @@
     <div class="off-shelf-mag">
       <div class="msg">
         <div class="msg-item">
-          <div class="tit">处理人：</div>
-          <div class="int">{{ offlineDetail.handler }}</div>
+          <div class="tit">
+            处理人：
+          </div>
+          <div class="int">
+            {{ offlineDetail.handler }}
+          </div>
         </div>
         <div class="msg-item">
-          <div class="tit">下线时间：</div>
-          <div class="int">{{ offlineDetail.createTime }}</div>
+          <div class="tit">
+            下线时间：
+          </div>
+          <div class="int">
+            {{ offlineDetail.createTime }}
+          </div>
         </div>
         <div class="msg-item">
-          <div class="tit">处理状态：</div>
-          <el-tag v-if="offlineDetail.status === 1" type="danger">平台下线</el-tag>
-          <el-tag v-if="offlineDetail.status === 2" type="warning">等待审核</el-tag>
-          <el-tag v-if="offlineDetail.status === 3" type="success">审核通过</el-tag>
-          <el-tag v-if="offlineDetail.status === 4" type="danger">审核未通过</el-tag>
+          <div class="tit">
+            处理状态：
+          </div>
+          <el-tag
+            v-if="offlineDetail.status === 1"
+            type="danger"
+          >
+            平台下线
+          </el-tag>
+          <el-tag
+            v-if="offlineDetail.status === 2"
+            type="warning"
+          >
+            等待审核
+          </el-tag>
+          <el-tag
+            v-if="offlineDetail.status === 3"
+            type="success"
+          >
+            审核通过
+          </el-tag>
+          <el-tag
+            v-if="offlineDetail.status === 4"
+            type="danger"
+          >
+            审核未通过
+          </el-tag>
         </div>
         <div class="msg-item">
-          <div class="tit">下线原因：</div>
-          <div class="int">{{ offlineDetail.offlineReason }}</div>
+          <div class="tit">
+            下线原因：
+          </div>
+          <div class="int">
+            {{ offlineDetail.offlineReason }}
+          </div>
         </div>
         <div class="msg-item">
-          <div class="tit">申请理由：</div>
-          <div class="int"><el-input v-model="reapplyReason" type="textarea" /></div>
+          <div class="tit">
+            申请理由：
+          </div>
+          <div class="int">
+            <el-input
+              v-model="reapplyReason"
+              type="textarea"
+            />
+          </div>
         </div>
       </div>
-      <div v-if="offlineDetail.offlineHandleEventItemList.length > 0" class="log">
-        <div class="log-tit">申请历史</div>
-        <div v-for="(item,index) in offlineDetail.offlineHandleEventItemList" :key="index" class="log-item">
+      <div
+        v-if="offlineDetail.offlineHandleEventItemList.length > 0"
+        class="log"
+      >
+        <div class="log-tit">
+          申请历史
+        </div>
+        <div
+          v-for="(item,index) in offlineDetail.offlineHandleEventItemList"
+          :key="index"
+          class="log-item"
+        >
           <p>申请时间：{{ item.reapplyTime }}</p>
           <p>申请理由：{{ item.reapplyReason }}</p>
         </div>
       </div>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="operateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="rereapplyDataSubmit()">确认审核</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="operateDialogVisible = false">
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            @click="rereapplyDataSubmit()"
+          >
+            确认审核
+          </el-button>
+        </div>
+      </template>
     </div>
   </el-dialog>
 </template>
@@ -54,17 +113,19 @@
 <script>
 import * as api from '@/api/product/list'
 export default {
-  data() {
+  emits: ['rereapplyDataSubmit'],
+
+  data () {
     return {
       operateDialogVisible: false, // 操作对话框
       offlineDetail: {}, // 最新下线商品
       offlineReasonError: false, // 理由出错
-      reapplyReason: '', // 申请理由
+      reapplyReason: '' // 申请理由
     }
   },
 
   methods: {
-    init(data) {
+    init (data) {
       this.operateDialogVisible = true
       this.offlineDetail = data
     },
@@ -72,7 +133,7 @@ export default {
     /**
      * 提交上架申请
      */
-    rereapplyDataSubmit() {
+    rereapplyDataSubmit () {
       if (!this.reapplyReason) {
         this.$message({
           message: '请填写申请理由',
@@ -81,7 +142,7 @@ export default {
         })
         return
       }
-      let data = {
+      const data = {
         eventId: this.offlineDetail.eventId,
         reapplyReason: this.reapplyReason
       }

@@ -2,8 +2,24 @@
   <div class="app-container">
     <!-- 搜索相关区域 -->
     <div class="filter-container">
-      <el-button size="mini" icon="el-icon-search" class="filter-item" @click="getPage()">{{ $t('table.search') }}</el-button>
-      <el-button v-permission="['multishop:notice:save']" size="mini" icon="el-icon-plus" type="primary" class="filter-item" @click="addOrUpdateHandle()">{{ $t('table.create') }}</el-button>
+      <el-button
+        size="mini"
+        icon="el-icon-search"
+        class="filter-item"
+        @click="getPage()"
+      >
+        {{ $t('table.search') }}
+      </el-button>
+      <el-button
+        v-permission="['multishop:notice:save']"
+        size="mini"
+        icon="el-icon-plus"
+        type="primary"
+        class="filter-item"
+        @click="addOrUpdateHandle()"
+      >
+        {{ $t('table.create') }}
+      </el-button>
     </div>
 
     <!-- 列表相关区域 -->
@@ -16,45 +32,88 @@
       style="width: 100%;"
     >
       <!-- 发布时间 -->
-      <el-table-column :label="$t('multishop.notice.publishTime')" prop="publishTime" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('multishop.notice.publishTime')"
+        prop="publishTime"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.publishTime }}</span>
         </template>
       </el-table-column>
       <!-- 公告标题 -->
-      <el-table-column :label="$t('multishop.notice.title')" prop="title" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('multishop.notice.title')"
+        prop="title"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.title }}</span>
         </template>
       </el-table-column>
       <!-- 状态(1:公布 0:撤回) -->
-      <el-table-column :label="$t('multishop.notice.status')" prop="status" align="center">
-        <template slot-scope="{row}">
-          <el-tag :type="row.status === 0 ? 'danger' : ''">{{ ['撤销','公布'][row.status] }}</el-tag>
+      <el-table-column
+        :label="$t('multishop.notice.status')"
+        prop="status"
+        align="center"
+      >
+        <template #default="{row}">
+          <el-tag :type="row.status === 0 ? 'danger' : ''">
+            {{ ['撤销','公布'][row.status] }}
+          </el-tag>
         </template>
       </el-table-column>
       <!-- 是否置顶 -->
-      <el-table-column :label="$t('multishop.notice.isTop')" prop="isTop" align="center">
-        <template slot-scope="{row}">
-          <el-tag :type="row.isTop === 0 ? 'warning' : ''">{{ ['否','是'][row.isTop] }}</el-tag>
+      <el-table-column
+        :label="$t('multishop.notice.isTop')"
+        prop="isTop"
+        align="center"
+      >
+        <template #default="{row}">
+          <el-tag :type="row.isTop === 0 ? 'warning' : ''">
+            {{ ['否','是'][row.isTop] }}
+          </el-tag>
         </template>
       </el-table-column>
 
-      <el-table-column :label="$t('table.actions')" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="{row}">
-          <el-button v-permission="['multishop:notice:update']" type="text" @click="addOrUpdateHandle(row.id)">
+      <el-table-column
+        :label="$t('table.actions')"
+        align="center"
+        width="230"
+        class-name="small-padding fixed-width"
+      >
+        <template #default="{row}">
+          <el-button
+            v-permission="['multishop:notice:update']"
+            type="text"
+            @click="addOrUpdateHandle(row.id)"
+          >
             {{ $t('table.edit') }}
           </el-button>
-          <el-button v-permission="['multishop:notice:delete']" type="text" @click="deleteHandle(row.id)">
+          <el-button
+            v-permission="['multishop:notice:delete']"
+            type="text"
+            @click="deleteHandle(row.id)"
+          >
             {{ $t('table.delete') }}
           </el-button>
         </template>
       </el-table-column>
     </el-table>
     <!-- 分页条 -->
-    <pagination v-show="pageVO.total>0" :total="pageVO.total" :page.sync="pageQuery.pageNum" :limit.sync="pageQuery.pageSize" @pagination="getPage()" />
+    <pagination
+      v-show="pageVO.total>0"
+      v-model:page="pageQuery.pageNum"
+      v-model:limit="pageQuery.pageSize"
+      :total="pageVO.total"
+      @pagination="getPage()"
+    />
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getPage()" />
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refresh-data-list="getPage()"
+    />
   </div>
 </template>
 
@@ -68,7 +127,7 @@ export default {
   name: '',
   components: { Pagination, AddOrUpdate },
   directives: { permission },
-  data() {
+  data () {
     return {
       // 查询的参数
       pageQuery: {
@@ -89,31 +148,31 @@ export default {
       addOrUpdateVisible: false
     }
   },
-  mounted() {
+  mounted () {
     this.getPage()
   },
   methods: {
-    getPage() {
+    getPage () {
       this.pageLoading = true
       api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
         this.pageVO = pageVO
         this.pageLoading = false
       })
     },
-    addOrUpdateHandle(id) {
+    addOrUpdateHandle (id) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.addOrUpdate.init(id)
       })
     },
-    deleteHandle(id) {
+    deleteHandle (id) {
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
         type: 'warning'
       }).then(() => this.deleteById(id))
     },
-    deleteById(id) {
+    deleteById (id) {
       api.deleteById(id).then(() => {
         this.$message({
           message: this.$t('table.actionSuccess'),

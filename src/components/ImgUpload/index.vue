@@ -1,15 +1,37 @@
 <template>
   <div>
     <div class="plugin-images">
-      <div tabindex="0" class="el-upload el-upload--text" @click="elxImgboxHandle">
-        <img  v-if="value" :src="getImgSrc()" class="pic" />
-        <i v-else class="el-icon-plus pic-uploader-icon"></i>
+      <div
+        tabindex="0"
+        class="el-upload el-upload--text"
+        @click="elxImgboxHandle"
+      >
+        <img
+          v-if="value"
+          :src="getImgSrc()"
+          class="pic"
+        >
+        <i
+          v-else
+          class="el-icon-plus pic-uploader-icon"
+        />
       </div>
     </div>
     <!-- 弹窗, 新增图片 -->
-    <elx-imgbox v-if="elxImgboxVisible" ref="elxImgbox" @refreshPic="refreshPic"></elx-imgbox>
-    <el-dialog :visible.sync="visible" :append-to-body="visible">
-      <img width="100%" :src="getImgSrc()" alt />
+    <elx-imgbox
+      v-if="elxImgboxVisible"
+      ref="elxImgbox"
+      @refresh-pic="refreshPic"
+    />
+    <el-dialog
+      v-model:visible="visible"
+      :append-to-body="visible"
+    >
+      <img
+        width="100%"
+        :src="getImgSrc()"
+        alt
+      >
     </el-dialog>
   </div>
 </template>
@@ -17,13 +39,11 @@
 <script>
 import ElxImgbox from '@/components/imgbox'
 export default {
-  data() {
-    return {
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      elxImgboxVisible: false,
-      visible: false
-    }
+
+  components: {
+    ElxImgbox
   },
+
   props: {
     value: {
       default: '',
@@ -34,12 +54,19 @@ export default {
       type: Boolean
     }
   },
-  components: {
-    ElxImgbox
+  emits: ['input'],
+
+  data () {
+    return {
+      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
+      elxImgboxVisible: false,
+      visible: false
+    }
   },
+
   methods: {
     // 打开图片选择窗
-    elxImgboxHandle() {
+    elxImgboxHandle () {
       if (this.disabled) {
         this.openImg()
         return false
@@ -52,7 +79,7 @@ export default {
     /**
      * 获取图片路径
      */
-    getImgSrc() {
+    getImgSrc () {
       if (!this.value) {
         return ''
       }
@@ -61,10 +88,10 @@ export default {
       }
       return this.resourcesUrl + this.value
     },
-    openImg() {
+    openImg () {
       this.visible = true
     },
-    refreshPic(imagePath) {
+    refreshPic (imagePath) {
       console.log('imagePath', imagePath)
       this.$emit('input', imagePath)
     }

@@ -1,8 +1,19 @@
 <template>
-  <div :class="{fullscreen:fullscreen}" class="tinymce-container" :style="{width:containerWidth}">
-    <textarea :id="tinymceId" class="tinymce-textarea" />
+  <div
+    :class="{fullscreen:fullscreen}"
+    class="tinymce-container"
+    :style="{width:containerWidth}"
+  >
+    <textarea
+      :id="tinymceId"
+      class="tinymce-textarea"
+    />
     <div class="editor-custom-btn-container">
-      <editorImage color="#1890ff" class="editor-upload-btn" @successCBK="imageSuccessCBK" />
+      <editorImage
+        color="#1890ff"
+        class="editor-upload-btn"
+        @success-c-b-k="imageSuccessCBK"
+      />
     </div>
   </div>
 </template>
@@ -23,10 +34,11 @@ const tinymceCDN = 'https://cdn.jsdelivr.net/npm/tinymce-all-in-one@4.9.3/tinymc
 export default {
   name: 'Tinymce',
   components: { editorImage },
+
   props: {
     id: {
       type: String,
-      default: function() {
+      default: function () {
         return 'vue-tinymce-' + +new Date() + ((Math.random() * 1000).toFixed(0) + '')
       }
     },
@@ -37,7 +49,7 @@ export default {
     toolbar: {
       type: Array,
       required: false,
-      default() {
+      default () {
         return []
       }
     },
@@ -56,25 +68,28 @@ export default {
       default: 'auto'
     }
   },
-  data() {
+  emits: ['input'],
+
+  data () {
     return {
       hasChange: false,
       hasInit: false,
       tinymceId: this.id,
       fullscreen: false,
       languageTypeList: {
-        'en': 'en',
-        'zh': 'zh_CN',
-        'es': 'es_MX',
-        'ja': 'ja'
+        en: 'en',
+        zh: 'zh_CN',
+        es: 'es_MX',
+        ja: 'ja'
       }
     }
   },
+
   computed: {
-    language() {
+    language () {
       return this.languageTypeList[this.$store.getters.language]
     },
-    containerWidth() {
+    containerWidth () {
       const width = this.width
       if (/^[\d]+(\.[\d]+)?$/.test(width)) { // matches `100`, `'100'`
         return `${width}px`
@@ -82,34 +97,40 @@ export default {
       return width
     }
   },
+
   watch: {
-    value(val) {
+    value (val) {
       if (!this.hasChange && this.hasInit) {
         this.$nextTick(() =>
           window.tinymce.get(this.tinymceId).setContent(val || ''))
       }
     },
-    language() {
+    language () {
       this.destroyTinymce()
       this.$nextTick(() => this.initTinymce())
     }
   },
-  mounted() {
+
+  mounted () {
     this.init()
   },
-  activated() {
+
+  activated () {
     if (window.tinymce) {
       this.initTinymce()
     }
   },
-  deactivated() {
+
+  deactivated () {
     this.destroyTinymce()
   },
-  destroyed() {
+
+  unmounted () {
     this.destroyTinymce()
   },
+
   methods: {
-    init() {
+    init () {
       // dynamic load tinymce from cdn
       load(tinymceCDN, (err) => {
         if (err) {
@@ -119,7 +140,7 @@ export default {
         this.initTinymce()
       })
     },
-    initTinymce() {
+    initTinymce () {
       const _this = this
       window.tinymce.init({
         language: this.language,
@@ -129,7 +150,7 @@ export default {
         object_resizing: false,
         toolbar: this.toolbar.length > 0 ? this.toolbar : toolbar,
         menubar: this.menubar,
-        plugins: plugins,
+        plugins,
         end_container_on_empty_block: true,
         powerpaste_word_import: 'clean',
         code_dialog_height: 450,
@@ -150,7 +171,7 @@ export default {
             this.$emit('input', editor.getContent())
           })
         },
-        setup(editor) {
+        setup (editor) {
           editor.on('FullscreenStateChanged', (e) => {
             _this.fullscreen = e.state
           })
@@ -194,7 +215,7 @@ export default {
         // },
       })
     },
-    destroyTinymce() {
+    destroyTinymce () {
       const tinymce = window.tinymce.get(this.tinymceId)
       if (this.fullscreen) {
         tinymce.execCommand('mceFullScreen')
@@ -204,13 +225,13 @@ export default {
         tinymce.destroy()
       }
     },
-    setContent(value) {
+    setContent (value) {
       window.tinymce.get(this.tinymceId).setContent(value)
     },
-    getContent() {
+    getContent () {
       window.tinymce.get(this.tinymceId).getContent()
     },
-    imageSuccessCBK(arr) {
+    imageSuccessCBK (arr) {
       const _this = this
       arr.forEach(v => {
         window.tinymce.get(_this.tinymceId).insertContent(`<img class="wscnph" src="${v}" >`)

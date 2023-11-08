@@ -1,20 +1,21 @@
 <template>
   <div class="detail-dialog">
     <el-dialog
+      v-model:visible="visible"
       :title="
         !dataForm.orderId
-          ? this.$i18n.t('table.add')
-          : this.$i18n.t('order.order.orderDetail')
+          ? $i18n.t('table.add')
+          : $i18n.t('order.order.orderDetail')
       "
       :close-on-click-modal="false"
-      :visible.sync="visible"
       width="80%"
     >
+      <!-- native modifier has been removed, please confirm whether the function has been affected  -->
       <el-form
         ref="dataForm"
         :model="dataForm"
         label-width="80px"
-        @keyup.enter.native="dataFormSubmit()"
+        @keyup.enter="dataFormSubmit()"
       >
         <div class="mod-order-orderInfo">
           <div class="content">
@@ -66,7 +67,9 @@
                     {{ $t("order.order.buyA") }}
                   </div>
                   <!-- <div v-if="dataForm.status === 4">订单已完成，等待买家发表评价。</div> -->
-                  <div v-if="dataForm.status === 5">{{ $t("order.order.buyB") }}</div>
+                  <div v-if="dataForm.status === 5">
+                    {{ $t("order.order.buyB") }}
+                  </div>
                   <div v-if="dataForm.status === 6">
                     {{ $t("order.order.orderCanc") }}
                   </div>
@@ -98,15 +101,15 @@
                     :process-status="dataForm.status == 6 ? 'error' : 'wait'"
                   >
                     <el-step
-                      :title="this.$i18n.t('order.order.submitOrders')"
+                      :title="$i18n.t('order.order.submitOrders')"
                       :description="dataForm.createTime"
                     />
                     <el-step
-                      :title="this.$i18n.t('order.order.theBuyerHasPaid')"
+                      :title="$i18n.t('order.order.theBuyerHasPaid')"
                       :description="dataForm.payTime"
                     />
                     <el-step
-                      :title="this.$i18n.t('order.order.buyerHasReceived')"
+                      :title="$i18n.t('order.order.buyerHasReceived')"
                       :description="dataForm.finallyTime"
                     />
                   </el-steps>
@@ -119,7 +122,10 @@
               "
               class="packages"
             >
-              <div v-if="dataForm.deliveryExpresses.length > 1" class="p-tab">
+              <div
+                v-if="dataForm.deliveryExpresses.length > 1"
+                class="p-tab"
+              >
                 <div
                   v-for="(deliveryExpresse,index) in dataForm.deliveryExpresses"
                   :key="index"
@@ -129,16 +135,21 @@
                   {{ $t("order.order.package") }}{{ index + 1 }}
                 </div>
               </div>
-              <div v-if="deliveryExpresse" class="p-con">
+              <div
+                v-if="deliveryExpresse"
+                class="p-con"
+              >
                 <div class="deliver-msg">
                   <div class="d-item">
-                    <div class="text">{{ $t("order.order.deliveryMethod") }}：</div>
+                    <div class="text">
+                      {{ $t("order.order.deliveryMethod") }}：
+                    </div>
                     <div class="res">
                       {{
                         [
-                          this.$i18n.t("order.order.expressDelivery"),
+                          $i18n.t("order.order.expressDelivery"),
                           "",
-                          this.$i18n.t("order.order.noNeedRequired"),
+                          $i18n.t("order.order.noNeedRequired"),
                         ][dataForm.deliveryType - 1]
                       }}
                     </div>
@@ -166,7 +177,10 @@
                       @click="nextItem"
                     />
                     <div class="item-goods">
-                      <div ref="carouser" class="goods-box">
+                      <div
+                        ref="carouser"
+                        class="goods-box"
+                      >
                         <div
                           v-for="(
                             orderItem, index
@@ -175,10 +189,17 @@
                           class="item"
                         >
                           <div class="img">
-                            <img :src="orderItem.pic" alt>
-                            <div class="number">×{{ orderItem.count }}</div>
+                            <img
+                              :src="orderItem.pic"
+                              alt
+                            >
+                            <div class="number">
+                              ×{{ orderItem.count }}
+                            </div>
                           </div>
-                          <div class="name">{{ orderItem.spuName }}</div>
+                          <div class="name">
+                            {{ orderItem.spuName }}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -187,7 +208,10 @@
               </div>
             </div>
             <div class="order-info">
-              <div v-if="dataForm.orderAddr" class="info-item">
+              <div
+                v-if="dataForm.orderAddr"
+                class="info-item"
+              >
                 <div class="item-tit">
                   {{ $t("order.order.recipientInformation") }}
                 </div>
@@ -199,14 +223,25 @@
                         : $t("constant.consignee")
                     }}：
                   </div>
-                  <div class="res">{{ dataForm.orderAddr.consignee }}</div>
+                  <div class="res">
+                    {{ dataForm.orderAddr.consignee }}
+                  </div>
                 </div>
                 <div class="item">
-                  <div class="text">{{ $t("constant.contactTel") }}：</div>
-                  <div class="res">{{ dataForm.orderAddr.mobile }}</div>
+                  <div class="text">
+                    {{ $t("constant.contactTel") }}：
+                  </div>
+                  <div class="res">
+                    {{ dataForm.orderAddr.mobile }}
+                  </div>
                 </div>
-                <div v-if="dataForm.deliveryType !== 2" class="item">
-                  <div class="text">{{ $t("constant.deliveryAddr") }}：</div>
+                <div
+                  v-if="dataForm.deliveryType !== 2"
+                  class="item"
+                >
+                  <div class="text">
+                    {{ $t("constant.deliveryAddr") }}：
+                  </div>
                   <div class="res">
                     {{ dataForm.orderAddr.province
                     }}{{ dataForm.orderAddr.city
@@ -220,7 +255,9 @@
                   {{ $t("order.order.shippingInformation") }}
                 </div>
                 <div class="item">
-                  <div class="text">{{ $t("order.order.delType") }}：</div>
+                  <div class="text">
+                    {{ $t("order.order.delType") }}：
+                  </div>
                   <div class="res">
                     {{
                       [
@@ -230,26 +267,44 @@
                       ][dataForm.deliveryType - 1]
                     }}
                   </div>
-                  <div v-if="dataForm.deliveryType === null" class="res">
+                  <div
+                    v-if="dataForm.deliveryType === null"
+                    class="res"
+                  >
                     {{ $t("order.order.no") }}
                   </div>
                 </div>
               </div>
               <div class="info-item">
-                <div class="item-tit">{{ $t("order.order.paymentInformation") }}</div>
+                <div class="item-tit">
+                  {{ $t("order.order.paymentInformation") }}
+                </div>
                 <div class="item">
-                  <div class="text">{{ $t("order.order.paymentTime") }}：</div>
-                  <div class="res">{{ dataForm.payTime }}</div>
-                  <div v-if="dataForm.payTime === null" class="res">
+                  <div class="text">
+                    {{ $t("order.order.paymentTime") }}：
+                  </div>
+                  <div class="res">
+                    {{ dataForm.payTime }}
+                  </div>
+                  <div
+                    v-if="dataForm.payTime === null"
+                    class="res"
+                  >
                     {{ $t("order.order.no") }}
                   </div>
                 </div>
               </div>
             </div>
             <div class="goods-list">
-              <el-table :data="dataForm.orderItems" border>
-                <el-table-column prop="" :label="this.$i18n.t('constant.product')">
-                  <template slot-scope="scope">
+              <el-table
+                :data="dataForm.orderItems"
+                border
+              >
+                <el-table-column
+                  prop=""
+                  :label="$i18n.t('constant.product')"
+                >
+                  <template #default="scope">
                     <div class="df">
                       <img
                         :src="scope.row.pic"
@@ -264,31 +319,31 @@
                 </el-table-column>
                 <el-table-column
                   prop="price"
-                  :label="this.$i18n.t('order.order.unitPrice')"
+                  :label="$i18n.t('order.order.unitPrice')"
                   width="180"
                   align="center"
                 >
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span>{{ (scope.row.price / 100).toFixed(2) }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
                   prop="count"
-                  :label="this.$i18n.t('order.order.quantity')"
+                  :label="$i18n.t('order.order.quantity')"
                   width="180"
                   align="center"
                 >
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span>{{ scope.row.count }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
                   prop="totalPrice"
-                  :label="this.$i18n.t('order.order.totalPrice')"
+                  :label="$i18n.t('order.order.totalPrice')"
                   width="180"
                   align="center"
                 >
-                  <template slot-scope="scope">
+                  <template #default="scope">
                     <span>{{ (scope.row.spuTotalAmount / 100).toFixed(2) }}</span>
                   </template>
                 </el-table-column>
@@ -296,35 +351,60 @@
               <div class="goods-total">
                 <div class="text-box">
                   <div class="item">
-                    <div class="text">{{ $t("order.order.prodTotalPrice") }}:</div>
-                    <div class="number">￥{{ (dataForm.total / 100).toFixed(2) }}</div>
+                    <div class="text">
+                      {{ $t("order.order.prodTotalPrice") }}:
+                    </div>
+                    <div class="number">
+                      ￥{{ (dataForm.total / 100).toFixed(2) }}
+                    </div>
                   </div>
                   <div class="item act-price">
-                    <div class="text">{{ $t("order.order.amountDue") }}:</div>
-                    <div class="number">￥{{ (dataForm.total / 100).toFixed(2) }}</div>
+                    <div class="text">
+                      {{ $t("order.order.amountDue") }}:
+                    </div>
+                    <div class="number">
+                      ￥{{ (dataForm.total / 100).toFixed(2) }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             <div class="order-log">
-              <div class="log-title">{{ $t("order.order.logs") }}</div>
-              <div v-if="dataForm.createTime" class="log-cont">
+              <div class="log-title">
+                {{ $t("order.order.logs") }}
+              </div>
+              <div
+                v-if="dataForm.createTime"
+                class="log-cont"
+              >
                 {{ dataForm.createTime }} {{ dataForm.nickName }}
                 {{ $t("order.order.createOrder") }}
               </div>
-              <div v-if="dataForm.updateTime" class="log-cont">
+              <div
+                v-if="dataForm.updateTime"
+                class="log-cont"
+              >
                 {{ dataForm.updateTime }} {{ dataForm.nickName }}
                 {{ $t("order.order.orderUpdate") }}
               </div>
-              <div v-if="dataForm.payTime" class="log-cont">
+              <div
+                v-if="dataForm.payTime"
+                class="log-cont"
+              >
                 {{ dataForm.payTime }} {{ dataForm.nickName }}
                 {{ $t("order.order.payment") }}
               </div>
-              <div v-if="dataForm.finallyTime" class="log-cont">
+              <div
+                v-if="dataForm.finallyTime"
+                class="log-cont"
+              >
                 {{ dataForm.finallyTime }} {{ dataForm.nickName
                 }}{{ $t("order.order.completed") }}
               </div>
-              <div v-if="dataForm.cancelTime" class="log-cont">
+              <div
+                v-if="dataForm.cancelTime"
+                class="log-cont"
+              >
                 {{ dataForm.cancelTime }} {{ dataForm.nickName }}
                 {{ $t("order.order.cancelOrder") }}
               </div>
@@ -340,7 +420,7 @@
 import * as api from '@/api/order/order'
 
 export default {
-  data() {
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -371,7 +451,7 @@ export default {
     }
   },
   computed: {
-    stepsStatus: function() {
+    stepsStatus: function () {
       if (this.dataForm.finallyTime) {
         return 4
       } else if (this.dataForm.payTime) {
@@ -384,13 +464,13 @@ export default {
     }
   },
   watch: {
-    visible: function() {
+    visible: function () {
       if (!this.visible) {
         this.orderRemarkUpdateVisible = false
         this.orderAddrUpdateVisible = false
       }
     },
-    deliveryExpresse: function(newVal, oldVal) {
+    deliveryExpresse: function (newVal, oldVal) {
       this.$nextTick(() => {
         this.offsetCount = 0 // 初始化变量
         if (this.deliveryExpresse) {
@@ -400,17 +480,17 @@ export default {
     }
   },
   methods: {
-    init(orderId) {
+    init (orderId) {
       this.dataForm.orderId = orderId || 0
       this.visible = true
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
       })
       if (this.dataForm.orderId) {
         this.getDataList()
       }
     },
-    getDataList() {
+    getDataList () {
       api.orderInfo(this.dataForm.orderId).then((data) => {
         this.dataForm = data
         if (this.dataForm.deliveryExpresses) {
@@ -421,13 +501,13 @@ export default {
     /**
      * 物流事件
      */
-    onClickListDelivery(delivery, index) {
+    onClickListDelivery (delivery, index) {
       this.deliveryExpresse = delivery
       this.indexs = index
     },
     // 商品切换
-    prevItem() {
-      var len = this.deliveryExpresse.orderItems.length
+    prevItem () {
+      const len = this.deliveryExpresse.orderItems.length
       if (len - 5 > 0) {
         if (this.offsetCount > 0) {
           this.offsetCount--
@@ -442,8 +522,8 @@ export default {
       }
     },
 
-    nextItem() {
-      var len = this.deliveryExpresse.orderItems.length
+    nextItem () {
+      const len = this.deliveryExpresse.orderItems.length
       if (len - 5 > 0) {
         if (this.offsetCount < len - 5) {
           this.offsetCount++
@@ -458,17 +538,17 @@ export default {
       }
     },
     // 表单提交
-    dataFormSubmit() {
+    dataFormSubmit () {
     },
     // 修改地址
-    changeUserAddrOrder(userAddrOrder) {
+    changeUserAddrOrder (userAddrOrder) {
       this.orderAddrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.orderAddrUpdate.init(this.dataForm)
       })
     },
     // 修改备注
-    changeRemarks() {
+    changeRemarks () {
       this.orderRemarkUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.orderRemarkUpdate.init(this.dataForm)
@@ -925,4 +1005,3 @@ export default {
   }
 }
 </style>
-

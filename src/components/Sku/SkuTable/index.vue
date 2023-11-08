@@ -1,16 +1,33 @@
 <template>
   <div class="ease-sku-table">
     <!-- 批量设置 -->
-    <div class="batch-settings" v-if="lists[0] && lists[0].spuSkuAttrValues">
+    <div
+      v-if="lists[0] && lists[0].spuSkuAttrValues"
+      class="batch-settings"
+    >
       <div class="batch">
         <div>
           <span class="bat-tit">批量设置</span>
           <span class="set-tips">在下方栏中选择内容进行批量填充</span>
         </div>
-        <el-button size="mini" plain @click="setNow" class="set">立即设置</el-button>
+        <el-button
+          size="mini"
+          plain
+          class="set"
+          @click="setNow"
+        >
+          立即设置
+        </el-button>
       </div>
       <div class="bat-set-sel">
-        <el-select v-if="firstSkuValOptions.length>0" v-model="firstSkuVal" size="mini" class="bat-set-item" placeholder="请选择" style="width:90px">
+        <el-select
+          v-if="firstSkuValOptions.length>0"
+          v-model="firstSkuVal"
+          size="mini"
+          class="bat-set-item"
+          placeholder="请选择"
+          style="width:90px"
+        >
           <el-option
             v-for="item in firstSkuValOptions"
             :key="item.id"
@@ -18,7 +35,14 @@
             :value="item.id"
           />
         </el-select>
-        <el-select v-if="secondSkuValOptions.length>0" v-model="secondSkuVal" size="mini" class="bat-set-item" placeholder="全部" style="width:90px">
+        <el-select
+          v-if="secondSkuValOptions.length>0"
+          v-model="secondSkuVal"
+          size="mini"
+          class="bat-set-item"
+          placeholder="全部"
+          style="width:90px"
+        >
           <el-option
             v-for="item in secondSkuValOptions"
             :key="item.id"
@@ -27,43 +51,61 @@
           />
         </el-select>
         <!-- 库存 -->
-        <el-input class="bat-set-item" size="mini" v-model.number="stockIntVal" :mini="0 "
+        <el-input
+          v-model.number="stockIntVal"
+          class="bat-set-item"
+          size="mini"
+          :mini="0 "
           oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
-          placeholder="库存" style="width:90px"
+          placeholder="库存"
+          style="width:90px"
         />
         <!-- 市场价 -->
-        <el-input-number 
-          class="bat-set-item"
-          type='number'
-          controls-position="right"
-          :precision="2" :step="0.1"
-          :min="0" :max="1000000000"
-          size="mini"
+        <el-input-number
           v-model.number="markedPriceIntVal"
+          class="bat-set-item"
+          type="number"
+          controls-position="right"
+          :precision="2"
+          :step="0.1"
+          :min="0"
+          :max="1000000000"
+          size="mini"
           placeholder="市场价"
           style="width:90px"
         />
         <!-- 销售价 -->
         <el-input-number
-          class="bat-set-item"
-          type='number'
-          controls-position="right"
-          :precision="2" :step="0.1" 
-          :min="0.01" :max="1000000000"
-          size="mini"
           v-model.number="priceIntVal"
+          class="bat-set-item"
+          type="number"
+          controls-position="right"
+          :precision="2"
+          :step="0.1"
+          :min="0.01"
+          :max="1000000000"
+          size="mini"
           placeholder="销售价"
           style="width:90px"
         />
         <!-- 商品条形码 -->
-        <el-input class="bat-set-item" size="mini" v-model.number="barCodeIntVal"
+        <el-input
+          v-model.number="barCodeIntVal"
+          class="bat-set-item"
+          size="mini"
           oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
-          placeholder="商品条形码" style="width:90px"
+          placeholder="商品条形码"
+          style="width:90px"
         />
         <!-- 商品编码 -->
-        <el-input class="bat-set-item" size="mini" v-model.number="skuCodeIntVal"
+        <el-input
+          v-model.number="skuCodeIntVal"
+          class="bat-set-item"
+          size="mini"
           oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
-          placeholder="商品编码" style="width:90px" />
+          placeholder="商品编码"
+          style="width:90px"
+        />
       </div>
     </div>
 
@@ -75,14 +117,17 @@
       :span-method="handleSpanMethod"
       class="tab-con"
     >
-      <template v-for="(label, index) in columns">
+      <template
+        v-for="(label, index) in columns"
+        :key="index"
+      >
         <!-- 为什么要判断label: 动态添加规格名的时候规格名不为undefiend时未动态显示, 没有看table-column实现暂时这么解决  -->
         <el-table-column
           v-if="label"
           :label="label"
-          :key="index">
-          <template slot-scope="scope">
-            {{scope.row.spuSkuAttrValues[index] && scope.row.spuSkuAttrValues[index].attrValueName}}
+        >
+          <template #default="scope">
+            {{ scope.row.spuSkuAttrValues[index] && scope.row.spuSkuAttrValues[index].attrValueName }}
           </template>
         </el-table-column>
       </template>
@@ -90,54 +135,94 @@
         prop="stock"
         label="库存"
         class="tab-int"
-        >
-        <template slot-scope="scope">
-          <el-input-number :min="0" @blur="stockValidAndChange(scope)" v-model.number="scope.row.stock" :disabled="scope.row.status===0" controls-position="right" class="tab-int"></el-input-number>
+      >
+        <template #default="scope">
+          <el-input-number
+            v-model.number="scope.row.stock"
+            :min="0"
+            :disabled="scope.row.status===0"
+            controls-position="right"
+            class="tab-int"
+            @blur="stockValidAndChange(scope)"
+          />
         </template>
       </el-table-column>
       <el-table-column
         prop="marketPriceFee"
         label="市场价(元)"
         class="tab-int"
-        >
-        <template slot-scope="scope">
-          <el-input-number :min="0" :max="1000000000" v-model="scope.row.marketPriceFee" :disabled="scope.row.status===0" controls-position="right" :precision="2" class="tab-int"></el-input-number>
+      >
+        <template #default="scope">
+          <el-input-number
+            v-model="scope.row.marketPriceFee"
+            :min="0"
+            :max="1000000000"
+            :disabled="scope.row.status===0"
+            controls-position="right"
+            :precision="2"
+            class="tab-int"
+          />
         </template>
       </el-table-column>
       <el-table-column
-        prop="priceFee" 
+        prop="priceFee"
         label="销售价(元)"
         class="tab-int"
-        >
-        <template slot-scope="scope">
-          <el-input-number :min="0.01" :max="1000000000" v-model="scope.row.priceFee" :disabled="scope.row.status===0" controls-position="right" :precision="2" class="tab-int"></el-input-number>
+      >
+        <template #default="scope">
+          <el-input-number
+            v-model="scope.row.priceFee"
+            :min="0.01"
+            :max="1000000000"
+            :disabled="scope.row.status===0"
+            controls-position="right"
+            :precision="2"
+            class="tab-int"
+          />
         </template>
       </el-table-column>
       <el-table-column
         prop="barCode"
         label="商品条形码"
         class="tab-int"
-        >
-        <template slot-scope="scope">
-          <el-input :min="0" v-model.number="scope.row.modelId" :disabled="scope.row.status===0" oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')" class="tab-int"></el-input>
+      >
+        <template #default="scope">
+          <el-input
+            v-model.number="scope.row.modelId"
+            :min="0"
+            :disabled="scope.row.status===0"
+            oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+            class="tab-int"
+          />
         </template>
       </el-table-column>
       <el-table-column
         prop="skuCode"
         label="商品编码"
         class="tab-int"
-        >
-        <template slot-scope="scope">
-          <el-input :min="0" v-model.number="scope.row.partyCode" :disabled="scope.row.status===0" oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')" class="tab-int"></el-input>
+      >
+        <template #default="scope">
+          <el-input
+            v-model.number="scope.row.partyCode"
+            :min="0"
+            :disabled="scope.row.status===0"
+            oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+            class="tab-int"
+          />
         </template>
       </el-table-column>
       <el-table-column
+        v-if="spuId && !isNoSkuValue"
         prop="skuCode"
         label="sku状态"
-        v-if="spuId && !isNoSkuValue"
       >
-        <template slot-scope="scope">
-         <el-button type="text" @click="skuStatusOperation(scope)">{{scope.row.status === 1 ? '禁用' : '启用' }}</el-button>
+        <template #default="scope">
+          <el-button
+            type="text"
+            @click="skuStatusOperation(scope)"
+          >
+            {{ scope.row.status === 1 ? '禁用' : '启用' }}
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -147,21 +232,20 @@
 <script>
 import { flatten as genFlatten } from '@/utils'
 
-
 export default {
-  name: 'sku-table',
+  name: 'SkuTable',
 
   props: {
     data: {
       type: Array,
-      default() {
+      default () {
         return []
       }
     },
     // 需要附加的字段
     flatten: {
       type: Array,
-      default() {
+      default () {
         return []
       }
     },
@@ -184,8 +268,11 @@ export default {
       default: false
     }
   },
+  emits: ['on-change-data'],
+
   originList: [],
-  data() {
+
+  data () {
     return {
       rowspan: [],
       lists: [],
@@ -195,20 +282,20 @@ export default {
       markedPriceIntVal: '',
       priceIntVal: '',
       barCodeIntVal: '', // 条形码
-      skuCodeIntVal: '',
+      skuCodeIntVal: ''
     }
   },
 
   computed: {
-    filter() {
+    filter () {
       return this.data.filter(item => item.text && item.leaf.length)
     },
 
-    columns() {
+    columns () {
       return this.filter.map(item => item[this.optionText])
     },
 
-    firstSkuValOptions() {
+    firstSkuValOptions () {
       const { data } = this
       if (data[0]) {
         if (data[0].leaf) {
@@ -219,7 +306,7 @@ export default {
       }
     },
 
-    secondSkuValOptions() {
+    secondSkuValOptions () {
       const { data } = this
       if (data[1]) {
         if (data[1].leaf) {
@@ -228,33 +315,31 @@ export default {
       } else {
         return []
       }
-    },
+    }
 
   },
-
-
 
   watch: {
     filter: {
       deep: true,
       immediate: true,
-      handler() {
+      handler () {
         const lists = this.genLists(this.filter, this.flatten)
         this.lists = lists
         this.computeRowspan()
       }
     },
-    flatten() {
+    flatten () {
       const lists = this.genLists(this.filter, this.flatten)
       this.originList = JSON.parse(JSON.stringify(this.genLists(this.filter, this.flatten)))
-      if(this.lists.length === 1 && !this.lists[0].spuSkuAttrValues) {
+      if (this.lists.length === 1 && !this.lists[0].spuSkuAttrValues) {
         this.flatten.forEach(el => {
-          let baseData = {
+          const baseData = {
             stock: el.stock, // 库存
             marketPriceFee: el.marketPriceFee, // 市场价
             priceFee: el.priceFee, // 销售价
             partyCode: el.partyCode, // 商品编码
-            modelId: el.modelId, // 条形码
+            modelId: el.modelId // 条形码
           }
           this.lists = [baseData]
         })
@@ -264,7 +349,7 @@ export default {
     lists: {
       deep: true,
       immediate: true,
-      handler(data) {
+      handler (data) {
         this.$emit('on-change-data', data)
       }
     }
@@ -272,12 +357,12 @@ export default {
 
   methods: {
     genLists: (filter, flatten) => {
-      let baseData = {
+      const baseData = {
         stock: 0, // 库存
         marketPriceFee: '', // 市场价
         priceFee: 0.01, // 销售价
         partyCode: '', // 商品编码
-        modelId: '', // 条形码
+        modelId: '' // 条形码
       }
       if (filter.length && genFlatten(filter, flatten).length) {
         return genFlatten(filter, flatten, { extraData: baseData })
@@ -286,13 +371,12 @@ export default {
       }
     },
 
-    computeRowspan() {
+    computeRowspan () {
       this.rowspan = []
       const rowspan = (index) => {
-        let span = []
+        const span = []
         let dot = 0
         this.lists.map((item, idx) => {
-
           if (idx === 0) {
             span.push(1)
           } else {
@@ -312,10 +396,9 @@ export default {
       this.filter.map((item, index) => {
         rowspan(index)
       })
-
     },
 
-    handleSpanMethod({ row, column, rowIndex, columnIndex }) {
+    handleSpanMethod ({ row, column, rowIndex, columnIndex }) {
       for (let i = 0; i < this.filter.length; i++) {
         if (columnIndex === i) {
           if (this.rowspan[i] && this.rowspan[i][rowIndex]) {
@@ -334,9 +417,9 @@ export default {
     },
 
     // 库存修改与验证
-    stockValidAndChange(scope) {
-      const { $index, row} = scope;
-      const originStock = this.originList?.[$index]?.stock;
+    stockValidAndChange (scope) {
+      const { $index, row } = scope
+      const originStock = this.originList?.[$index]?.stock
       if (!this.lists[$index].stock) {
         this.lists[$index].stock = 0
       }
@@ -346,36 +429,36 @@ export default {
           // row.stock = originStock;
           this.lists[$index].stock = originStock
           this.$message({
-            message: `输入库存不得小于原有库存`,
+            message: '输入库存不得小于原有库存',
             duration: 1000
           })
           return
         }
-        this.$set(this.lists[$index], 'changeStock', parseInt(row.stock) - parseInt(originStock))
+        this.lists[$index].changeStock = parseInt(row.stock) - parseInt(originStock)
       }
     },
 
     // 立即设置
-    setNow() {
+    setNow () {
       const {
         lists, firstSkuVal = '', secondSkuVal = '', spuId,
         stockIntVal = parseInt(stockIntVal), markedPriceIntVal = parseInt(markedPriceIntVal),
         priceIntVal = parseFloat(priceIntVal), skuCodeIntVal = parseInt(skuCodeIntVal),
         barCodeIntVal = parseInt(barCodeIntVal)
       } = this
-      let newItem = {}
+      const newItem = {}
       const setItem = (item, index) => {
         // item.stock = stockIntVal ? parseInt(stockIntVal) : item.stock || 0 // 库存，正整数
         item.marketPriceFee = markedPriceIntVal >= 0 ? markedPriceIntVal : item.marketPriceFee || 0
-        item.priceFee = priceIntVal ? priceIntVal : item.priceFee || 0.01 // 销售价
-        item.partyCode = skuCodeIntVal ? skuCodeIntVal : item.partyCode || '' // 商品编码
-        item.modelId = barCodeIntVal ? barCodeIntVal : item.modelId || '' // 商品条形码
+        item.priceFee = priceIntVal || item.priceFee || 0.01 // 销售价
+        item.partyCode = skuCodeIntVal || item.partyCode || '' // 商品编码
+        item.modelId = barCodeIntVal || item.modelId || '' // 商品条形码
         // 回显 && 原库存 > 0
         if (spuId && item.stock >= 0) {
           // 输入库存 是否>=0 且 是否>=原有库存
           if (stockIntVal >= item.stock) {
             item.stock = stockIntVal
-            this.$set(this.lists[index], 'changeStock', stockIntVal - parseInt(this.originList[index].stock)) // 改变的库存数量(新增-原有)
+            this.lists[index].changeStock = stockIntVal - parseInt(this.originList[index].stock) // 改变的库存数量(新增-原有)
           }
         } else {
           item.stock = stockIntVal >= 0 ? stockIntVal : item.stock || 0
@@ -384,7 +467,7 @@ export default {
       }
       const vaildSkuValArr = [firstSkuVal, secondSkuVal]
       lists.forEach((item, index) => {
-        const { spuSkuAttrValues } = item;
+        const { spuSkuAttrValues } = item
         // secondSkuVal
         if (
           spuSkuAttrValues.every((attr, idx) => vaildSkuValArr[idx] === -1 || attr.attrValueId === vaildSkuValArr[idx])
@@ -398,10 +481,10 @@ export default {
     /**
      * sku状态
      */
-    skuStatusOperation(scope) {
-      const { $index, row} = scope
+    skuStatusOperation (scope) {
+      const { $index, row } = scope
       const currentStatus = this.lists?.[$index]?.status
-      let newStatus = currentStatus === 0 ? 1 : 0
+      const newStatus = currentStatus === 0 ? 1 : 0
       this.lists[$index].status = newStatus
     }
 

@@ -1,27 +1,28 @@
 <template>
   <div class="mod-order-order">
     <div class="screening-conditions">
+      <!-- native modifier has been removed, please confirm whether the function has been affected  -->
       <el-form
         :inline="true"
         :model="dataForm"
-        @keyup.enter.native="getDataList()"
+        @keyup.enter="getDataList()"
       >
         <div class="search">
           <!-- &nbsp;&nbsp;&nbsp; -->
-          <el-form-item :label="this.$i18n.t('order.order.number') + '：'">
+          <el-form-item :label="$i18n.t('order.order.number') + '：'">
             <el-input
               v-model="dataForm.orderId"
-              :placeholder="this.$i18n.t('order.order.number')"
+              :placeholder="$i18n.t('order.order.number')"
               clearable
               size="small"
             />
           </el-form-item>
-          <el-form-item :label="this.$i18n.t('order.order.status') + '：'">
+          <el-form-item :label="$i18n.t('order.order.status') + '：'">
             <template>
               <el-select
                 v-model="status"
                 clearable
-                :placeholder="this.$i18n.t('order.order.statusMsg')"
+                :placeholder="$i18n.t('order.order.statusMsg')"
                 size="small"
                 @change="orderStatus"
               >
@@ -37,47 +38,68 @@
         </div>
         <div class="search">
           <el-form-item
-            :label="this.$i18n.t('order.order.theRecipientSName') + '：'"
+            :label="$i18n.t('order.order.theRecipientSName') + '：'"
           >
             <el-input
               v-model="dataForm.consignee"
-              :placeholder="this.$i18n.t('order.order.pleaseEnRecipName')"
+              :placeholder="$i18n.t('order.order.pleaseEnRecipName')"
               clearable
               size="small"
             />
           </el-form-item>
-          <el-form-item :label="this.$i18n.t('constant.contactTel') + '：'">
+          <el-form-item :label="$i18n.t('constant.contactTel') + '：'">
             <el-input
               v-model="dataForm.mobile"
-              :placeholder="this.$i18n.t('order.order.pleaseEnterNumber')"
+              :placeholder="$i18n.t('order.order.pleaseEnterNumber')"
               clearable
               size="small"
             />
           </el-form-item>
         </div>
         <div class="search">
-          <el-form-item :label="this.$i18n.t('order.order.createTime') + '：'">
+          <el-form-item :label="$i18n.t('order.order.createTime') + '：'">
             <el-date-picker
               v-model="dateRange"
               size="small"
               type="datetimerange"
-              :range-separator="this.$i18n.t('date.tip')"
+              :range-separator="$i18n.t('date.tip')"
               value-format="yyyy-MM-dd HH:mm:ss"
-              :start-placeholder="this.$i18n.t('date.start')"
-              :end-placeholder="this.$i18n.t('date.end')"
+              :start-placeholder="$i18n.t('date.start')"
+              :end-placeholder="$i18n.t('date.end')"
             />
-            <el-button size="small" class="ml10" @click="setDateRange(1)">{{
-              $t("date.t")
-            }}</el-button>
-            <el-button size="small" @click="setDateRange(2)">{{
-              $t("date.y")
-            }}</el-button>
-            <el-button size="small" @click="setDateRange(3)">{{
-              $t("date.n")
-            }}</el-button>
-            <el-button size="small" @click="setDateRange(4)">{{
-              $t("date.m")
-            }}</el-button>
+            <el-button
+              size="small"
+              class="ml10"
+              @click="setDateRange(1)"
+            >
+              {{
+                $t("date.t")
+              }}
+            </el-button>
+            <el-button
+              size="small"
+              @click="setDateRange(2)"
+            >
+              {{
+                $t("date.y")
+              }}
+            </el-button>
+            <el-button
+              size="small"
+              @click="setDateRange(3)"
+            >
+              {{
+                $t("date.n")
+              }}
+            </el-button>
+            <el-button
+              size="small"
+              @click="setDateRange(4)"
+            >
+              {{
+                $t("date.m")
+              }}
+            </el-button>
           </el-form-item>
         </div>
         <div class="operation-box">
@@ -88,7 +110,9 @@
               icon="el-icon-search"
               size="small"
               @click="searchChange()"
-            >{{ $t("order.order.query") }}</el-button>
+            >
+              {{ $t("order.order.query") }}
+            </el-button>
             <!-- <el-button @click="showConsignmentInfo()"
                       type="primary"
             size="small">导出待发货订单</el-button>-->
@@ -99,7 +123,9 @@
               icon="el-icon-delete"
               size="small"
               @click="clear()"
-            >{{ $t("table.clear") }}</el-button>
+            >
+              {{ $t("table.clear") }}
+            </el-button>
           </el-form-item>
         </div>
       </el-form>
@@ -160,24 +186,42 @@
             <el-col :span="5">
               <span class="item product">{{ $t("constant.product") }}</span>
             </el-col>
-            <el-col :span="5" class="transaction-price">
+            <el-col
+              :span="5"
+              class="transaction-price"
+            >
               <span class="item">{{ $t("order.order.transaQuantity") }}</span>
             </el-col>
-            <el-col :span="3" class="column-title">
+            <el-col
+              :span="3"
+              class="column-title"
+            >
               <span class="item">{{
                 $t("order.order.actualPaymentAmount")
               }}</span>
             </el-col>
-            <el-col :span="2" class="column-title">
+            <el-col
+              :span="2"
+              class="column-title"
+            >
               <span class="item">支付状态</span>
             </el-col>
-            <el-col :span="3" class="column-title">
+            <el-col
+              :span="3"
+              class="column-title"
+            >
               <span class="item">{{ $t("order.order.buyerConsignee") }}</span>
             </el-col>
-            <el-col :span="2" class="column-title">
+            <el-col
+              :span="2"
+              class="column-title"
+            >
               <span class="item">{{ $t("order.order.status") }}</span>
             </el-col>
-            <el-col :span="2" class="column-title">
+            <el-col
+              :span="2"
+              class="column-title"
+            >
               <span class="item">{{ $t("table.actions") }}</span>
             </el-col>
           </el-row>
@@ -236,7 +280,10 @@
                           }}
                         </div>
                         <!-- <span class="prod-info">{{orderItem.skuName}}</span> -->
-                        <div v-if="order.preSaleTime" class="order-status">
+                        <div
+                          v-if="order.preSaleTime"
+                          class="order-status"
+                        >
                           {{ $t("order.order.estimatedShippingTime") }}：{{
                             order.preSaleTime
                           }}
@@ -250,7 +297,10 @@
                   </div>
                 </div>
               </el-col>
-              <el-col :span="3" style="height: 100%">
+              <el-col
+                :span="3"
+                style="height: 100%"
+              >
                 <div class="item">
                   <div>
                     <span
@@ -264,7 +314,10 @@
                   </div>
                 </div>
               </el-col>
-              <el-col :span="2" style="height: 100%">
+              <el-col
+                :span="2"
+                style="height: 100%"
+              >
                 <div class="item">
                   <div>
                     <span v-if="!order.isPayed">未支付</span>
@@ -272,15 +325,25 @@
                   </div>
                 </div>
               </el-col>
-              <el-col :span="3" style="height: 100%">
+              <el-col
+                :span="3"
+                style="height: 100%"
+              >
                 <div class="item">
                   <div class="buyer-info">
-                    <div class="buyer-name">{{ order.consignee || '' }}</div>
-                    <div class="buyer-phone">{{ order.mobile || '' }}</div>
+                    <div class="buyer-name">
+                      {{ order.consignee || '' }}
+                    </div>
+                    <div class="buyer-phone">
+                      {{ order.mobile || '' }}
+                    </div>
                   </div>
                 </div>
               </el-col>
-              <el-col :span="2" style="height: 100%">
+              <el-col
+                :span="2"
+                style="height: 100%"
+              >
                 <div class="item">
                   <!-- <span v-if="order.refundStatus === 1" size="small" type="danger">退款申请中</span> -->
                   <span>
@@ -304,13 +367,19 @@
                       size="small"
                       type="danger"
                     >{{ $t("order.order.successfulTransaction") }}</span>
-                    <span v-else-if="order.status === 6" size="small">{{
+                    <span
+                      v-else-if="order.status === 6"
+                      size="small"
+                    >{{
                       $t("order.order.transactionFailed")
                     }}</span>
                   </span>
                 </div>
               </el-col>
-              <el-col :span="2" style="height: 100%">
+              <el-col
+                :span="2"
+                style="height: 100%"
+              >
                 <div class="item">
                   <div class="operate">
                     <!-- <button onclick="">打印订单</button><br> -->
@@ -318,13 +387,17 @@
                       type="text"
                       size="small"
                       @click="addOrUpdateHandle(order.orderId)"
-                    >{{ $t("order.order.seeDetails") }}</el-button>
+                    >
+                      {{ $t("order.order.seeDetails") }}
+                    </el-button>
                     <el-button
                       v-if="order.status === 2 && order.deliveryType !== 2"
                       size="small"
                       type="text"
                       @click="changeOrder(order)"
-                    >{{ $t("order.order.delivery") }}</el-button>
+                    >
+                      {{ $t("order.order.delivery") }}
+                    </el-button>
                   </div>
                 </div>
               </el-col>
@@ -336,7 +409,10 @@
             </div>
           </div>-->
         </div>
-        <div v-if="!pageVO.list.length" class="empty">
+        <div
+          v-if="!pageVO.list.length"
+          class="empty"
+        >
           {{ $t("order.order.noData") }}
         </div>
       </div>
@@ -344,9 +420,9 @@
     <!-- 分页条 -->
     <pagination
       v-show="pageVO.total > 0"
+      v-model:page="pageQuery.pageNum"
+      v-model:limit="pageQuery.pageSize"
       :total="pageVO.total"
-      :page.sync="pageQuery.pageNum"
-      :limit.sync="pageQuery.pageSize"
       @pagination="getDataList()"
     />
 
@@ -354,12 +430,12 @@
     <add-or-update
       v-if="addOrUpdateVisible"
       ref="addOrUpdate"
-      @refreshDataList="getDataList"
+      @refresh-data-list="getDataList"
     />
     <order-delivery-update
       v-if="devyVisible"
       ref="orderDeliveryUpdate"
-      @refreshOrderDeliveryUpdate="getDataList"
+      @refresh-order-delivery-update="getDataList"
     />
   </div>
 </template>
@@ -377,7 +453,7 @@ export default {
     AddOrUpdate,
     OrderDeliveryUpdate
   },
-  data() {
+  data () {
     return {
       showHeadScroll: false, // 修改物流相关
       logVisible: false,
@@ -467,22 +543,22 @@ export default {
   watch: {
 
   },
-  created() {
+  created () {
     // 携带参数查询
     this.getDataList(this.$route.query)
   },
-  activated() {
+  activated () {
     // 携带参数查询
-    var query = this.$route.query
+    const query = this.$route.query
     if (Object.keys(query).length > 0) {
       this.getDataList(query)
     }
   },
-  mounted() {
+  mounted () {
     // 监听页面滚动
     window.addEventListener('scroll', this.scrollToTop)
   },
-  destroyed() {
+  unmounted () {
     // 页面销毁时移除监听
     window.removeEventListener('scroll', this.handleScroll)
   },
@@ -490,7 +566,7 @@ export default {
     /**
      * 页面滚动事件
      */
-    scrollToTop() {
+    scrollToTop () {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
       this.showHeadScroll = scrollTop > 400
     },
@@ -498,7 +574,7 @@ export default {
     /**
      * 获取包裹物流信息
      */
-    reviseLogistics(orderId) {
+    reviseLogistics (orderId) {
       // console.log(orderId)
       this.logVisible = !this.logVisible
       this.$http({
@@ -521,23 +597,24 @@ export default {
     /**
      * 获取数据列表
      */
-    getDataList(params) {
+    getDataList (params) {
       this.dataListLoading = true
 
       api.page(Object.assign({
-        ...this.pageQuery, ...this.searchParam,
-        'orderId': this.dataForm.orderId,
+        ...this.pageQuery,
+        ...this.searchParam,
+        orderId: this.dataForm.orderId,
         // 'spuName': this.dataForm.spuName,
-        'orderType': this.dataForm.orderType,
-        'payType': this.dataForm.payType,
-        'consignee': this.dataForm.consignee,
-        'mobile': this.dataForm.mobile,
-        'status': this.status,
-        'deliveryType': this.dataForm.deliveryType,
-        'stationName': this.dataForm.stationName,
-        'refundStatus': this.dataForm.refundStatus,
-        'startTime': this.dateRange === null ? null : this.dateRange[0], // 开始时间
-        'endTime': this.dateRange === null ? null : this.dateRange[1] // 结束时间
+        orderType: this.dataForm.orderType,
+        payType: this.dataForm.payType,
+        consignee: this.dataForm.consignee,
+        mobile: this.dataForm.mobile,
+        status: this.status,
+        deliveryType: this.dataForm.deliveryType,
+        stationName: this.dataForm.stationName,
+        refundStatus: this.dataForm.refundStatus,
+        startTime: this.dateRange === null ? null : this.dateRange[0], // 开始时间
+        endTime: this.dateRange === null ? null : this.dateRange[1] // 结束时间
       }, params)).then(pageVO => {
         this.pageVO = pageVO
         this.sts = !this.status ? 0 : this.status
@@ -548,26 +625,26 @@ export default {
     /**
      * 导航选择状态
      */
-    selectNav(e) {
-      var sts = e.currentTarget.dataset.sts
+    selectNav (e) {
+      const sts = e.currentTarget.dataset.sts
       this.sts = parseInt(sts)
       this.status = this.sts === 0 ? null : parseInt(sts)
       this.getDataList()
     },
     // 多选
-    selectionChangeHandle(val) {
+    selectionChangeHandle (val) {
       this.dataListSelections = val
     },
-    orderStatus(val) {
+    orderStatus (val) {
       this.status = val
     },
     /**
      * 根据选项设置时间
      * 1:今天 2:昨天 3: 近七天 4:近30天 5:近60天
      */
-    setDateRange(val) {
-      var startDay = null
-      var endDay = null
+    setDateRange (val) {
+      let startDay = null
+      let endDay = null
       if (val === 1) {
         startDay = 0
         endDay = 0
@@ -590,15 +667,15 @@ export default {
       this.dateRange = [startTime, endTime]
     },
     // 新增 / 修改
-    addOrUpdateHandle(val) {
+    addOrUpdateHandle (val) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.addOrUpdate.init(val)
       })
     },
     // 删除
-    deleteHandle(id) {
-      var ids = id ? [id] : this.dataListSelections.map(item => {
+    deleteHandle (id) {
+      const ids = id ? [id] : this.dataListSelections.map(item => {
         return item.orderId
       })
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
@@ -622,27 +699,27 @@ export default {
         })
       }).catch(() => { })
     },
-    showConsignmentInfo() {
+    showConsignmentInfo () {
       this.consignmentInfoVisible = true
       this.$nextTick(() => {
         this.$refs.consignmentInfo.init()
       })
     },
     // 清空按钮
-    clear() {
+    clear () {
       this.dataForm = {}
       this.dateRange = []
       this.status = null
     },
     // 搜索查询
-    searchChange() {
+    searchChange () {
       this.pageQuery.pageNum = 1
       this.getDataList()
     },
     /**
        * 发货
        */
-    changeOrder(order) {
+    changeOrder (order) {
       this.devyVisible = true
       this.$nextTick(() => {
         this.$refs.orderDeliveryUpdate.init(order)

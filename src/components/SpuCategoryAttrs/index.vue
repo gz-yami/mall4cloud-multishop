@@ -1,13 +1,26 @@
 <template>
   <div class="spu-catagory-attrs">
     <div class="part-section">
-      <div v-for="(attrs, attrIdx) in attrsList" :key="attrIdx" class="part-sec-item">
+      <div
+        v-for="(attrs, attrIdx) in attrsList"
+        :key="attrIdx"
+        class="part-sec-item"
+      >
         <div class="flx">
           <div class="sec-tit">
-            <span v-if="attrs.searchType == 1" class="stars-icon" />
+            <span
+              v-if="attrs.searchType == 1"
+              class="stars-icon"
+            />
             <span class="name">{{ attrs.name }}</span>
           </div>
-          <el-select v-if="attrs.attrValues && attrs.attrValues.length > 0" v-model="attrs.attrValue" placeholder="请选择" @change="getValueOfBasicAttrs(attrs, 0)" style="min-width: 150px; width:60%">
+          <el-select
+            v-if="attrs.attrValues && attrs.attrValues.length > 0"
+            v-model="attrs.attrValue"
+            placeholder="请选择"
+            style="min-width: 150px; width:60%"
+            @change="getValueOfBasicAttrs(attrs, 0)"
+          >
             <el-option
               v-for="item in attrs.attrValues"
               :key="item.attrValueId"
@@ -15,7 +28,13 @@
               :value="item.attrValueId"
             />
           </el-select>
-          <el-input v-else v-model="attrs.attrValue" :placeholder="'请输入'+attrs.name" @blur="getValueOfBasicAttrs(attrs, 1)" style="min-width: 150px; width:60%" />
+          <el-input
+            v-else
+            v-model="attrs.attrValue"
+            :placeholder="'请输入'+attrs.name"
+            style="min-width: 150px; width:60%"
+            @blur="getValueOfBasicAttrs(attrs, 1)"
+          />
         </div>
       </div>
     </div>
@@ -24,16 +43,18 @@
 
 <script>
 export default {
+
   props: {
     attrsList: {
       type: Array,
-      default() {
+      default () {
         return []
       }
-    },
+    }
   },
+  emits: ['getValueOfBasicAttrs'],
 
-  data() {
+  data () {
     return {
 
     }
@@ -41,7 +62,7 @@ export default {
 
   methods: {
     // 获取数据
-    getValueOfBasicAttrs(attrs, st) {
+    getValueOfBasicAttrs (attrs, st) {
       this.$emit('getValueOfBasicAttrs', this.attrsList, attrs, st)
     }
   }

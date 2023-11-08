@@ -5,48 +5,59 @@
       :key="index"
       :index="index"
       :sku="item"
-      :skuTree="skuTreeData"
-      :onChangeHasImg="onChangeHasImg"
-      :onSkuChange="rebuildSku"
-      :onSkuRemove="handleSkuRemove"
-      />
+      :sku-tree="skuTreeData"
+      :on-change-has-img="onChangeHasImg"
+      :on-sku-change="rebuildSku"
+      :on-sku-remove="handleSkuRemove"
+    />
     <!-- 添加属性 -->
     <div class="part-form-item">
-      <el-button class="add-btn" size="mini" @click="addSku"><i class="el-icon-plus"></i>添加属性</el-button>
-      <div v-if="!categoryId && warning" class="warning">请先选择分类！</div>
-      <div v-if="!hasSkuValue" class="warning">请先选择已添加属性的属性值！</div>
-      <div v-if="!hasSkuId" class="warning">请先选择已添加属性！</div>
+      <el-button
+        class="add-btn"
+        size="mini"
+        @click="addSku"
+      >
+        <i class="el-icon-plus" />添加属性
+      </el-button>
+      <div
+        v-if="!categoryId && warning"
+        class="warning"
+      >
+        请先选择分类！
+      </div>
+      <div
+        v-if="!hasSkuValue"
+        class="warning"
+      >
+        请先选择已添加属性的属性值！
+      </div>
+      <div
+        v-if="!hasSkuId"
+        class="warning"
+      >
+        请先选择已添加属性！
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import skuGroup from '@/components/Sku/SkuGroup'
-import { Message } from 'element-ui'
+import { ElMessage as Message } from 'element-plus'
 
 const noop = res => res
 const noopPromise = () => Promise.resolve(noop)
 
 export default {
-  name: 'sku-block',
-
-  provide() {
-    return {
-      'ease': this
-    }
-  },
+  name: 'SkuBlock',
 
   components: {
     skuGroup
   },
 
-  data() {
+  provide () {
     return {
-      data: this.salesAttrs,
-      skuTreeData: this.skuTree,
-      warning: false,
-      hasSkuValue: this.hasSkuVal,
-      hasSkuId: true
+      ease: this
     }
   },
 
@@ -65,13 +76,13 @@ export default {
     },
     salesAttrs: {
       type: Array,
-      default() {
+      default () {
         return []
       }
     },
     saveSalesAttrs: {
       type: Array,
-      default() {
+      default () {
         return []
       }
     },
@@ -81,7 +92,7 @@ export default {
     },
     headers: {
       type: Object,
-      default() {
+      default () {
         return {}
       }
     },
@@ -96,13 +107,13 @@ export default {
     // 可选规格列表
     skuTree: {
       type: Array,
-      default() {
+      default () {
         return []
       }
     },
     sku: {
       type: Object,
-      default() {
+      default () {
         return {}
       }
     },
@@ -150,12 +161,23 @@ export default {
       default: null
     }
   },
+  emits: ['input', 'on-change', 'on-change'],
+
+  data () {
+    return {
+      data: this.salesAttrs,
+      skuTreeData: this.skuTree,
+      warning: false,
+      hasSkuValue: this.hasSkuVal,
+      hasSkuId: true
+    }
+  },
 
   watch: {
     data: {
       deep: true,
       immediate: true,
-      handler(salesAttrs) {
+      handler (salesAttrs) {
         this.$emit('input', salesAttrs)
         // 已选属性值，隐藏错误提示
         if (this.data?.some((item) => item.id && item.leaf?.length > 0)) {
@@ -165,27 +187,35 @@ export default {
         if (this.data?.some((item) => item.id)) {
           this.hasSkuId = true
         }
-      },
+      }
     },
 
-    skuTree(skuTree) {
+    skuTree (skuTree) {
       this.skuTreeData = skuTree
     },
 
-    categoryId() {
+    categoryId () {
       if (!this.categoryId) {
         this.data.splice(0, this.data.length)
       }
     }
   },
 
+  beforeMount () {
+    const { onFetchGroup } = this
+    if (typeof (onFetchGroup) == 'function') {
+      onFetchGroup().then(skuTree => {
+        this.skuTreeData = skuTree
+      })
+    }
+  },
+
   methods: {
-    onChangeHasImg(data) {
+    onChangeHasImg (data) {
       this.hasSkuImg = data
     },
 
-
-    addSku() {
+    addSku () {
       this.hasSkuValue = true
       this.hasSkuId = true
       if (!this.categoryId) {
@@ -205,11 +235,10 @@ export default {
       this.data.push({
         leaf: []
       })
-
     },
 
-    rebuildSku(sku, index) {
-      let { skuTreeData, optionValue, optionText } = this
+    rebuildSku (sku, index) {
+      const { skuTreeData, optionValue, optionText } = this
       if (
         this.data.some(
           (item, idx) => item[optionText] === sku[optionText] && index !== idx
@@ -218,16 +247,16 @@ export default {
         this.$message({
           message: '规格名不能重复',
           duration: 800
-        });
+        })
         return false
       }
-      this.$set(this.data, index, Object.assign({}, sku))
+      this.data[index] = Object.assign({}, sku)
 
       this.$emit('on-change', this.data)
     },
 
-    handleSkuRemove(sku, index) {
-      let { data, skuTreeData, optionValue } = this
+    handleSkuRemove (sku, index) {
+      const { data, skuTreeData, optionValue } = this
       data.splice(index, 1)
 
       if (index === 0 && data.length > 0) {
@@ -239,22 +268,13 @@ export default {
       // 属性选择列表中不存在被删除的已选属性
       if (!skuTreeData?.some(item => item[optionValue] === sku[optionValue])) {
         // 被删除的已选属性id为数字类型（即非手动创建的属性）
-        if(typeof (sku[optionValue]) === 'number') {
+        if (typeof (sku[optionValue]) === 'number') {
           // 删除某个已选属性后，往属性选项列表中增加被删除的已选属性
           skuTreeData.push(sku)
         }
       }
       // data[index].leaf[0].is_show = false
       this.$emit('on-change', this.data)
-    }
-  },
-
-  beforeMount() {
-    let { onFetchGroup } = this
-    if (typeof (onFetchGroup) == 'function') {
-      onFetchGroup().then(skuTree => {
-        this.skuTreeData = skuTree
-      })
     }
   }
 }

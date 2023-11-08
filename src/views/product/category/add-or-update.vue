@@ -1,30 +1,65 @@
 <template>
-  <el-dialog :title="dataForm.categoryId? $t('table.edit'): $t('table.create')" :close-on-click-modal="false" :visible.sync="visible" top="10vh" width="750px" @close="closeDialog">
-    <el-form ref="dataForm" :rules="rules" :model="dataForm" label-position="left" label-width="90px" class="category-form" style="width: 500px; margin-left:50px;">
+  <el-dialog
+    v-model:visible="visible"
+    :title="dataForm.categoryId? $t('table.edit'): $t('table.create')"
+    :close-on-click-modal="false"
+    top="10vh"
+    width="750px"
+    @close="closeDialog"
+  >
+    <el-form
+      ref="dataForm"
+      :rules="rules"
+      :model="dataForm"
+      label-position="left"
+      label-width="90px"
+      class="category-form"
+      style="width: 500px; margin-left:50px;"
+    >
       <!-- 分类名称 -->
-      <el-form-item :label="$t('product.category.name')" prop="name">
-        <el-input v-model="dataForm.name" :placeholder="$t('product.category.enterCateName')" maxlength="255" />
+      <el-form-item
+        :label="$t('product.category.name')"
+        prop="name"
+      >
+        <el-input
+          v-model="dataForm.name"
+          :placeholder="$t('product.category.enterCateName')"
+          maxlength="255"
+        />
       </el-form-item>
       <!-- 分类图片 -->
-      <el-form-item :label="$t('product.category.imgUrl')" prop="imgUrl">
+      <el-form-item
+        :label="$t('product.category.imgUrl')"
+        prop="imgUrl"
+      >
         <img-upload v-model="dataForm.imgUrl" />
-        <span v-if="dataForm.parentId === 0">{{ this.$i18n.t('product.category.recommImgSize') + '510*80' }}</span>
+        <span v-if="dataForm.parentId === 0">{{ $i18n.t('product.category.recommImgSize') + '510*80' }}</span>
       </el-form-item>
       <!-- 分类图标 -->
-      <el-form-item :label="$t('product.category.icon')" prop="icon">
+      <el-form-item
+        :label="$t('product.category.icon')"
+        prop="icon"
+      >
         <img-upload v-model="dataForm.icon" />
       </el-form-item>
       <!-- 上级分类 -->
-      <el-form-item v-if="showSelectColumnOfCategory" class="higher-category" :label="this.$i18n.t('product.category.categoryParent')">
+      <el-form-item
+        v-if="showSelectColumnOfCategory"
+        class="higher-category"
+        :label="$i18n.t('product.category.categoryParent')"
+      >
         <category-group
           :selected-categorys="selectedCategorys"
           :show-category-select-btn="showCategorySelectBtn"
           :single="true"
-          @selectOrReviseCategory="selectOrReviseCategory"
+          @select-or-revise-category="selectOrReviseCategory"
         />
       </el-form-item>
       <!-- 排序 -->
-      <el-form-item :label="$t('product.category.seq')" prop="seq">
+      <el-form-item
+        :label="$t('product.category.seq')"
+        prop="seq"
+      >
         <el-input-number
           v-model="dataForm.seq"
           :min="0"
@@ -34,15 +69,24 @@
       </el-form-item>
     </el-form>
 
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="visible = false">
-        {{ $t('table.cancel') }}
-      </el-button>
-      <el-button type="primary" @click="dataFormSubmit()">
-        {{ $t('table.confirm') }}
-      </el-button>
-    </div>
-    <category-selector v-if="categorySelectorVisible" ref="categorySelector" @getCategorySelected="getCategorySelected" />
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="visible = false">
+          {{ $t('table.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="dataFormSubmit()"
+        >
+          {{ $t('table.confirm') }}
+        </el-button>
+      </div>
+    </template>
+    <category-selector
+      v-if="categorySelectorVisible"
+      ref="categorySelector"
+      @get-category-selected="getCategorySelected"
+    />
   </el-dialog>
 </template>
 
@@ -52,12 +96,15 @@ import ImgUpload from '@/components/ImgUpload'
 import categorySelector from '@/components/CategorySelector'
 import categoryGroup from '@/components/CategoryGroup'
 export default {
+
   components: {
     ImgUpload,
     categorySelector,
     categoryGroup
   },
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -88,12 +135,13 @@ export default {
       }
     }
   },
+
   methods: {
-    init(categoryId) {
+    init (categoryId) {
       this.visible = true
       this.dataForm.categoryId = categoryId || 0
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         if (!this.dataForm.categoryId) {
           return
         }
@@ -109,7 +157,7 @@ export default {
     },
 
     // 关闭dialog时
-    closeDialog() {
+    closeDialog () {
       this.dataForm = {
         categoryId: 0,
         shopId: null,
@@ -131,7 +179,7 @@ export default {
     /**
      * 选择分类弹窗
      */
-    selectOrReviseCategory() {
+    selectOrReviseCategory () {
       this.categorySelectorVisible = true
       this.$nextTick(() => {
         this.$refs.categorySelector.init(1) // 1代表从创建分类进入
@@ -146,7 +194,7 @@ export default {
     /**
      * 获取子组件返回数据
      */
-    getCategorySelected(selectedCategorys, parentId) {
+    getCategorySelected (selectedCategorys, parentId) {
       console.log('父组件接收子组件数据：selectedCategorys:', selectedCategorys, '；parentId:', parentId)
       this.categorySelectorVisible = false
       this.selectedCategorys = selectedCategorys
@@ -154,7 +202,7 @@ export default {
     },
 
     // 表单提交
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (!valid) {
           return
@@ -170,7 +218,7 @@ export default {
             onClose: () => {
               this.visible = false
               this.$emit('refreshDataList')
-              this.$refs['dataForm'].resetFields()
+              this.$refs.dataForm.resetFields()
             }
           })
         })

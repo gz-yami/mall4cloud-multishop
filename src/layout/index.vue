@@ -1,11 +1,21 @@
 <template>
-  <div :class="classObj" class="app-wrapper">
-    <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
+  <div
+    :class="classObj"
+    class="app-wrapper"
+  >
+    <div
+      v-if="device==='mobile'&&sidebar.opened"
+      class="drawer-bg"
+      @click="handleClickOutside"
+    />
     <div :class="{'fixed-header':fixedHeader}">
       <navbar />
     </div>
     <div class="main-container">
-      <sidebar class="sidebar-container" :class="{'fixed-sidebar':isCoverHead===true}" />
+      <sidebar
+        class="sidebar-container"
+        :class="{'fixed-sidebar':isCoverHead===true}"
+      />
       <app-main />
     </div>
   </div>
@@ -24,7 +34,7 @@ export default {
     Sidebar
   },
   mixins: [ResizeMixin],
-  data() {
+  data () {
     return {
       isCoverHead: false
     }
@@ -37,14 +47,14 @@ export default {
       needTagsView: state => state.settings.tagsView,
       fixedHeader: state => state.settings.fixedHeader
     }),
-    classObj() {
+    classObj () {
       return {
         withoutAnimation: this.sidebar.withoutAnimation,
         mobile: this.device === 'mobile'
       }
     }
   },
-  mounted() {
+  mounted () {
     window.addEventListener('scroll', () => {
       const scrollTop = document.documentElement.scrollTop || document.body.scrollTop || window.pageYOffset
       if (scrollTop > 80) {
@@ -55,7 +65,7 @@ export default {
     })
   },
   methods: {
-    handleClickOutside() {
+    handleClickOutside () {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }
   }

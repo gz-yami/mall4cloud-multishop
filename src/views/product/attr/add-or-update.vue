@@ -1,38 +1,109 @@
 <template>
   <div class="attr-manage">
-    <el-dialog :title="dataForm.attrId? $t('table.edit'): $t('table.create')" :close-on-click-modal="false" :destroy-on-close="true" :visible.sync="visible" width="750px" @close="closeDialog">
-      <el-form ref="dataForm" :rules="rules" :model="dataForm" label-position="left" label-width="80px" style="min-width: 600px; width: 600px; margin-left:35px;">
+    <el-dialog
+      v-model:visible="visible"
+      :title="dataForm.attrId? $t('table.edit'): $t('table.create')"
+      :close-on-click-modal="false"
+      :destroy-on-close="true"
+      width="750px"
+      @close="closeDialog"
+    >
+      <el-form
+        ref="dataForm"
+        :rules="rules"
+        :model="dataForm"
+        label-position="left"
+        label-width="80px"
+        style="min-width: 600px; width: 600px; margin-left:35px;"
+      >
         <!-- 属性名称 -->
-        <el-form-item :label="$t('product.attr.name')" prop="name">
-          <el-input v-model="dataForm.name" maxlength="20" show-word-limit placeholder="请输入属性名称" />
+        <el-form-item
+          :label="$t('product.attr.name')"
+          prop="name"
+        >
+          <el-input
+            v-model="dataForm.name"
+            maxlength="20"
+            show-word-limit
+            placeholder="请输入属性名称"
+          />
         </el-form-item>
         <!-- 属性描述 -->
-        <el-form-item :label="$t('product.attr.desc')" prop="desc">
-          <el-input v-model="dataForm.desc" type="textarea" :rows="2" maxlength="30" show-word-limit placeholder="请输入新增属性的相关描述，30字以内" />
+        <el-form-item
+          :label="$t('product.attr.desc')"
+          prop="desc"
+        >
+          <el-input
+            v-model="dataForm.desc"
+            type="textarea"
+            :rows="2"
+            maxlength="30"
+            show-word-limit
+            placeholder="请输入新增属性的相关描述，30字以内"
+          />
         </el-form-item>
-        <el-form-item :label="$t('product.attr.attrValue')" prop="attrValues">
+        <el-form-item
+          :label="$t('product.attr.attrValue')"
+          prop="attrValues"
+        >
           <div class="attr-int">
-            <el-input v-model="attrValue" clearable maxlength="20" show-word-limit placeholder="请输入要添加的属性值，20字以内" />
-            <el-button icon="el-icon-plus" class="add-btn" @click="addAttrValue(attrValue)">添加</el-button>
+            <el-input
+              v-model="attrValue"
+              clearable
+              maxlength="20"
+              show-word-limit
+              placeholder="请输入要添加的属性值，20字以内"
+            />
+            <el-button
+              icon="el-icon-plus"
+              class="add-btn"
+              @click="addAttrValue(attrValue)"
+            >
+              添加
+            </el-button>
           </div>
-          <div v-if="dataForm.attrValues.length" class="attr-val">
+          <div
+            v-if="dataForm.attrValues.length"
+            class="attr-val"
+          >
             <div class="attr-scr">
-              <div v-for="(attr,idx) in dataForm.attrValues" :key="attr.attrValueId" :class="['attr-val-item',attr.error?'error':'']">
-                <el-input v-model="attr.value" maxlength="20" show-word-limit placeholder="请输入要添加的属性值，20字以内" @blur="checkIntValue(idx)" />
-                <el-button type="text" class="txt-del-btn" @click="deleteAttrCalue(idx)">删除</el-button>
+              <div
+                v-for="(attr,idx) in dataForm.attrValues"
+                :key="attr.attrValueId"
+                :class="['attr-val-item',attr.error?'error':'']"
+              >
+                <el-input
+                  v-model="attr.value"
+                  maxlength="20"
+                  show-word-limit
+                  placeholder="请输入要添加的属性值，20字以内"
+                  @blur="checkIntValue(idx)"
+                />
+                <el-button
+                  type="text"
+                  class="txt-del-btn"
+                  @click="deleteAttrCalue(idx)"
+                >
+                  删除
+                </el-button>
               </div>
             </div>
           </div>
         </el-form-item>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="visible = false">
-          {{ $t('table.cancel') }}
-        </el-button>
-        <el-button type="primary" @click="dataFormSubmit()">
-          {{ $t('table.confirm') }}
-        </el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="visible = false">
+            {{ $t('table.cancel') }}
+          </el-button>
+          <el-button
+            type="primary"
+            @click="dataFormSubmit()"
+          >
+            {{ $t('table.confirm') }}
+          </el-button>
+        </div>
+      </template>
     </el-dialog>
     <!-- <category-selector v-if="categorySelectorVisible" ref="categorySelector" @getCategorySelected="getCategorySelected" /> -->
   </div>
@@ -43,11 +114,14 @@ import * as api from '@/api/product/attr'
 // import categorySelector from '@/components/CategorySelector'
 // import categoryGroup from '@/components/CategoryGroup'
 export default {
+
   components: {
     // categorySelector
     // categoryGroup
   },
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -69,16 +143,19 @@ export default {
       categorySelectorVisible: false // 分类弹窗显隐
     }
   },
-  mounted() {
+
+  mounted () {
   },
-  created() {
+
+  created () {
   },
+
   methods: {
-    init(attrId) {
+    init (attrId) {
       this.dataForm.attrId = attrId || 0
       this.visible = true
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         if (!this.dataForm.attrId) {
           this.attrValue = null
           this.dataForm.attrValues = []
@@ -95,11 +172,11 @@ export default {
     /**
      * 分类回显
      */
-    categoryShow(categorys) {
+    categoryShow (categorys) {
       if (categorys.length) {
-        var categoryObj = {}
-        var categoryIds = []
-        var catagorys = []
+        let categoryObj = {}
+        const categoryIds = []
+        let catagorys = []
         categorys.forEach((el, index) => {
           categoryIds.push(el.categoryId)
           if (el.pathNames && el.pathNames.length) {
@@ -119,7 +196,7 @@ export default {
     },
 
     // 关闭dialog时
-    closeDialog() {
+    closeDialog () {
       this.dataForm = {
         attrId: 0,
         attrValues: [], // 属性值列表
@@ -135,7 +212,7 @@ export default {
     /**
      * 选择分类弹窗
      */
-    selectOrReviseCategory() {
+    selectOrReviseCategory () {
       this.categorySelectorVisible = true
       this.$nextTick(() => {
         this.$refs.categorySelector.init() // 1代表从创建分类进入
@@ -145,10 +222,10 @@ export default {
     /**
      * 获取子组件返回数据
      */
-    getCategorySelected(selectedCategorys, categoryId) {
+    getCategorySelected (selectedCategorys, categoryId) {
       // console.log('获取子组件返回数据：selectedCategorys:', selectedCategorys, '；parentId:', categoryId)
       this.categorySelectorVisible = false
-      var categoryObj = {}
+      const categoryObj = {}
       categoryObj.firstCategoryName = selectedCategorys[0]
       categoryObj.secondCategoryName = selectedCategorys[1]
       categoryObj.threeCategoryName = selectedCategorys[2]
@@ -158,7 +235,6 @@ export default {
           if (item === categoryId) {
             this.selectedCategorys.splice(index, 1)
             this.dataForm.categoryIds.splice(index, 1)
-            return
           }
         })
       }
@@ -167,7 +243,7 @@ export default {
     },
 
     // 删除选中的某一项分类
-    deleteCategoryItemOfSelected(index) {
+    deleteCategoryItemOfSelected (index) {
       this.selectedCategorys.splice(index, 1)
       this.dataForm.categoryIds.splice(index, 1)
     },
@@ -175,7 +251,7 @@ export default {
     /**
      * 添加属性值
      */
-    addAttrValue(attrVal) {
+    addAttrValue (attrVal) {
       if (!attrVal) {
         return
       }
@@ -192,7 +268,7 @@ export default {
     /**
      * 删除属性值
      */
-    deleteAttrCalue(idx) {
+    deleteAttrCalue (idx) {
       this.dataForm.attrValues.splice(idx, 1)
       // console.log('删除属性值dataForm.attrValues：', this.dataForm.attrValues)
     },
@@ -200,7 +276,7 @@ export default {
     /**
      * 失焦时属性值是否为空
      */
-    checkIntValue(idx) {
+    checkIntValue (idx) {
       if (!this.dataForm.attrValues[idx].value) {
         this.$message({
           message: '已创建的属性值不能为空！请重新创建',
@@ -214,7 +290,7 @@ export default {
     /**
      * 表单提交
      */
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (!valid) {
           return
@@ -244,7 +320,7 @@ export default {
             onClose: () => {
               this.visible = false
               this.$emit('refreshDataList')
-              this.$refs['dataForm'].resetFields()
+              this.$refs.dataForm.resetFields()
             }
           })
         })

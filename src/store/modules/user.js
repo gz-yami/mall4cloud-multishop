@@ -37,7 +37,7 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
+  login ({ commit }, userInfo) {
     const { username, password, captcha } = userInfo
     return new Promise((resolve, reject) => {
       login({ principal: username.trim(), credentials: password, captchaVerification: captcha, sysType: 1 }).then(response => {
@@ -55,7 +55,7 @@ const actions = {
   },
 
   // get permissions
-  listPermissions({ commit, state }) {
+  listPermissions ({ commit, state }) {
     return new Promise((resolve, reject) => {
       if (state.isAdmin) {
         commit('SET_ROLES', [''])
@@ -81,7 +81,7 @@ const actions = {
   },
 
   // get userInfo
-  getUserInfo({ commit, state }) {
+  getUserInfo ({ commit, state }) {
     return new Promise((resolve, reject) => {
       shopUserInfo().then(shopUser => {
         commit('SET_NAME', shopUser.nickName)
@@ -95,7 +95,7 @@ const actions = {
   },
 
   // get userInfo
-  listMenuIds({ commit, state }) {
+  listMenuIds ({ commit, state }) {
     return new Promise((resolve, reject) => {
       listMenuIds().then(menuIds => {
         resolve(menuIds)
@@ -106,7 +106,7 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state, dispatch }) {
+  logout ({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
@@ -126,7 +126,7 @@ const actions = {
   },
 
   // remove token
-  resetToken({ commit }) {
+  resetToken ({ commit }) {
     return new Promise(resolve => {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
@@ -136,7 +136,7 @@ const actions = {
   },
 
   // dynamically modify permissions
-  async changeRoles({ commit, dispatch }, role) {
+  async changeRoles ({ commit, dispatch }, role) {
     const token = role + '-token'
 
     commit('SET_TOKEN', token)
@@ -150,7 +150,7 @@ const actions = {
     const accessRoutes = await dispatch('permission/generateRoutes', roles, { root: true })
 
     // dynamically add accessible routes
-    router.addRoutes(accessRoutes)
+    accessRoutes.forEach(item => router.addRoute(item))
 
     // reset visited views and cached views
     dispatch('tagsView/delAllViews', null, { root: true })

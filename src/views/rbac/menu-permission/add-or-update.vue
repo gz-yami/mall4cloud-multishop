@@ -1,19 +1,29 @@
 <template>
-  <el-dialog :title="dataForm.menuPermissionId? $t('table.edit'): $t('table.create')" :visible.sync="visible">
+  <el-dialog
+    v-model:visible="visible"
+    :title="dataForm.menuPermissionId? $t('table.edit'): $t('table.create')"
+  >
     <div class="up-wrapper">
+      <!-- native modifier has been removed, please confirm whether the function has been affected  -->
       <el-form
         ref="dataForm"
         :model="dataForm"
         :rules="dataRule"
         label-width="80px"
-        @keyup.enter.native="dataFormSubmit()"
+        @keyup.enter="dataFormSubmit()"
       >
         <!-- 资源名称 -->
-        <el-form-item :label="$t('rbac.menuPermission.name')" prop="name">
+        <el-form-item
+          :label="$t('rbac.menuPermission.name')"
+          prop="name"
+        >
           <el-input v-model="dataForm.name" />
         </el-form-item>
         <!-- 上级菜单 -->
-        <el-form-item label="上级菜单" prop="menuId">
+        <el-form-item
+          label="上级菜单"
+          prop="menuId"
+        >
           <el-cascader
             v-model="selectedMenu"
             expand-trigger="hover"
@@ -24,33 +34,49 @@
           />
         </el-form-item>
         <!-- 请求方法 1.GET 2.POST 3.PUT 4.DELETE -->
-        <el-form-item label="请求方法" prop="method">
+        <el-form-item
+          label="请求方法"
+          prop="method"
+        >
           <el-radio-group v-model="dataForm.method">
             <el-radio
               v-for="index of 4"
               :key="index"
               :label="index"
-            >{{ ['', 'GET', 'POST', 'PUT', 'DELETE'][index] }}</el-radio>
+            >
+              {{ ['', 'GET', 'POST', 'PUT', 'DELETE'][index] }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <!-- 资源对应服务器路径 -->
-        <el-form-item label="资源路径" prop="uri">
+        <el-form-item
+          label="资源路径"
+          prop="uri"
+        >
           <el-input v-model="dataForm.uri" />
         </el-form-item>
         <!-- 权限对应的编码 -->
-        <el-form-item label="授权标识" prop="permission">
+        <el-form-item
+          label="授权标识"
+          prop="permission"
+        >
           <el-input v-model="dataForm.permission" />
         </el-form-item>
       </el-form>
     </div>
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="visible = false">
-        {{ $t('table.cancel') }}
-      </el-button>
-      <el-button type="primary" @click="dataFormSubmit()">
-        {{ $t('table.confirm') }}
-      </el-button>
-    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="visible = false">
+          {{ $t('table.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="dataFormSubmit()"
+        >
+          {{ $t('table.confirm') }}
+        </el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -60,7 +86,9 @@ import * as menuApi from '@/api/rbac/menu'
 import * as api from '@/api/rbac/menu-permission'
 
 export default {
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -96,12 +124,13 @@ export default {
       }
     }
   },
+
   methods: {
-    init(menuPermissionId) {
+    init (menuPermissionId) {
       this.dataForm.menuPermissionId = menuPermissionId || 0
       this.visible = true
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         menuApi.menuList({ ...this.searchParam }).then(data => {
           this.menuList = treeDataTranslate(data)
           this.pageLoading = false
@@ -116,20 +145,20 @@ export default {
         }
       })
     },
-    handleSelectMenuChange(val) {
+    handleSelectMenuChange (val) {
       this.dataForm.menuId = val[val.length - 1]
     },
     // 表单提交
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (valid) {
           const params = {
-            'menuPermissionId': this.dataForm.menuPermissionId || undefined,
-            'menuId': this.dataForm.menuId || undefined,
-            'name': this.dataForm.name,
-            'permission': this.dataForm.permission,
-            'uri': this.dataForm.uri,
-            'method': this.dataForm.method
+            menuPermissionId: this.dataForm.menuPermissionId || undefined,
+            menuId: this.dataForm.menuId || undefined,
+            name: this.dataForm.name,
+            permission: this.dataForm.permission,
+            uri: this.dataForm.uri,
+            method: this.dataForm.method
           }
 
           const request = this.dataForm.menuPermissionId ? api.update(params) : api.save(params)
@@ -141,7 +170,7 @@ export default {
               onClose: () => {
                 this.visible = false
                 this.$emit('refreshDataList')
-                this.$refs['dataForm'].resetFields()
+                this.$refs.dataForm.resetFields()
               }
             })
           })

@@ -3,20 +3,52 @@
     <!-- 搜索相关区域 -->
     <div class="filter-container">
       <!-- <el-button size="mini" icon="el-icon-search" class="filter-item" @click="getPage()">{{ $t('table.search') }}</el-button> -->
-      <el-button v-permission="['product:category:save']" size="mini" icon="el-icon-plus" type="primary" class="filter-item" @click="addOrUpdateHandle()">{{ $t('table.create') }}</el-button>
+      <el-button
+        v-permission="['product:category:save']"
+        size="mini"
+        icon="el-icon-plus"
+        type="primary"
+        class="filter-item"
+        @click="addOrUpdateHandle()"
+      >
+        {{ $t('table.create') }}
+      </el-button>
     </div>
 
     <!-- 分类列表 -->
     <div :class="['category-list', threeList.length ? 'box-border' : '']">
-      <div v-for="(renderList, level) in renderListData" :key="level" :class="['addr-list-box', renderListData.length?'active':'']">
+      <div
+        v-for="(renderList, level) in renderListData"
+        :key="level"
+        :class="['addr-list-box', renderListData.length?'active':'']"
+      >
         <div class="addr-list">
           <!-- <div v-for="(item, index) in renderList" :key="index" :class="['addr-item', selectedsData.length > 0 && selectedsData[selectedsData.length-1].categoryId == item.categoryId ? 'active' : '']"> -->
-          <div v-for="(item, index) in renderList" :key="index" :class="['addr-item', currentSelectId == item.categoryId ? 'active' : '']">
-            <div class="dot" @click="handleAddrListSelect(item, level)">{{ item.name }}</div>
+          <div
+            v-for="(item, index) in renderList"
+            :key="index"
+            :class="['addr-item', currentSelectId == item.categoryId ? 'active' : '']"
+          >
+            <div
+              class="dot"
+              @click="handleAddrListSelect(item, level)"
+            >
+              {{ item.name }}
+            </div>
             <div class="btn">
               <div class="tag">
-                <el-tag v-if="item.status == 0" type="danger">下架</el-tag>
-                <el-tag v-else size="small">正常</el-tag>
+                <el-tag
+                  v-if="item.status == 0"
+                  type="danger"
+                >
+                  下架
+                </el-tag>
+                <el-tag
+                  v-else
+                  size="small"
+                >
+                  正常
+                </el-tag>
               </div>
               <el-button
                 v-permission="['product:category:update']"
@@ -24,39 +56,56 @@
                 icon="el-icon-edit"
                 size="small"
                 @click="addOrUpdateHandle(item.categoryId)"
-              >编辑</el-button>
+              >
+                编辑
+              </el-button>
               <!-- 上架 -->
               <el-button
                 v-if="item.status === 0"
                 type="text"
                 icon="el-icon-top"
                 @click="enableOrDisable(item.categoryId, item.status, index)"
-              >{{ $t('action.putOnShelf') }}</el-button>
+              >
+                {{ $t('action.putOnShelf') }}
+              </el-button>
               <!-- 下架 -->
               <el-button
                 v-if="item.status === 1"
                 type="text"
                 icon="el-icon-bottom"
                 @click="enableOrDisable(item.categoryId, item.status, index)"
-              >{{ $t('action.offShelf') }}</el-button>
+              >
+                {{ $t('action.offShelf') }}
+              </el-button>
               <el-button
                 v-permission="['product:category:delete']"
                 type="text"
                 icon="el-icon-delete"
                 size="small"
                 @click="deleteHandle(item, level)"
-              >删除</el-button>
+              >
+                删除
+              </el-button>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-if="!renderListData.length" class="nodata">暂无数据</div>
+      <div
+        v-if="!renderListData.length"
+        class="nodata"
+      >
+        暂无数据
+      </div>
     </div>
     <!-- 分页条 -->
     <!-- <pagination v-show="pageVO.total>0" :total="pageVO.total" :page.sync="pageQuery.pageNum" :limit.sync="pageQuery.pageSize" @pagination="getPage()" /> -->
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getPage()" />
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refresh-data-list="getPage()"
+    />
   </div>
 </template>
 
@@ -73,7 +122,7 @@ export default {
     AddOrUpdate
   },
   directives: { permission },
-  data() {
+  data () {
     return {
       selectedsData: [], // 记录选中值
       renderListData: [], // 地址列表
@@ -102,11 +151,11 @@ export default {
       currentSelectId: '' // 当前选中的id
     }
   },
-  mounted() {
+  mounted () {
     this.getPage()
   },
   methods: {
-    getPage() {
+    getPage () {
       this.pageLoading = true
       api.shopCategoryPage({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
         this.secondList = this.threeList = []
@@ -117,7 +166,7 @@ export default {
     },
 
     // 设置初始数据
-    setInitRenderListData(treeData) {
+    setInitRenderListData (treeData) {
       this.selectedsData.splice(0, this.selectedsData.length) // 1. 删除旧已选中数据
       // 删除旧的渲染列表并添加新的第一级渲染列表
       if (treeData.length > 0) {
@@ -129,13 +178,13 @@ export default {
       }
     },
     // 获取渲染列表
-    getRenderListData(data) {
+    getRenderListData (data) {
       return data && data.children || []
     },
     /**
      * 监听列表项选择
      */
-    handleAddrListSelect(selectData, level) {
+    handleAddrListSelect (selectData, level) {
       this.selectedsData.splice(level, 1, selectData) // 记录选中值
       this.currentSelectId = selectData.categoryId
       console.log('记录选中值selectedsData:', this.selectedsData)
@@ -152,14 +201,14 @@ export default {
       console.log('renderListData:', this.renderListData)
     },
     // 更改渲染列表数据
-    changeRenderListData({ startLevel, changeLength, changeValue }) {
+    changeRenderListData ({ startLevel, changeLength, changeValue }) {
       this.renderListData.splice(startLevel, changeLength, ...changeValue)
     },
 
     /**
      * 更新
      */
-    addOrUpdateHandle(categoryId) {
+    addOrUpdateHandle (categoryId) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.addOrUpdate.init(categoryId)
@@ -168,7 +217,7 @@ export default {
     /**
      * 删除
      */
-    deleteHandle(item, level) {
+    deleteHandle (item, level) {
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
@@ -181,7 +230,7 @@ export default {
         })
       })
     },
-    deleteById(categoryId) {
+    deleteById (categoryId) {
       api.deleteById(categoryId).then(() => {
         this.$message({
           message: this.$t('table.actionSuccess'),
@@ -195,8 +244,8 @@ export default {
     /**
      * 上架/下架分类
      */
-    enableOrDisable(categoryId, sts, idx) {
-      var categoryDTO = {}
+    enableOrDisable (categoryId, sts, idx) {
+      const categoryDTO = {}
       categoryDTO.categoryId = categoryId
       categoryDTO.status = sts === 0 ? 1 : 0
       this.$confirm(sts === 1 ? '下架当前分类后，当前分类下的所有商品也将被下架，是否确认下架当前分类?' : '是否确认上架当前分类?', '提示', {

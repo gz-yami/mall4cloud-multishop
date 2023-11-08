@@ -4,29 +4,51 @@
       <div
         v-for="(item, index) in sku.leaf"
         :key="index"
-        class="spec-name-int">
-          <el-tag :type="item.type" effect="plain" closable @close="handleRemoveSkuLeaf(index)">{{ item[optionText] }}</el-tag>
-          <div v-if="item.imgUrl" class="spec-imgbox">
-            <img-upload
-              v-if="hasSkuImage"
-              v-model="item.imgUrl"
-              @input="handleUploadSuccess(item, $event)"
-              class="spec-img" />
-              <div v-if="hasSkuImage && item.imgUrl" class="preview-btn" @click="picturePreview(item.imgUrl)">预览</div>
+        class="spec-name-int"
+      >
+        <el-tag
+          :type="item.type"
+          effect="plain"
+          closable
+          @close="handleRemoveSkuLeaf(index)"
+        >
+          {{ item[optionText] }}
+        </el-tag>
+        <div
+          v-if="item.imgUrl"
+          class="spec-imgbox"
+        >
+          <img-upload
+            v-if="hasSkuImage"
+            v-model="item.imgUrl"
+            class="spec-img"
+            @input="handleUploadSuccess(item, $event)"
+          />
+          <div
+            v-if="hasSkuImage && item.imgUrl"
+            class="preview-btn"
+            @click="picturePreview(item.imgUrl)"
+          >
+            预览
           </div>
+        </div>
       </div>
 
       <!-- 新增 -->
-      <div class="sku-item" v-if="sku[optionValue] && sku[optionValue] !== 0">
+      <div
+        v-if="sku[optionValue] && sku[optionValue] !== 0"
+        class="sku-item"
+      >
         <el-popover
+          v-model="visiable"
           placement="bottom"
           width="200"
           trigger="click"
-          v-model="visiable">
+        >
           <el-select
+            v-model="leafValue"
             class="popover-select"
             size="mini"
-            v-model="leafValue"
             multiple
             filterable
             allow-create
@@ -35,20 +57,29 @@
             style="width:100%"
             placeholder="属性值"
             @change="createSkuLeaf"
-            @visible-change="status => !status && this.handleSelectSku()"
-            >
+            @visible-change="status => !status && handleSelectSku()"
+          >
             <el-option
               v-for="item in skuOptions"
               :key="item[optionValue]"
               :label="item[optionText]"
-              :value="item[optionValue]">
-            </el-option>
+              :value="item[optionValue]"
+            />
           </el-select>
           <!-- 新增 -->
-          <el-button slot="reference" circle  type="primary" plain size="mini" class="cursor"><i class="el-icon-plus" /></el-button>
+          <template #reference>
+            <el-button
+              circle
+              type="primary"
+              plain
+              size="mini"
+              class="cursor"
+            >
+              <i class="el-icon-plus" />
+            </el-button>
+          </template>
         </el-popover>
       </div>
-
     </div>
   </div>
 </template>
@@ -57,25 +88,16 @@
 import ImgUpload from '@/components/ImgUpload'
 const noop = res => res
 export default {
+
+  components: { ImgUpload },
   inject: [
     'ease'
   ],
 
-  components: { ImgUpload },
-
-  data() {
-    return {
-      visiable: false,
-      leafValue: [],
-      skuOptions: [],
-      id: 0
-    }
-  },
-
   props: {
     sku: {
       type: Object,
-      default() {
+      default () {
         return {}
       }
     },
@@ -89,12 +111,21 @@ export default {
     }
   },
 
+  data () {
+    return {
+      visiable: false,
+      leafValue: [],
+      skuOptions: [],
+      id: 0
+    }
+  },
+
   computed: {
-    optionValue() {
+    optionValue () {
       return this.ease.optionValue
     },
 
-    optionText() {
+    optionText () {
       return this.ease.optionText
     }
   },
@@ -103,27 +134,32 @@ export default {
     sku: {
       deep: true,
       immediate: true,
-      handler(sku) {
+      handler (sku) {
         this.fetchLeafById(sku[this.optionValue])
       }
     }
   },
 
+  created () {
+    const { sku, optionValue } = this
+    sku[optionValue] && this.fetchLeafById(sku[optionValue])
+  },
+
   methods: {
-    handleHideVisiable() {
+    handleHideVisiable () {
       this.visiable = false
     },
 
-    handleResetLeafValue() {
+    handleResetLeafValue () {
       this.leafValue = []
     },
 
-    fetchLeafById(id) {
+    fetchLeafById (id) {
       if (!id) return
       this.ease.onFetchSku(id).then(skuOptions => {
         this.id = id
         this.skuOptions = skuOptions
-        let skuList = []
+        const skuList = []
         // 筛选未选择的属性
         this.skuOptions.forEach(skuItem => {
           if (!this.sku.leaf.find(item => item.id === skuItem.id)) {
@@ -134,15 +170,15 @@ export default {
       })
     },
 
-    handleRemoveSkuLeaf(index) {
-      let { sku } = this
+    handleRemoveSkuLeaf (index) {
+      const { sku } = this
       sku.leaf.splice(index, 1)
 
       this.onSkuLeafChange(sku.leaf)
     },
 
-    handleRemoveImage(id) {
-      let { sku, optionValue } = this
+    handleRemoveImage (id) {
+      const { sku, optionValue } = this
       sku?.leaf?.forEach(item => {
         if (item[optionValue] === id) {
           item.imgUrl = ''
@@ -152,8 +188,8 @@ export default {
       this.onSkuLeafChange(sku.leaf)
     },
 
-    filterSkuOptions(data) {
-      const oldSellData = [];
+    filterSkuOptions (data) {
+      const oldSellData = []
       const addSelData = []
       const skuOptions = this.skuOptions
       data.forEach(item => {
@@ -168,8 +204,8 @@ export default {
       }
     },
 
-    createSkuLeaf(selVal) {
-      let { sku, optionValue, skuOptions } = this
+    createSkuLeaf (selVal) {
+      const { sku, optionValue, skuOptions } = this
       // 过滤需要新增的规格值
       // data = data.filter(item => typeof (item) === 'string')
       const { addSelData, oldSellData } = this.filterSkuOptions(selVal)
@@ -180,7 +216,7 @@ export default {
       }).then((processedNewOptions) => {
         if (processedNewOptions[0].text.length > 20) {
           this.$message({
-            message: `属性名长度不可超过20个字符`,
+            message: '属性名长度不可超过20个字符',
             duration: 1500
           })
           processedNewOptions = []
@@ -188,7 +224,7 @@ export default {
         skuOptions.push(...processedNewOptions)
         this.$nextTick(() => {
           const values = processedNewOptions.map(item => item.id).concat(oldSellData)
-          this.leafValue = values;
+          this.leafValue = values
 
           // const values = processedNewOptions.map(item => item.id)
           // this.leafValue = this.leafValue.filter(item => typeof (item) === 'number')
@@ -197,15 +233,14 @@ export default {
       })
     },
 
-    handleSelectSku(data) {
-      let { sku, hasSkuImage, optionValue, optionText, skuOptions, leafValue } = this
-      let skuLeaf = skuOptions.filter(item => leafValue.indexOf(item[optionValue]) >= 0)
+    handleSelectSku (data) {
+      const { sku, hasSkuImage, optionValue, optionText, skuOptions, leafValue } = this
+      const skuLeaf = skuOptions.filter(item => leafValue.indexOf(item[optionValue]) >= 0)
       skuLeaf.map(item => {
         item.is_show = hasSkuImage
       })
 
-      let skuLeafIds = sku.leaf.map(item => item[optionValue])
-
+      const skuLeafIds = sku.leaf.map(item => item[optionValue])
 
       skuLeaf.forEach(item => {
         if (skuLeafIds.indexOf(item[optionValue]) < 0) {
@@ -214,8 +249,8 @@ export default {
       })
 
       // 过滤同名规格值
-      for (var i = 0; i < sku.leaf.length; i++) {
-        for (var j = i + 1; j < sku.leaf.length; j++) {
+      for (let i = 0; i < sku.leaf.length; i++) {
+        for (let j = i + 1; j < sku.leaf.length; j++) {
           if (sku.leaf[i][optionText] === sku.leaf[j][optionText]) {
             sku.leaf.splice(i, 1)
             j--
@@ -228,7 +263,7 @@ export default {
       this.onSkuLeafChange(sku.leaf)
     },
 
-    handleUploadSuccess(item, urls) {
+    handleUploadSuccess (item, urls) {
       this.onSkuLeafChange(this.sku.leaf)
     },
     // handleUploadSuccess2(response, file, fileList, id) {
@@ -244,20 +279,15 @@ export default {
     // },
 
     // 图片预览
-    picturePreview(imgUrl) {
+    picturePreview (imgUrl) {
       this.ease.onPreviewImg(imgUrl)
     },
 
-    created() {
-      let { sku, optionValue } = this
+    created () {
+      const { sku, optionValue } = this
       sku[optionValue] && this.fetchLeafById(sku[optionValue])
     }
 
-  },
-
-  created() {
-    let { sku, optionValue } = this
-    sku[optionValue] && this.fetchLeafById(sku[optionValue])
   }
 }
 </script>

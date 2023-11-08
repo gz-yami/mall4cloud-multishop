@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { MessageBox, Message } from 'element-ui'
+import { ElMessageBox as MessageBox, ElMessage as Message } from 'element-plus'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
@@ -19,7 +19,7 @@ service.interceptors.request.use(
       // let each request carry token
       // ['Authorization'] is a custom headers key
       // please modify it according to the actual situation
-      config.headers['Authorization'] = getToken()
+      config.headers.Authorization = getToken()
     }
     return config
   },

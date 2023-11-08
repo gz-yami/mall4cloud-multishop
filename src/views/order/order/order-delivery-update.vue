@@ -1,23 +1,23 @@
 <template>
   <el-dialog
     v-if="visible"
-    :title="this.$i18n.t('order.order.orderShipping')"
+    v-model:visible="visible"
+    :title="$i18n.t('order.order.orderShipping')"
     :close-on-click-modal="false"
-    :visible.sync="visible"
     width="50%"
   >
-
     <!-- :rules="dataRule" -->
+    <!-- native modifier has been removed, please confirm whether the function has been affected  -->
     <el-form
       ref="dataForm"
       :model="dataForm"
       label-width="100px"
-      @keyup.enter.native="dataFormSubmit()"
+      @keyup.enter="dataFormSubmit()"
     >
       <div class="detail-cont">
         <div class="detail01">
           <div class="text-width">
-            <el-form-item :label="this.$i18n.t('order.order.waitForDelivery')">
+            <el-form-item :label="$i18n.t('order.order.waitForDelivery')">
               <span>{{ $t("order.order.delType") }}:{{
                 $t("order.order.expressDelivery")
               }}</span>
@@ -42,28 +42,51 @@
           </div>
         </div>
       </div>
-      <el-form-item :label="this.$i18n.t('order.order.deliveryMethod') + ':'">
-        <el-radio-group v-model="dataForm.deliveryType" @change="clear()">
-          <el-radio :label="1" disabled>{{
-            $t("order.order.selfConOrd")
-          }}</el-radio>
-          <el-radio :label="3">{{
-            $t("order.order.noNeedRequired")
-          }}</el-radio>
-          <el-radio :label="4" disabled>{{
-            $t("order.order.sameCityDelivery")
-          }}</el-radio>
+      <el-form-item :label="$i18n.t('order.order.deliveryMethod') + ':'">
+        <el-radio-group
+          v-model="dataForm.deliveryType"
+          @change="clear()"
+        >
+          <el-radio
+            :label="1"
+            disabled
+          >
+            {{
+              $t("order.order.selfConOrd")
+            }}
+          </el-radio>
+          <el-radio :label="3">
+            {{
+              $t("order.order.noNeedRequired")
+            }}
+          </el-radio>
+          <el-radio
+            :label="4"
+            disabled
+          >
+            {{
+              $t("order.order.sameCityDelivery")
+            }}
+          </el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
-    <span slot="footer">
-      <el-button type="primary" @click="visible = false">{{
-        $t("table.cancel")
-      }}</el-button>
-      <el-button type="primary" @click="submitProds()">{{
-        $t("table.confirm")
-      }}</el-button>
-    </span>
+    <template #footer>
+      <span>
+        <el-button
+          type="primary"
+          @click="visible = false"
+        >{{
+          $t("table.cancel")
+        }}</el-button>
+        <el-button
+          type="primary"
+          @click="submitProds()"
+        >{{
+          $t("table.confirm")
+        }}</el-button>
+      </span>
+    </template>
   </el-dialog>
 </template>
 
@@ -73,7 +96,9 @@ import * as orderApi from '@/api/order/order'
 
 export default {
   components: {},
-  data() {
+  emits: ['refreshOrderDeliveryUpdate'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -92,9 +117,11 @@ export default {
       order: null
     }
   },
-  mounted() { },
+
+  mounted () { },
+
   methods: {
-    processingStr(str) {
+    processingStr (str) {
       // str = str.replace(/\u200B/g,'');
       // return str
     },
@@ -102,7 +129,7 @@ export default {
     /**
      * 获取数据列表
      */
-    init(order) {
+    init (order) {
       this.isSubmit = false
       this.dataForm.orderAddr = {}
       this.visible = true
@@ -126,19 +153,19 @@ export default {
       })
       // this.getDeliveryList()
     },
-    getDeliveryList() {
+    getDeliveryList () {
       deliveryCompanyApi.list().then((data) => {
         this.dataForm.names = data
       })
     },
-    clear() {
+    clear () {
       this.dataForm.deliveryNo = 0
       this.dataForm.deliveryCompanyId = ''
     },
     /**
      * 确定事件
      */
-    submitProds() {
+    submitProds () {
       if (this.isSubmit) {
         return
       }
@@ -164,9 +191,9 @@ export default {
         this.isSubmit = false
       })
     },
-    errorMsg(message) {
+    errorMsg (message) {
       this.$message({
-        message: message,
+        message,
         type: 'error',
         duration: 1500
       })

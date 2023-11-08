@@ -152,7 +152,7 @@
                 this.$nextTick(() => {
                     let setSize = this.resetSize(this)	//重新设置宽度高度
                     for (let key in setSize) {
-                        this.$set(this.setSize, key, setSize[key])
+                        this.setSize[key] = setSize[key]
                     }
                     this.$parent.$emit('ready', this)
                 })
@@ -345,4 +345,3 @@
         },
     }
 </script>
-

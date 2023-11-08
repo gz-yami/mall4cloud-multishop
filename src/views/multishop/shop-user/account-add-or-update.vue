@@ -1,30 +1,61 @@
 <template>
-  <el-dialog :title="dataForm.hasAccount? $t('table.edit'): $t('table.create')" :visible.sync="visible">
-    <el-form ref="dataForm" :rules="rules" :model="dataForm" label-position="left" label-width="70px" style="width: 400px; margin-left:50px;">
+  <el-dialog
+    v-model:visible="visible"
+    :title="dataForm.hasAccount? $t('table.edit'): $t('table.create')"
+  >
+    <el-form
+      ref="dataForm"
+      :rules="rules"
+      :model="dataForm"
+      label-position="left"
+      label-width="70px"
+      style="width: 400px; margin-left:50px;"
+    >
       <!-- 用户名 -->
-      <el-form-item :label="$t('multishop.shopUserAccount.username')" prop="username">
+      <el-form-item
+        :label="$t('multishop.shopUserAccount.username')"
+        prop="username"
+      >
         <el-input v-model="dataForm.username" />
       </el-form-item>
       <!-- 密码 -->
-      <el-form-item :label="$t('multishop.shopUserAccount.password')" prop="password">
-        <el-input v-model="dataForm.password" show-password />
+      <el-form-item
+        :label="$t('multishop.shopUserAccount.password')"
+        prop="password"
+      >
+        <el-input
+          v-model="dataForm.password"
+          show-password
+        />
       </el-form-item>
       <!-- 状态 -->
-      <el-form-item :label="$t('multishop.shopUserAccount.status')" prop="status">
+      <el-form-item
+        :label="$t('multishop.shopUserAccount.status')"
+        prop="status"
+      >
         <el-radio-group v-model="dataForm.status">
-          <el-radio :label="1">启用</el-radio>
-          <el-radio :label="0">禁用</el-radio>
+          <el-radio :label="1">
+            启用
+          </el-radio>
+          <el-radio :label="0">
+            禁用
+          </el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="visible = false">
-        {{ $t('table.cancel') }}
-      </el-button>
-      <el-button type="primary" @click="dataFormSubmit()">
-        {{ $t('table.confirm') }}
-      </el-button>
-    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="visible = false">
+          {{ $t('table.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="dataFormSubmit()"
+        >
+          {{ $t('table.confirm') }}
+        </el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -33,7 +64,9 @@ import * as api from '@/api/multishop/shop-user-account'
 import { USER_NAME_REGEXP } from '@/utils/validate'
 
 export default {
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -56,13 +89,14 @@ export default {
       }
     }
   },
+
   methods: {
-    init(userId, hasAccount) {
+    init (userId, hasAccount) {
       this.dataForm.userId = userId
       this.dataForm.hasAccount = hasAccount
       this.visible = true
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         if (!this.dataForm.hasAccount) {
           return
         }
@@ -73,7 +107,7 @@ export default {
       })
     },
     // 表单提交
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (!valid) {
           return
@@ -88,7 +122,7 @@ export default {
             onClose: () => {
               this.visible = false
               this.$emit('refreshDataList')
-              this.$refs['dataForm'].resetFields()
+              this.$refs.dataForm.resetFields()
             }
           })
         })

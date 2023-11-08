@@ -2,7 +2,10 @@
   <div class="mod-prod-list app-container">
     <!-- 1.条件筛选 -->
     <div class="screening-conditions">
-      <el-form :inline="true" :model="dataForm">
+      <el-form
+        :inline="true"
+        :model="dataForm"
+      >
         <div class="condition-line">
           <!-- 商品ID -->
           <!-- <el-form-item label="商品ID">
@@ -10,11 +13,21 @@
           </el-form-item> -->
           <!-- 商品编码 -->
           <el-form-item label="商品编码">
-            <el-input v-model="dataForm.prodCode" placeholder="商品编码" clearable size="mini" />
+            <el-input
+              v-model="dataForm.prodCode"
+              placeholder="商品编码"
+              clearable
+              size="mini"
+            />
           </el-form-item>
           <!-- 商品名称 -->
           <el-form-item label="商品名称">
-            <el-input v-model="dataForm.prodName" placeholder="商品名称" clearable size="mini" />
+            <el-input
+              v-model="dataForm.prodName"
+              placeholder="商品名称"
+              clearable
+              size="mini"
+            />
           </el-form-item>
           <!-- 商品分类 -->
           <el-form-item label="商品分类">
@@ -30,7 +43,6 @@
           </el-form-item>
         </div>
         <div class="condition-line">
-
           <!-- 累计销量 -->
           <el-form-item label="累计销量">
             <div class="cumulative-sales range-box">
@@ -90,7 +102,8 @@
                 icon="el-icon-search"
                 size="mini"
                 @click="conditionSearch()"
-              >查询
+              >
+                查询
               </el-button>
             </el-form-item>
           </div>
@@ -107,32 +120,73 @@
           @change="switchProdList()"
         >
           <!-- 全部按钮 -->
-          <el-radio-button label="0">全部</el-radio-button>
+          <el-radio-button label="0">
+            全部
+          </el-radio-button>
           <!-- 在售中按钮 -->
-          <el-radio-button label="1">在售中</el-radio-button>
+          <el-radio-button label="1">
+            在售中
+          </el-radio-button>
           <!-- 已售罄按钮 -->
-          <el-radio-button label="2">已售罄</el-radio-button>
+          <el-radio-button label="2">
+            已售罄
+          </el-radio-button>
           <!-- 已下架按钮 -->
-          <el-radio-button label="3">已下架</el-radio-button>
+          <el-radio-button label="3">
+            已下架
+          </el-radio-button>
         </el-radio-group>
       </div>
       <div class="release-prod-btn">
-        <el-button size="mini" type="primary" @click="toReleaseProdPage(-1)">发布新商品</el-button>
+        <el-button
+          size="mini"
+          type="primary"
+          @click="toReleaseProdPage(-1)"
+        >
+          发布新商品
+        </el-button>
       </div>
     </div>
 
     <!-- 3.商品展示表格 -->
     <div class="prod-form">
-      <div v-if="pageVO.list.length" class="change-prod-status">
-        <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">当页全选<span v-if="checkedCount" class="checked-words">已选商品 {{ checkedCount }}</span></el-checkbox>
+      <div
+        v-if="pageVO.list.length"
+        class="change-prod-status"
+      >
+        <el-checkbox
+          v-model="checkAll"
+          :indeterminate="isIndeterminate"
+          @change="handleCheckAllChange"
+        >
+          当页全选<span
+            v-if="checkedCount"
+            class="checked-words"
+          >已选商品 {{ checkedCount }}</span>
+        </el-checkbox>
         <div class="button-box">
           <!-- 上架按钮 -->
-          <el-button v-if="prodStatusRadio!=0 && prodStatusRadio!=1 && prodStatusRadio!=2" size="mini" @click="changeProdStatus('onTheShelf')">上架</el-button>
+          <el-button
+            v-if="prodStatusRadio!=0 && prodStatusRadio!=1 && prodStatusRadio!=2"
+            size="mini"
+            @click="changeProdStatus('onTheShelf')"
+          >
+            上架
+          </el-button>
           <!-- 下架按钮 -->
-          <el-button v-if="prodStatusRadio!=0 && prodStatusRadio!=3" size="mini" @click="changeProdStatus('offTheShelf')">下架</el-button>
+          <el-button
+            v-if="prodStatusRadio!=0 && prodStatusRadio!=3"
+            size="mini"
+            @click="changeProdStatus('offTheShelf')"
+          >
+            下架
+          </el-button>
         </div>
       </div>
-      <div ref="closepopover" class="table">
+      <div
+        ref="closepopover"
+        class="table"
+      >
         <el-table
           ref="prodInfTable"
           :data="pageVO.list"
@@ -147,16 +201,28 @@
             width="55"
           />
           <!-- 商品信息 -->
-          <el-table-column class="table-item" label="商品信息" width="100" fixed>
-            <template slot-scope="scope">
+          <el-table-column
+            class="table-item"
+            label="商品信息"
+            width="100"
+            fixed
+          >
+            <template #default="scope">
               <div class="prod-name-box can-edit-item">
-                <img class="prod-img" :src="(scope.row.mainImgUrl).indexOf('http')===-1 ? resourcesUrl + scope.row.mainImgUrl : scope.row.mainImgUrl">
+                <img
+                  class="prod-img"
+                  :src="(scope.row.mainImgUrl).indexOf('http')===-1 ? resourcesUrl + scope.row.mainImgUrl : scope.row.mainImgUrl"
+                >
                 <el-popover
                   placement="top-start"
                   trigger="hover"
                   :content="scope.row.exhibitionProdName"
                 >
-                  <div slot="reference" class="prod-name">{{ scope.row.exhibitionProdName }}</div>
+                  <template #reference>
+                    <div class="prod-name">
+                      {{ scope.row.exhibitionProdName }}
+                    </div>
+                  </template>
                 </el-popover>
                 <el-popover
                   placement="bottom"
@@ -172,12 +238,29 @@
                       placeholder="请输入商品名称"
                     />
                     <div style="display:flex;align-items:center;margin-left:10px;">
-                      <el-button size="mini" type="text" @click="modifyProdName(scope.row)">保存</el-button>
+                      <el-button
+                        size="mini"
+                        type="text"
+                        @click="modifyProdName(scope.row)"
+                      >
+                        保存
+                      </el-button>
                       <span style="margin:0 3px;color:#e5e5e5;">|</span>
-                      <el-button size="mini" type="text" @click="closePopover()">取消</el-button>
+                      <el-button
+                        size="mini"
+                        type="text"
+                        @click="closePopover()"
+                      >
+                        取消
+                      </el-button>
                     </div>
                   </div>
-                  <i v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='prodName')" slot="reference" class="el-icon-edit" />
+                  <template #reference>
+                    <i
+                      v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='prodName')"
+                      class="el-icon-edit"
+                    />
+                  </template>
                 </el-popover>
               </div>
             </template>
@@ -199,9 +282,13 @@
             sortable="custom"
             width="120"
           >
-            <template slot-scope="scope">
+            <template #default="scope">
               <div class="prod-price-box">
-                <div slot="reference" class="name">{{ scope.row.priceFee }}</div>
+                <template #reference>
+                  <div class="name">
+                    {{ scope.row.priceFee }}
+                  </div>
+                </template>
                 <el-popover
                   placement="bottom"
                   trigger="click"
@@ -216,17 +303,37 @@
                         type="number"
                       />
                       <div style="display:flex;align-items:center;margin-left:5px;">
-                        <el-button size="mini" type="text" @click="modifyProdPrice(scope.row.spuId, currentModifyProdSkuList)">保存</el-button>
+                        <el-button
+                          size="mini"
+                          type="text"
+                          @click="modifyProdPrice(scope.row.spuId, currentModifyProdSkuList)"
+                        >
+                          保存
+                        </el-button>
                         <span style="margin:0 3px;color:#e5e5e5;">|</span>
-                        <el-button size="mini" type="text" @click="closePopover()">取消</el-button>
+                        <el-button
+                          size="mini"
+                          type="text"
+                          @click="closePopover()"
+                        >
+                          取消
+                        </el-button>
                       </div>
                     </div>
                   </div>
                   <div v-if="currentModifyProdSkuList.length>1">
                     <el-table :data="currentModifyProdSkuList">
-                      <el-table-column width="150" prop="skuName" label="规格名称" />
-                      <el-table-column width="200" prop="address" label="价格">
-                        <template slot-scope="{row}">
+                      <el-table-column
+                        width="150"
+                        prop="skuName"
+                        label="规格名称"
+                      />
+                      <el-table-column
+                        width="200"
+                        prop="address"
+                        label="价格"
+                      >
+                        <template #default="{row}">
                           <el-input
                             v-model="row.priceFee"
                             type="number"
@@ -235,11 +342,28 @@
                       </el-table-column>
                     </el-table>
                     <div style="text-align:right;margin-top:10px;">
-                      <el-button size="mini" type="text" @click="closePopover()">取消</el-button>
-                      <el-button type="primary" size="mini" @click="modifyProdPrice(scope.row.spuId, currentModifyProdSkuList)">保存</el-button>
+                      <el-button
+                        size="mini"
+                        type="text"
+                        @click="closePopover()"
+                      >
+                        取消
+                      </el-button>
+                      <el-button
+                        type="primary"
+                        size="mini"
+                        @click="modifyProdPrice(scope.row.spuId, currentModifyProdSkuList)"
+                      >
+                        保存
+                      </el-button>
                     </div>
                   </div>
-                  <i v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='priceFee')" slot="reference" class="el-icon-edit" />
+                  <template #reference>
+                    <i
+                      v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='priceFee')"
+                      class="el-icon-edit"
+                    />
+                  </template>
                 </el-popover>
               </div>
             </template>
@@ -272,9 +396,13 @@
             sortable="custom"
             width="120"
           >
-            <template slot-scope="scope">
+            <template #default="scope">
               <div class="prod-price-box">
-                <div slot="reference" class="name">{{ scope.row.stock }}</div>
+                <template #reference>
+                  <div class="name">
+                    {{ scope.row.stock }}
+                  </div>
+                </template>
                 <el-popover
                   placement="bottom"
                   trigger="click"
@@ -289,17 +417,37 @@
                         type="number"
                       />
                       <div style="display:flex;align-items:center;margin-left:5px;">
-                        <el-button size="mini" type="text" @click="modifyProdStock(scope.row.spuId, currentModifyProdSkuList)">保存</el-button>
+                        <el-button
+                          size="mini"
+                          type="text"
+                          @click="modifyProdStock(scope.row.spuId, currentModifyProdSkuList)"
+                        >
+                          保存
+                        </el-button>
                         <span style="padding:0 5px;color:#e5e5e5;">|</span>
-                        <el-button size="mini" type="text" @click="closePopover()">取消</el-button>
+                        <el-button
+                          size="mini"
+                          type="text"
+                          @click="closePopover()"
+                        >
+                          取消
+                        </el-button>
                       </div>
                     </div>
                   </div>
                   <div v-if="currentModifyProdSkuList.length>1">
                     <el-table :data="currentModifyProdSkuList">
-                      <el-table-column width="150" prop="skuName" label="规格名称" />
-                      <el-table-column width="200" prop="address" label="库存">
-                        <template slot-scope="{row}">
+                      <el-table-column
+                        width="150"
+                        prop="skuName"
+                        label="规格名称"
+                      />
+                      <el-table-column
+                        width="200"
+                        prop="address"
+                        label="库存"
+                      >
+                        <template #default="{row}">
                           <el-input
                             v-model="row.stock"
                             type="number"
@@ -308,11 +456,28 @@
                       </el-table-column>
                     </el-table>
                     <div style="text-align:right;margin-top:10px;">
-                      <el-button size="mini" type="text" @click="closePopover()">取消</el-button>
-                      <el-button type="primary" size="mini" @click="modifyProdStock(scope.row.spuId, currentModifyProdSkuList)">保存</el-button>
+                      <el-button
+                        size="mini"
+                        type="text"
+                        @click="closePopover()"
+                      >
+                        取消
+                      </el-button>
+                      <el-button
+                        type="primary"
+                        size="mini"
+                        @click="modifyProdStock(scope.row.spuId, currentModifyProdSkuList)"
+                      >
+                        保存
+                      </el-button>
                     </div>
                   </div>
-                  <i v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='prodStock')" slot="reference" class="el-icon-edit" />
+                  <template #reference>
+                    <i
+                      v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='prodStock')"
+                      class="el-icon-edit"
+                    />
+                  </template>
                 </el-popover>
               </div>
             </template>
@@ -326,9 +491,13 @@
             width="120"
             sortable="custom"
           >
-            <template slot-scope="scope">
+            <template #default="scope">
               <div class="seq-box can-edit-item">
-                <div slot="reference" class="name">{{ scope.row.exhibitionSeq }}</div>
+                <template #reference>
+                  <div class="name">
+                    {{ scope.row.exhibitionSeq }}
+                  </div>
+                </template>
                 <el-popover
                   placement="bottom"
                   trigger="click"
@@ -342,23 +511,67 @@
                       max="32767"
                     />
                     <div style="display:flex;align-items:center;margin-left:5px;">
-                      <el-button size="mini" type="text" @click="modifySeq(scope)">保存</el-button>
+                      <el-button
+                        size="mini"
+                        type="text"
+                        @click="modifySeq(scope)"
+                      >
+                        保存
+                      </el-button>
                       <span style="margin:0 3px;color:#e5e5e5;">|</span>
-                      <el-button size="mini" type="text" @click="closePopover()">取消</el-button>
+                      <el-button
+                        size="mini"
+                        type="text"
+                        @click="closePopover()"
+                      >
+                        取消
+                      </el-button>
                     </div>
                   </div>
-                  <i v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='seq')" slot="reference" class="el-icon-edit" />
+                  <template #reference>
+                    <i
+                      v-show="scope.row.spuId==currentMoveSpuId || (scope.row.spuId==currentClickSpuId && currentShowPopover=='seq')"
+                      class="el-icon-edit"
+                    />
+                  </template>
                 </el-popover>
               </div>
             </template>
           </el-table-column>
           <!-- 商品状态状态 1:enable, 0:disable, -1:deleted -->
-          <el-table-column label="商品状态" prop="status" align="center">
-            <template slot-scope="{row}">
-              <el-tag v-if="row.spuStatus === 0" size="small" type="danger">下架</el-tag>
-              <el-tag v-if="row.spuStatus === 1" size="small">上架</el-tag>
-              <el-tag v-if="row.spuStatus === 2" size="small" type="danger">违规下架</el-tag>
-              <el-tag v-if="row.spuStatus === 3" size="small" type="warning">等待审核</el-tag>
+          <el-table-column
+            label="商品状态"
+            prop="status"
+            align="center"
+          >
+            <template #default="{row}">
+              <el-tag
+                v-if="row.spuStatus === 0"
+                size="small"
+                type="danger"
+              >
+                下架
+              </el-tag>
+              <el-tag
+                v-if="row.spuStatus === 1"
+                size="small"
+              >
+                上架
+              </el-tag>
+              <el-tag
+                v-if="row.spuStatus === 2"
+                size="small"
+                type="danger"
+              >
+                违规下架
+              </el-tag>
+              <el-tag
+                v-if="row.spuStatus === 3"
+                size="small"
+                type="warning"
+              >
+                等待审核
+              </el-tag>
             </template>
           </el-table-column>
           <el-table-column
@@ -367,30 +580,96 @@
             width="200"
             fixed="right"
           >
-            <template slot-scope="{row}">
+            <template #default="{row}">
               <!-- 编辑按钮 -->
-              <el-button size="mini" type="text" @click="toReleaseProdPage(row.spuId)">编辑</el-button>
-              <span v-if="row.spuStatus === 0" style="padding: 0 5px">|</span>
-              <el-button v-if="row.spuStatus === 0" size="mini" type="text" @click="prodSale(row.spuId)">上架</el-button>
-              <span v-if="row.spuStatus === 1" style="padding: 0 5px">|</span>
-              <el-button v-if="row.spuStatus === 1" size="mini" type="text" @click="prodNotSale(row.spuId)">下架</el-button>
-              <span v-if="row.spuStatus === 2 || row.spuStatus === 3" style="padding: 0 5px">|</span>
-              <el-button v-if="row.spuStatus === 2 || row.spuStatus === 3" size="mini" type="text" @click="offlineManageHandle(row)">下架管理</el-button>
+              <el-button
+                size="mini"
+                type="text"
+                @click="toReleaseProdPage(row.spuId)"
+              >
+                编辑
+              </el-button>
+              <span
+                v-if="row.spuStatus === 0"
+                style="padding: 0 5px"
+              >|</span>
+              <el-button
+                v-if="row.spuStatus === 0"
+                size="mini"
+                type="text"
+                @click="prodSale(row.spuId)"
+              >
+                上架
+              </el-button>
+              <span
+                v-if="row.spuStatus === 1"
+                style="padding: 0 5px"
+              >|</span>
+              <el-button
+                v-if="row.spuStatus === 1"
+                size="mini"
+                type="text"
+                @click="prodNotSale(row.spuId)"
+              >
+                下架
+              </el-button>
+              <span
+                v-if="row.spuStatus === 2 || row.spuStatus === 3"
+                style="padding: 0 5px"
+              >|</span>
+              <el-button
+                v-if="row.spuStatus === 2 || row.spuStatus === 3"
+                size="mini"
+                type="text"
+                @click="offlineManageHandle(row)"
+              >
+                下架管理
+              </el-button>
               <span style="padding: 0 5px">|</span>
-              <el-button size="mini" type="text" @click="prodDelete(row.spuId)">删除</el-button>
+              <el-button
+                size="mini"
+                type="text"
+                @click="prodDelete(row.spuId)"
+              >
+                删除
+              </el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
 
       <div class="page-number">
-        <div v-if="pageVO.list.length" class="change-prod-status">
-          <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">当页全选<span v-if="checkedCount" style="font-size:10px;margin-left:10px">已选商品 {{ checkedCount }}</span></el-checkbox>
+        <div
+          v-if="pageVO.list.length"
+          class="change-prod-status"
+        >
+          <el-checkbox
+            v-model="checkAll"
+            :indeterminate="isIndeterminate"
+            @change="handleCheckAllChange"
+          >
+            当页全选<span
+              v-if="checkedCount"
+              style="font-size:10px;margin-left:10px"
+            >已选商品 {{ checkedCount }}</span>
+          </el-checkbox>
           <div class="button-box">
             <!-- 上架按钮 -->
-            <el-button v-if="prodStatusRadio!=0 && prodStatusRadio!=1 && prodStatusRadio!=2" size="mini" @click="changeProdStatus('onTheShelf')">上架</el-button>
+            <el-button
+              v-if="prodStatusRadio!=0 && prodStatusRadio!=1 && prodStatusRadio!=2"
+              size="mini"
+              @click="changeProdStatus('onTheShelf')"
+            >
+              上架
+            </el-button>
             <!-- 下架按钮 -->
-            <el-button v-if="prodStatusRadio!=0 && prodStatusRadio!=3" size="mini" @click="changeProdStatus('offTheShelf')">下架</el-button>
+            <el-button
+              v-if="prodStatusRadio!=0 && prodStatusRadio!=3"
+              size="mini"
+              @click="changeProdStatus('offTheShelf')"
+            >
+              下架
+            </el-button>
           </div>
         </div>
         <el-pagination
@@ -407,7 +686,11 @@
       </div>
     </div>
     <!-- 下架管理 -->
-    <offline-manage v-if="operateDialogVisible" ref="offlineData" @rereapplyDataSubmit="rereapplyDataSubmit" />
+    <offline-manage
+      v-if="operateDialogVisible"
+      ref="offlineData"
+      @rereapply-data-submit="rereapplyDataSubmit"
+    />
   </div>
 </template>
 
@@ -422,7 +705,7 @@ export default {
   components: {
     offlineManage
   },
-  data() {
+  data () {
     return {
       resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
       dataForm: {},
@@ -483,13 +766,13 @@ export default {
       operateDialogVisible: false // 操作对话框
     }
   },
-  mounted() {
+  mounted () {
     this.getDataList()
     this.getProdCategoryList()
   },
   methods: {
     // 条件搜索
-    conditionSearch() {
+    conditionSearch () {
       this.pageQuery.pageNum = 1
       const minPrice = this.dataForm.currentPriceBeginInp ? this.dataForm.currentPriceBeginInp * 100 : undefined
       const maxPrice = this.dataForm.currentPriceEndInp ? this.dataForm.currentPriceEndInp * 100 : undefined
@@ -501,15 +784,15 @@ export default {
         shopSecondaryCategoryId: this.dataForm.shopSecondaryCategoryId || undefined, // 商家二级分类id
         minSaleNum: this.dataForm.saleBeginInp || undefined,
         maxSaleNum: this.dataForm.saleEndInp || undefined,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
+        minPrice,
+        maxPrice,
         isCompose: this.dataForm.currentyuPreSaleStatus === '' ? undefined : this.dataForm.currentyuPreSaleStatus,
         dataType: parseInt(this.prodStatusRadio)
       }
       this.getDataList()
     },
     // 获取商品列表
-    getDataList() {
+    getDataList () {
       this.pageLoading = true
       api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
         this.pageVO = pageVO
@@ -523,7 +806,7 @@ export default {
       })
     },
     // 获取商品目录
-    getProdCategoryList() {
+    getProdCategoryList () {
       this.pageLoading = true
       categoryApi.shopCategoryPage({}).then(pageVO => {
         this.categoryList = treeDataTranslate(pageVO, 'categoryId', 'parentId')
@@ -531,7 +814,7 @@ export default {
       })
     },
     // 监听分类选择的变化
-    handleSelectCategoryChange(val) {
+    handleSelectCategoryChange (val) {
       if (val.length === 1) {
         this.dataForm.shopPrimaryCategoryId = val[0]
         this.dataForm.shopSecondaryCategoryId = undefined
@@ -545,7 +828,7 @@ export default {
     // 1：在售中的商品
     // 2：已售完的商品
     // 3：已下架的商品
-    switchProdList() {
+    switchProdList () {
       const dataType = parseInt(this.prodStatusRadio)
       this.pageQuery.pageNum = 1
       this.searchParam = {
@@ -554,7 +837,7 @@ export default {
       this.getDataList()
     },
     // 跳转发布商品页
-    toReleaseProdPage(spuId) {
+    toReleaseProdPage (spuId) {
       if (spuId === -1) {
         this.$router.push('/product/prod_info')
       } else {
@@ -562,7 +845,7 @@ export default {
       }
     },
     // 监听表格选中
-    handleSelectionChange(value) {
+    handleSelectionChange (value) {
       const checkedCount = value.length
       this.checkedCount = checkedCount
       this.checkAll = checkedCount === this.pageVO.list.length
@@ -577,7 +860,7 @@ export default {
       this.selectedProdList = selectedProdList
     },
     // 表格全选/全不选
-    handleCheckAllChange() {
+    handleCheckAllChange () {
       this.$refs.prodInfTable.toggleAllSelection()
       this.isIndeterminate = false
     },
@@ -588,7 +871,7 @@ export default {
     // totalStock:库存
     // seq:序号
     // createTime:创建时间
-    conditionSort(column) {
+    conditionSort (column) {
       this.closePopover()
       this.pageQuery.pageNum = 1
       const orderMode = column.order === 'ascending' ? 1 : column.order === 'descending' ? 0 : undefined
@@ -622,7 +905,7 @@ export default {
     // 改变商品状态
     // onTheShelf:上架
     // offTheShelf:下架
-    changeProdStatus(status) {
+    changeProdStatus (status) {
       // 如果没选商品，提示选择商品
       if (this.selectedProdList.length <= 0) {
         this.$message({
@@ -639,7 +922,7 @@ export default {
       }
     },
     // 商品上架
-    prodSale(spuIdOrSpuIds) {
+    prodSale (spuIdOrSpuIds) {
       let param = {}
       if (typeof (spuIdOrSpuIds) === 'number') {
         param = {
@@ -667,7 +950,7 @@ export default {
       })
     },
     // 商品下架
-    prodNotSale(spuIdOrSpuIds) {
+    prodNotSale (spuIdOrSpuIds) {
       let param = {}
       if (typeof (spuIdOrSpuIds) === 'number') {
         param = {
@@ -698,7 +981,7 @@ export default {
     /**
      * 商品违规下架操作
      */
-    offlineManageHandle(row) {
+    offlineManageHandle (row) {
       this.operateDialogVisible = true
       this.currentSpuId = row.spuId
       this.getOfflineDetailByProdId(row.spuId)
@@ -707,7 +990,7 @@ export default {
     /**
      * 获取最新下线商品的事件
      */
-    getOfflineDetailByProdId(spuId) {
+    getOfflineDetailByProdId (spuId) {
       api.getOfflineDetailById(spuId).then((data) => {
         this.offlineDetail = data
         this.$nextTick(() => {
@@ -719,7 +1002,7 @@ export default {
     /**
      * 提交上架申请
      */
-    rereapplyDataSubmit(data) {
+    rereapplyDataSubmit (data) {
       const param = {
         handleId: this.currentSpuId,
         eventId: data.eventId,
@@ -737,7 +1020,7 @@ export default {
     },
 
     // 商品删除
-    prodDelete(spuId) {
+    prodDelete (spuId) {
       api.deleteById(spuId).then(() => {
         this.$message({
           message: '商品删除成功',
@@ -748,25 +1031,25 @@ export default {
       })
     },
     // 移入表格行
-    enterTableRow(row) {
+    enterTableRow (row) {
       this.currentMoveSpuId = row.spuId
     },
     // 移出表格行
-    leaveTableRow() {
+    leaveTableRow () {
       this.currentMoveSpuId = ''
     },
     // 获取弹出弹窗项信息
-    getCurrentSpuId(spuId, currentShowPopover) {
+    getCurrentSpuId (spuId, currentShowPopover) {
       this.currentClickSpuId = spuId
       this.currentShowPopover = currentShowPopover
     },
     // 清空选中项弹窗信息
-    clearShowPopoverInf() {
+    clearShowPopoverInf () {
       this.currentClickSpuId = ''
       this.currentShowPopover = ''
     },
     // 获取商品详情
-    getProdDetail(spuId, currentShowPopover) {
+    getProdDetail (spuId, currentShowPopover) {
       api.get(spuId).then(data => {
         this.currentModifyProdSkuList = data.skus
         this.currentModifyProdSkuList.forEach(item => {
@@ -778,17 +1061,17 @@ export default {
       })
     },
     // 关闭弹窗后,初始化数据
-    initProdInf(row) {
+    initProdInf (row) {
       row.name = row.exhibitionProdName
       row.seq = row.exhibitionSeq
       this.clearShowPopoverInf()
     },
     // 关闭popover弹窗
-    closePopover() {
+    closePopover () {
       this.$refs.closepopover.click()
     },
     // 修改商品名称
-    modifyProdName(row) {
+    modifyProdName (row) {
       if (row.name.trim() === '') {
         this.$message({
           message: '请输入商品名称',
@@ -816,7 +1099,7 @@ export default {
       })
     },
     // 修改商品价格
-    modifyProdPrice(spuId, skus) {
+    modifyProdPrice (spuId, skus) {
       const skuList = []
       let isChangePriceFee = false
       let minPriceFee = 0
@@ -877,7 +1160,7 @@ export default {
       })
     },
     // 修改商品库存
-    modifyProdStock(spuId, skus) {
+    modifyProdStock (spuId, skus) {
       const skuList = []
       let totalChangeStock = 0
       for (let i = 0; i < skus.length; i++) {
@@ -926,11 +1209,11 @@ export default {
       })
     },
     // 取消修改商品名
-    cancelModifyProdNameBtn(scope) {
+    cancelModifyProdNameBtn (scope) {
       scope._self.$refs[`popover-${scope.$index}`].doClose()
     },
     // 修改序号
-    modifySeq(scope) {
+    modifySeq (scope) {
       if (scope.row.seq === '') {
         this.$message({
           message: '请输入序号',
@@ -961,7 +1244,7 @@ export default {
     // a:第一个计算数(例如:被除数/被减数)
     // b:第二个计算数(例如:除数/减数)
     // countMode:计算方式(0:加 1:减 2:乘 3:除)
-    accuracyCount(a, b, countMode) {
+    accuracyCount (a, b, countMode) {
       let finalResult = 0
       if (countMode === 0) {
         finalResult = new Big(a).plus(b).valueOf()
@@ -977,13 +1260,13 @@ export default {
       return finalResult
     },
     // 每页数
-    sizeChangeHandle(val) {
+    sizeChangeHandle (val) {
       this.pageQuery.pageSize = val
       this.pageQuery.pageNum = 1
       this.getDataList()
     },
     // 当前页
-    currentChangeHandle(val) {
+    currentChangeHandle (val) {
       this.pageQuery.pageNum = val
       this.getDataList()
     }

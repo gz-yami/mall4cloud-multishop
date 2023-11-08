@@ -1,4 +1,5 @@
 <script>
+import { h, resolveComponent } from 'vue'
 export default {
   name: 'MenuItem',
   functional: true,
@@ -12,7 +13,7 @@ export default {
       default: ''
     }
   },
-  render(h, context) {
+  render () {
     const { icon, title } = context.props
     const vnodes = []
 

@@ -83,13 +83,13 @@ export default {
   props: {
     dataForm: {
       type: Object,
-      default() {
+      default () {
         return {}
       }
-    },
+    }
   },
 
-  data() {
+  data () {
     return {
 
     }

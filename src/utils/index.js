@@ -8,7 +8,7 @@
  * @param {string} cFormat
  * @returns {string | null}
  */
-export function parseTime(time, cFormat) {
+export function parseTime (time, cFormat) {
   if (arguments.length === 0 || !time) {
     return null
   }
@@ -56,7 +56,7 @@ export function parseTime(time, cFormat) {
  * @param {string} option
  * @returns {string}
  */
-export function formatTime(time, option) {
+export function formatTime (time, option) {
   if (('' + time).length === 10) {
     time = parseInt(time) * 1000
   } else {
@@ -98,7 +98,7 @@ export function formatTime(time, option) {
  * @param {string} url
  * @returns {Object}
  */
-export function getQueryObject(url) {
+export function getQueryObject (url) {
   url = url == null ? window.location.href : url
   const search = url.substring(url.lastIndexOf('?') + 1)
   const obj = {}
@@ -117,10 +117,10 @@ export function getQueryObject(url) {
  * @param {string} input value
  * @returns {number} output value
  */
-export function byteLength(str) {
+export function byteLength (str) {
   // returns the byte length of an utf8 string
   let s = str.length
-  for (var i = str.length - 1; i >= 0; i--) {
+  for (let i = str.length - 1; i >= 0; i--) {
     const code = str.charCodeAt(i)
     if (code > 0x7f && code <= 0x7ff) s++
     else if (code > 0x7ff && code <= 0xffff) s += 2
@@ -133,7 +133,7 @@ export function byteLength(str) {
  * @param {Array} actual
  * @returns {Array}
  */
-export function cleanArray(actual) {
+export function cleanArray (actual) {
   const newArray = []
   for (let i = 0; i < actual.length; i++) {
     if (actual[i]) {
@@ -147,7 +147,7 @@ export function cleanArray(actual) {
  * @param {Object} json
  * @returns {Array}
  */
-export function param(json) {
+export function param (json) {
   if (!json) return ''
   return cleanArray(
     Object.keys(json).map(key => {
@@ -161,7 +161,7 @@ export function param(json) {
  * @param {string} url
  * @returns {Object}
  */
-export function param2Obj(url) {
+export function param2Obj (url) {
   const search = decodeURIComponent(url.split('?')[1]).replace(/\+/g, ' ')
   if (!search) {
     return {}
@@ -183,7 +183,7 @@ export function param2Obj(url) {
  * @param {string} val
  * @returns {string}
  */
-export function html2Text(val) {
+export function html2Text (val) {
   const div = document.createElement('div')
   div.innerHTML = val
   return div.textContent || div.innerText
@@ -195,7 +195,7 @@ export function html2Text(val) {
  * @param {(Object|Array)} source
  * @returns {Object}
  */
-export function objectMerge(target, source) {
+export function objectMerge (target, source) {
   if (typeof target !== 'object') {
     target = {}
   }
@@ -217,7 +217,7 @@ export function objectMerge(target, source) {
  * @param {HTMLElement} element
  * @param {string} className
  */
-export function toggleClass(element, className) {
+export function toggleClass (element, className) {
   if (!element || !className) {
     return
   }
@@ -237,7 +237,7 @@ export function toggleClass(element, className) {
  * @param {string} type
  * @returns {Date}
  */
-export function getTime(type) {
+export function getTime (type) {
   if (type === 'start') {
     return new Date().getTime() - 3600 * 1000 * 24 * 90
   } else {
@@ -251,10 +251,10 @@ export function getTime(type) {
  * @param {boolean} immediate
  * @return {*}
  */
-export function debounce(func, wait, immediate) {
+export function debounce (func, wait, immediate) {
   let timeout, args, context, timestamp, result
 
-  const later = function() {
+  const later = function () {
     // 据上一次触发时间间隔
     const last = +new Date() - timestamp
 
@@ -271,7 +271,7 @@ export function debounce(func, wait, immediate) {
     }
   }
 
-  return function(...args) {
+  return function (...args) {
     context = this
     timestamp = +new Date()
     const callNow = immediate && !timeout
@@ -293,7 +293,7 @@ export function debounce(func, wait, immediate) {
  * @param {Object} source
  * @returns {Object}
  */
-export function deepClone(source) {
+export function deepClone (source) {
   if (!source && typeof source !== 'object') {
     throw new Error('error arguments', 'deepClone')
   }
@@ -312,14 +312,14 @@ export function deepClone(source) {
  * @param {Array} arr
  * @returns {Array}
  */
-export function uniqueArr(arr) {
+export function uniqueArr (arr) {
   return Array.from(new Set(arr))
 }
 
 /**
  * @returns {string}
  */
-export function createUniqueString() {
+export function createUniqueString () {
   const timestamp = +new Date() + ''
   const randomNum = parseInt((1 + Math.random()) * 65536) + ''
   return (+(randomNum + timestamp)).toString(32)
@@ -331,7 +331,7 @@ export function createUniqueString() {
  * @param {string} cls
  * @returns {boolean}
  */
-export function hasClass(ele, cls) {
+export function hasClass (ele, cls) {
   return !!ele.className.match(new RegExp('(\\s|^)' + cls + '(\\s|$)'))
 }
 
@@ -340,7 +340,7 @@ export function hasClass(ele, cls) {
  * @param {HTMLElement} elm
  * @param {string} cls
  */
-export function addClass(ele, cls) {
+export function addClass (ele, cls) {
   if (!hasClass(ele, cls)) ele.className += ' ' + cls
 }
 
@@ -349,7 +349,7 @@ export function addClass(ele, cls) {
  * @param {HTMLElement} elm
  * @param {string} cls
  */
-export function removeClass(ele, cls) {
+export function removeClass (ele, cls) {
   if (hasClass(ele, cls)) {
     const reg = new RegExp('(\\s|^)' + cls + '(\\s|$)')
     ele.className = ele.className.replace(reg, ' ')
@@ -362,22 +362,22 @@ export function removeClass(ele, cls) {
  * @param {*} id
  * @param {*} pid
  */
-export function treeDataTranslate(data, id = 'id', pid = 'parentId') {
-  var res = []
-  var temp = {}
-  for (var i = 0; i < data.length; i++) {
+export function treeDataTranslate (data, id = 'id', pid = 'parentId') {
+  const res = []
+  const temp = {}
+  for (let i = 0; i < data.length; i++) {
     temp[data[i][id]] = data[i]
   }
-  for (var k = 0; k < data.length; k++) {
+  for (let k = 0; k < data.length; k++) {
     if (temp[data[k][pid]] && data[k][id] !== data[k][pid]) {
-      if (!temp[data[k][pid]]['children']) {
-        temp[data[k][pid]]['children'] = []
+      if (!temp[data[k][pid]].children) {
+        temp[data[k][pid]].children = []
       }
-      if (!temp[data[k][pid]]['_level']) {
-        temp[data[k][pid]]['_level'] = 1
+      if (!temp[data[k][pid]]._level) {
+        temp[data[k][pid]]._level = 1
       }
-      data[k]['_level'] = temp[data[k][pid]]._level + 1
-      temp[data[k][pid]]['children'].push(data[k])
+      data[k]._level = temp[data[k][pid]]._level + 1
+      temp[data[k][pid]].children.push(data[k])
     } else {
       res.push(data[k])
     }
@@ -388,7 +388,7 @@ export function treeDataTranslate(data, id = 'id', pid = 'parentId') {
 /**
  * 获取uuid
  */
-export function getUUID() {
+export function getUUID () {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
     return (c === 'x' ? (Math.random() * 16 | 0) : ('r&0x3' | '0x8')).toString(16)
   })
@@ -400,7 +400,7 @@ export function getUUID() {
  * @param {*} id
  * @param {*} pid
  */
-export function idList(data, val, id = 'id', children = 'children') {
+export function idList (data, val, id = 'id', children = 'children') {
   const res = []
   idListFromTree(data, val, res, id)
   return res
@@ -411,7 +411,7 @@ export function idList(data, val, id = 'id', children = 'children') {
  * @param {*} id
  * @param {*} pid
  */
-function idListFromTree(data, val, res = [], id = 'id', children = 'children', name = 'name') {
+function idListFromTree (data, val, res = [], id = 'id', children = 'children', name = 'name') {
   for (let i = 0; i < data.length; i++) {
     const element = data[i]
     if (element[children]) {
@@ -428,7 +428,7 @@ function idListFromTree(data, val, res = [], id = 'id', children = 'children', n
 }
 
 // 计算每个sku后面有多少项
-export function getLevels(tree) {
+export function getLevels (tree) {
   const level = []
   for (let i = tree.length - 1; i >= 0; i--) {
     if (tree[i + 1] && tree[i + 1].leaf) {
@@ -446,8 +446,8 @@ export function getLevels(tree) {
  * @param  {Array}  stocks [description]
  * @return {[type]}        [description]
  */
-export function flatten(tree, stocks = [], options) {
-  const { optionValue = 'id', optionText = 'text', extraData = {}} = options || {}
+export function flatten (tree, stocks = [], options) {
+  const { optionValue = 'id', optionText = 'text', extraData = {} } = options || {}
   const result = []
   let skuLen = 0
   const stockMap = {} // 记录已存在的stock的数据

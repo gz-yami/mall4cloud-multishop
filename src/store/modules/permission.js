@@ -9,7 +9,7 @@ import store from '@/store'
  * @param routes asyncRoutes
  * @param menuIds
  */
-export function filterAsyncRoutes(routes, menuIds) {
+export function filterAsyncRoutes (routes, menuIds) {
   const res = []
 
   routes.forEach(route => {
@@ -38,7 +38,7 @@ const mutations = {
 }
 
 const actions = {
-  generateRoutes({ commit }, menuIds) {
+  generateRoutes ({ commit }, menuIds) {
     return new Promise((resolve, reject) => {
       menuList().then(menuList => {
         for (const menu of menuList) {

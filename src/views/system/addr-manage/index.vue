@@ -5,16 +5,38 @@
       <el-input v-model="areaName" size="mini" class="area-search-input" placeholder="地区关键词" />
     </div> -->
     <div class="filter-item">
-      <el-button v-permission="['system:addrManage:save']" size="mini" icon="el-icon-plus" type="primary" class="rea-add-btn" @click="addOrUpdateHandle()">{{ $t('table.create') }}</el-button>
+      <el-button
+        v-permission="['system:addrManage:save']"
+        size="mini"
+        icon="el-icon-plus"
+        type="primary"
+        class="rea-add-btn"
+        @click="addOrUpdateHandle()"
+      >
+        {{ $t('table.create') }}
+      </el-button>
     </div>
 
     <!--  省市区列表相关区域 -->
     <div :class="['addr', areaList.length ? 'box-border' : '']">
-      <div v-for="(renderList, level) in renderListData" :key="level" :class="['addr-list-box', renderListData.length?'active':'']">
+      <div
+        v-for="(renderList, level) in renderListData"
+        :key="level"
+        :class="['addr-list-box', renderListData.length?'active':'']"
+      >
         <div class="addr-list">
           <!-- <div v-for="(item, idx) in renderList" :key="idx" :class="['addr-item', selectedsData.length > 0 && selectedsData[selectedsData.length-1].areaId == item.areaId ? 'active':'']"> -->
-          <div v-for="(item, idx) in renderList" :key="idx" :class="['addr-item', currentSelectId == item.areaId ? 'active':'']">
-            <div class="dot" @click="handleAddrListSelect(item, level)">{{ item.areaName }}</div>
+          <div
+            v-for="(item, idx) in renderList"
+            :key="idx"
+            :class="['addr-item', currentSelectId == item.areaId ? 'active':'']"
+          >
+            <div
+              class="dot"
+              @click="handleAddrListSelect(item, level)"
+            >
+              {{ item.areaName }}
+            </div>
             <div class="btn">
               <el-button
                 v-permission="['system:addrManage:update']"
@@ -22,24 +44,37 @@
                 icon="el-icon-edit"
                 size="small"
                 @click="addOrUpdateHandle(item, level)"
-              >编辑</el-button>
+              >
+                编辑
+              </el-button>
               <el-button
                 v-permission="['system:addrManage:delete']"
                 type="text"
                 icon="el-icon-delete"
                 size="small"
                 @click="deleteHandle(item, level)"
-              >删除</el-button>
+              >
+                删除
+              </el-button>
             </div>
           </div>
         </div>
       </div>
-      <div v-if="!renderListData.length" class="nodata">暂无数据</div>
+      <div
+        v-if="!renderListData.length"
+        class="nodata"
+      >
+        暂无数据
+      </div>
     </div>
     <!-- 省市区列表相关区域 end -->
 
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getPage()" />
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refresh-data-list="getPage()"
+    />
   </div>
 </template>
 
@@ -53,7 +88,7 @@ export default {
     AddOrUpdate
   },
   directives: { permission },
-  data() {
+  data () {
     return {
       treeData: [],
       selectedsData: [], // 记录选中值
@@ -85,18 +120,18 @@ export default {
     }
   },
   watch: {
-    areaName(val) {
+    areaName (val) {
       console.log('监听val:', val)
     }
   },
-  mounted() {
+  mounted () {
     this.getPage()
   },
   methods: {
     /**
      * 获取地址数据
      */
-    getPage() {
+    getPage () {
       this.pageLoading = true
       api.page().then(data => {
         this.pageLoading = false
@@ -106,7 +141,7 @@ export default {
       })
     },
     // 设置初始数据
-    setInitRenderListData(treeData) {
+    setInitRenderListData (treeData) {
       this.selectedsData.splice(0, this.selectedsData.length) // 1. 删除旧已选中数据
       // 删除旧的渲染列表并添加新的第一级渲染列表
       this.changeRenderListData({
@@ -117,13 +152,13 @@ export default {
       console.log('初始数据renderListData:', this.renderListData)
     },
     // 获取渲染列表
-    getRenderListData(data) {
+    getRenderListData (data) {
       return data && data.children || []
     },
     /**
      * 监听列表项选择
      */
-    handleAddrListSelect(selectData, level) {
+    handleAddrListSelect (selectData, level) {
       this.selectedsData.splice(level, 1, selectData) // 记录选中值
       this.currentSelectId = selectData.areaId
       // 生成下一级的列表渲染数据
@@ -139,14 +174,14 @@ export default {
       console.log('renderListData:', this.renderListData)
     },
     // 更改渲染列表数据
-    changeRenderListData({ startLevel, changeLength, changeValue }) {
+    changeRenderListData ({ startLevel, changeLength, changeValue }) {
       this.renderListData.splice(startLevel, changeLength, ...changeValue)
     },
 
     /**
      * 新增
      */
-    addOrUpdateHandle(item, level) {
+    addOrUpdateHandle (item, level) {
       // console.log('新增item.level:', item.level)
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
@@ -160,7 +195,7 @@ export default {
     // remove(node, data) {
     //   this.deleteHandle(data.areaId)
     // },
-    deleteHandle(item, level) {
+    deleteHandle (item, level) {
       this.$confirm('确认删除当前地址项?', this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
@@ -173,7 +208,7 @@ export default {
         })
       })
     },
-    deleteById(areaId) {
+    deleteById (areaId) {
       api.deleteById(areaId).then(() => {
         this.$message({
           message: this.$t('table.actionSuccess'),
@@ -184,7 +219,7 @@ export default {
       })
     },
 
-    filterNode(value, data) {
+    filterNode (value, data) {
       if (!value) return true
       return data.areaName.indexOf(value) !== -1
     }

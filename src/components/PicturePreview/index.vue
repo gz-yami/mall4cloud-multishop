@@ -1,13 +1,18 @@
 <template>
   <el-dialog
+    v-model:visible="visible"
     :close-on-click-modal="false"
-    :visible.sync="visible"
     top="10vh"
     :append-to-body="true"
     :lock-scroll="true"
-    class="img-preview" width="650px">
+    class="img-preview"
+    width="650px"
+  >
     <div class="img-box">
-      <img :src="(imgUrl).indexOf('http')===-1 ? resourcesUrl + imgUrl : imgUrl" class="img">
+      <img
+        :src="(imgUrl).indexOf('http')===-1 ? resourcesUrl + imgUrl : imgUrl"
+        class="img"
+      >
     </div>
   </el-dialog>
 </template>
@@ -15,16 +20,16 @@
 <script>
 export default {
 
-  data() {
+  data () {
     return {
       imgUrl: '',
       visible: false,
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
+      resourcesUrl: process.env.VUE_APP_RESOURCES_URL
     }
   },
 
   methods: {
-    init(imgUrl) {
+    init (imgUrl) {
       this.imgUrl = imgUrl
       this.visible = true
     }

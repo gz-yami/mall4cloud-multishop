@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function get(shopUserId) {
+export function get (shopUserId) {
   return request({
     url: '/mall4cloud_multishop/shop_user/account',
     method: 'get',
@@ -10,7 +10,7 @@ export function get(shopUserId) {
   })
 }
 
-export function save(data) {
+export function save (data) {
   return request({
     url: '/mall4cloud_multishop/shop_user/account',
     method: 'post',
@@ -18,11 +18,10 @@ export function save(data) {
   })
 }
 
-export function update(data) {
+export function update (data) {
   return request({
     url: '/mall4cloud_multishop/shop_user/account',
     method: 'put',
     data
   })
 }
-

@@ -1,38 +1,82 @@
 <template>
-  <el-dialog :title="dataForm.id? $t('table.edit'): $t('table.create')" :close-on-click-modal="false" :visible.sync="visible" top="5vh" class="natice-dialog">
-    <el-form ref="dataForm" :rules="rules" :model="dataForm" label-position="left" label-width="70px" style="margin: 0 20px;">
+  <el-dialog
+    v-model:visible="visible"
+    :title="dataForm.id? $t('table.edit'): $t('table.create')"
+    :close-on-click-modal="false"
+    top="5vh"
+    class="natice-dialog"
+  >
+    <el-form
+      ref="dataForm"
+      :rules="rules"
+      :model="dataForm"
+      label-position="left"
+      label-width="70px"
+      style="margin: 0 20px;"
+    >
       <!-- 公告标题 -->
-      <el-form-item :label="$t('multishop.notice.title')" prop="title">
-        <el-input v-model="dataForm.title" placeholder="请输入公告标题" />
+      <el-form-item
+        :label="$t('multishop.notice.title')"
+        prop="title"
+      >
+        <el-input
+          v-model="dataForm.title"
+          placeholder="请输入公告标题"
+        />
       </el-form-item>
       <!-- 状态(1:公布 0:撤回) -->
-      <el-form-item :label="$t('multishop.notice.status')" prop="status">
+      <el-form-item
+        :label="$t('multishop.notice.status')"
+        prop="status"
+      >
         <el-radio-group v-model="dataForm.status">
-          <el-radio :label="0">撤销</el-radio>
-          <el-radio :label="1">公布</el-radio>
+          <el-radio :label="0">
+            撤销
+          </el-radio>
+          <el-radio :label="1">
+            公布
+          </el-radio>
         </el-radio-group>
       </el-form-item>
       <!-- 是否置顶 -->
-      <el-form-item :label="$t('multishop.notice.isTop')" prop="isTop">
+      <el-form-item
+        :label="$t('multishop.notice.isTop')"
+        prop="isTop"
+      >
         <el-radio-group v-model="dataForm.isTop">
-          <el-radio :label="0">否</el-radio>
-          <el-radio :label="1">是</el-radio>
+          <el-radio :label="0">
+            否
+          </el-radio>
+          <el-radio :label="1">
+            是
+          </el-radio>
         </el-radio-group>
       </el-form-item>
       <!-- 公告内容 -->
-      <el-form-item :label="$t('multishop.notice.content')" prop="content">
-        <tiny-mce v-if="visible" v-model="dataForm.content" />
+      <el-form-item
+        :label="$t('multishop.notice.content')"
+        prop="content"
+      >
+        <tiny-mce
+          v-if="visible"
+          v-model="dataForm.content"
+        />
       </el-form-item>
     </el-form>
 
-    <div slot="footer" class="dialog-footer">
-      <el-button @click="visible = false">
-        {{ $t('table.cancel') }}
-      </el-button>
-      <el-button type="primary" @click="dataFormSubmit()">
-        {{ $t('table.confirm') }}
-      </el-button>
-    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="visible = false">
+          {{ $t('table.cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="dataFormSubmit()"
+        >
+          {{ $t('table.confirm') }}
+        </el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -40,10 +84,13 @@
 import * as api from '@/api/multishop/notice'
 import TinyMce from '@/components/Tinymce'
 export default {
+
   components: {
     TinyMce
   },
-  data() {
+  emits: ['refreshDataList'],
+
+  data () {
     return {
       visible: false,
       dataForm: {
@@ -60,12 +107,13 @@ export default {
       }
     }
   },
+
   methods: {
-    init(id) {
+    init (id) {
       this.dataForm.id = id || 0
       this.visible = true
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         if (!this.dataForm.id) {
           return
         }
@@ -75,7 +123,7 @@ export default {
       })
     },
     // 表单提交
-    dataFormSubmit() {
+    dataFormSubmit () {
       this.$refs.dataForm.validate(valid => {
         if (!valid) {
           return
@@ -89,7 +137,7 @@ export default {
             onClose: () => {
               this.visible = false
               this.$emit('refreshDataList')
-              this.$refs['dataForm'].resetFields()
+              this.$refs.dataForm.resetFields()
             }
           })
         })

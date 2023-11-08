@@ -3,29 +3,43 @@
     <div class="navbar-content">
       <!-- 1.左边部分 -->
       <div class="left-menu">
-        <div class="title">商家后台</div>
+        <div class="title">
+          商家后台
+        </div>
       </div>
 
       <!-- 2.右边部分 -->
       <div class="right-menu">
-        <div v-if="device !== 'mobile'" class="switch-language font-item">
+        <div
+          v-if="device !== 'mobile'"
+          class="switch-language font-item"
+        >
           <el-dropdown @command="handleSetLanguage">
             <span class="el-dropdown-link">
               语言<i class="el-icon-arrow-down el-icon--right" />
             </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item
-                :disabled="language === 'zh'"
-                command="zh"
-              >中文</el-dropdown-item>
-              <el-dropdown-item
-                :disabled="language === 'en'"
-                command="en"
-              >English</el-dropdown-item>
-            </el-dropdown-menu>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  :disabled="language === 'zh'"
+                  command="zh"
+                >
+                  中文
+                </el-dropdown-item>
+                <el-dropdown-item
+                  :disabled="language === 'en'"
+                  command="en"
+                >
+                  English
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
           </el-dropdown>
         </div>
-        <el-dropdown class="avatar-container" trigger="click">
+        <el-dropdown
+          class="avatar-container"
+          trigger="click"
+        >
           <div class="avatar-wrapper">
             <div class="img-box">
               <img
@@ -33,14 +47,19 @@
                 class="user-avatar"
               >
             </div>
-            <div class="user-name">{{ name }}</div>
+            <div class="user-name">
+              {{ name }}
+            </div>
             <i class="el-icon-caret-bottom" />
           </div>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item @click.native="logout">
-              <span style="display: block">{{ $t("navbar.logOut") }}</span>
-            </el-dropdown-item>
-          </el-dropdown-menu>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <!-- native modifier has been removed, please confirm whether the function has been affected  -->
+              <el-dropdown-item @click="logout">
+                <span style="display: block">{{ $t("navbar.logOut") }}</span>
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
         </el-dropdown>
       </div>
     </div>
@@ -51,7 +70,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-  data() {
+  data () {
     return {
       isHavePlatformNotice: true, // 是否有新的平台公告
       isHaveNewsBox: true // 是否有新消息
@@ -63,17 +82,17 @@ export default {
       'avatar',
       'device'
     ]),
-    language() {
+    language () {
       return this.$store.getters.language
     }
   },
   methods: {
-    async logout() {
+    async logout () {
       await this.$store.dispatch('user/logout')
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },
     // 切换语言
-    handleSetLanguage(lang) {
+    handleSetLanguage (lang) {
       this.$i18n.locale = lang
       this.$store.dispatch('app/setLanguage', lang)
       this.$message({
@@ -82,11 +101,11 @@ export default {
       })
     },
     // 跳转到平台公告
-    toPlatformNotice() {
+    toPlatformNotice () {
       // this.$router.push('')
     },
     // 跳转到消息盒子
-    toNewsBox() {
+    toNewsBox () {
       // this.$router.push('')
     }
   }

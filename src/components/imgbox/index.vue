@@ -1,8 +1,8 @@
 <template>
   <div class="elx-imgbox">
     <el-dialog
+      v-model:visible="visible"
       :title="$t('biz.imgbox.picManager')"
-      :visible.sync="visible"
       class="elx-imgbox-dialog"
       top="10vh"
       :append-to-body="visible"
@@ -10,71 +10,146 @@
       <div class="file-group">
         <div class="upload-btn">
           <div class="up-btn">
-            <el-button type="primary" plain size="medium" class="el-icon-top" @click="uploadFileBtn">上传图片</el-button>
-            <el-button size="medium" @click="selectOrCreateGroup(1)" class="el-icon-plus">新建分组</el-button>
+            <el-button
+              type="primary"
+              plain
+              size="medium"
+              class="el-icon-top"
+              @click="uploadFileBtn"
+            >
+              上传图片
+            </el-button>
+            <el-button
+              size="medium"
+              class="el-icon-plus"
+              @click="selectOrCreateGroup(1)"
+            >
+              新建分组
+            </el-button>
           </div>
           <!-- 搜索 -->
-          <el-form :inline="true" :model="dataForm" class="demo-form-inline form">
-              <el-form-item>
-                <el-input
-                  v-model="fileName"
-                  size="medium"
-                  :placeholder="$t('biz.imgbox.picName')"
-                  clearable
-                ></el-input>
-              </el-form-item>
-              <el-form-item>
-                <el-button
-                  type="primary"
-                  @click="searchImg"
-                  icon="el-icon-search"
-                  size="medium"
-                >{{$t("biz.imgbox.query")}}</el-button>
-              </el-form-item>
-            </el-form>
+          <el-form
+            :inline="true"
+            :model="dataForm"
+            class="demo-form-inline form"
+          >
+            <el-form-item>
+              <el-input
+                v-model="fileName"
+                size="medium"
+                :placeholder="$t('biz.imgbox.picName')"
+                clearable
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button
+                type="primary"
+                icon="el-icon-search"
+                size="medium"
+                @click="searchImg"
+              >
+                {{ $t("biz.imgbox.query") }}
+              </el-button>
+            </el-form-item>
+          </el-form>
         </div>
         <div class="img-group-box">
           <!-- 左侧栏 -->
           <div class="left-sidebar">
             <div class="group-list">
               <div :class="['group-item', dataForm.attachFileGroupId===0?'active':'']">
-                <span class="group-name" @click="clickOneGroup(0)">全部图片</span>
+                <span
+                  class="group-name"
+                  @click="clickOneGroup(0)"
+                >全部图片</span>
               </div>
-              <div :class="['group-item', dataForm.attachFileGroupId===gItem.attachFileGroupId?'active':'']" v-for="(gItem, gIdx) in groupList" :key="gIdx">
-                <span class="group-name" @click="clickOneGroup(gItem.attachFileGroupId)">{{ gItem.name }}</span>
+              <div
+                v-for="(gItem, gIdx) in groupList"
+                :key="gIdx"
+                :class="['group-item', dataForm.attachFileGroupId===gItem.attachFileGroupId?'active':'']"
+              >
+                <span
+                  class="group-name"
+                  @click="clickOneGroup(gItem.attachFileGroupId)"
+                >{{ gItem.name }}</span>
                 <span class="sidebar-operate">
-                  <i class="el-icon-edit" @click="selectOrCreateGroup(1,gItem.attachFileGroupId,gIdx)"></i>
-                  <i class="el-icon-delete" @click="deleteFileGroup(gItem.attachFileGroupId)"></i>
+                  <i
+                    class="el-icon-edit"
+                    @click="selectOrCreateGroup(1,gItem.attachFileGroupId,gIdx)"
+                  />
+                  <i
+                    class="el-icon-delete"
+                    @click="deleteFileGroup(gItem.attachFileGroupId)"
+                  />
                 </span>
               </div>
             </div>
           </div>
 
           <!-- 图片列表 -->
-          <div v-if="options.activeTab==='pick'" class="pick-block" name="pick">
+          <div
+            v-if="options.activeTab==='pick'"
+            class="pick-block"
+            name="pick"
+          >
             <div class="elx-main elx-img-list">
-              <div class="elx-img-list-loading" v-if="isLoading">
-                <div class="el-icon-loading"></div>
+              <div
+                v-if="isLoading"
+                class="elx-img-list-loading"
+              >
+                <div class="el-icon-loading" />
               </div>
-              <div class="img-item" v-for="(img, itemIndex) in imgRes" :key="itemIndex">
-                <div class="thumb-wp" @click="onClickListImage(img)">
-                  <img :src="(img.filePath).indexOf('http')===-1 ? resourcesUrl + img.filePath : img.filePath" alt="img.name" />
+              <div
+                v-for="(img, itemIndex) in imgRes"
+                :key="itemIndex"
+                class="img-item"
+              >
+                <div
+                  class="thumb-wp"
+                  @click="onClickListImage(img)"
+                >
+                  <img
+                    :src="(img.filePath).indexOf('http')===-1 ? resourcesUrl + img.filePath : img.filePath"
+                    alt="img.name"
+                  >
                 </div>
-                <div class="title" @click="onClickListImage(img)">{{img.fileName}}</div>
+                <div
+                  class="title"
+                  @click="onClickListImage(img)"
+                >
+                  {{ img.fileName }}
+                </div>
                 <div class="operate">
-                  <el-link type="info" class="edit" @click="changeName(img)">{{$t("table.edit")}}</el-link>
+                  <el-link
+                    type="info"
+                    class="edit"
+                    @click="changeName(img)"
+                  >
+                    {{ $t("table.edit") }}
+                  </el-link>
                   <el-link
                     type="danger"
                     class="del"
                     @click="delectImg(img.fileId)"
-                  >{{$t("table.delete")}}</el-link>
+                  >
+                    {{ $t("table.delete") }}
+                  </el-link>
                 </div>
                 <!-- <div class="label" v-if="img.label">{{img.label}}</div> -->
-                <span class="selected" v-if="img.selected" @click="onClickListImage(img)">
-                  <span class="icon el-icon-check"></span>
+                <span
+                  v-if="img.selected"
+                  class="selected"
+                  @click="onClickListImage(img)"
+                >
+                  <span class="icon el-icon-check" />
                 </span>
               </div>
-              <div class="empty" v-if="!imgRes.length">暂无图片</div>
+              <div
+                v-if="!imgRes.length"
+                class="empty"
+              >
+                暂无图片
+              </div>
             </div>
 
             <el-pagination
@@ -83,37 +158,53 @@
               :page-size="page.size"
               :total="page.total"
               @current-change="onPageNumChange"
-            ></el-pagination>
+            />
 
             <div class="elx-foot">
-              <el-badge :value="images.length" class="item" v-if="!type">
+              <el-badge
+                v-if="!type"
+                :value="images.length"
+                class="item"
+              >
                 <el-button
                   type="primary"
                   size="medium"
                   :disabled="images.length == 0"
                   @click="onConfirm"
-                >{{$t("table.confirm")}}</el-button>
+                >
+                  {{ $t("table.confirm") }}
+                </el-button>
               </el-badge>
               <el-button
+                v-else
                 type="primary"
                 size="medium"
                 :disabled="disabled"
                 @click="onConfirm"
-                v-else
-              >{{$t("table.confirm")}}</el-button>
+              >
+                {{ $t("table.confirm") }}
+              </el-button>
               <el-button
                 type="primary"
                 size="medium"
-                @click="uploadFileBtn"
                 plain
-              >{{$t("biz.imgbox.uploadPic")}}</el-button>
+                @click="uploadFileBtn"
+              >
+                {{ $t("biz.imgbox.uploadPic") }}
+              </el-button>
             </div>
           </div>
 
           <!-- 上传图片 -->
-          <div v-if="options.activeTab==='upload'" class="upload-block" name="upload">
+          <div
+            v-if="options.activeTab==='upload'"
+            class="upload-block"
+            name="upload"
+          >
             <div class="elx-main">
-              <div class="upload-title">{{$t("biz.imgbox.selectLocalPic")}}</div>
+              <div class="upload-title">
+                {{ $t("biz.imgbox.selectLocalPic") }}
+              </div>
               <el-upload
                 ref="upload"
                 class="upload-img-preview"
@@ -129,96 +220,149 @@
                 :on-error="onUploadError"
                 :on-exceed="onUploadExceedTip"
               >
-                <i class="el-icon-plus"></i>
+                <i class="el-icon-plus" />
               </el-upload>
 
               <div class="file-gropu-btn">
-                <span v-if="groupForm.name" class="sel-group-name">{{groupForm.name}}</span><el-button type="text" size="medium" @click="selectOrCreateGroup(0)">选择分组</el-button>
-                <el-button type="text" size="medium" @click="selectOrCreateGroup(1)">新建分组</el-button>
+                <span
+                  v-if="groupForm.name"
+                  class="sel-group-name"
+                >{{ groupForm.name }}</span><el-button
+                  type="text"
+                  size="medium"
+                  @click="selectOrCreateGroup(0)"
+                >
+                  选择分组
+                </el-button>
+                <el-button
+                  type="text"
+                  size="medium"
+                  @click="selectOrCreateGroup(1)"
+                >
+                  新建分组
+                </el-button>
               </div>
 
-              <div class="upload-tip">{{ uploadTips() }}</div>
+              <div class="upload-tip">
+                {{ uploadTips() }}
+              </div>
 
               <div class="elx-foot">
                 <el-button
                   type="primary"
                   size="medium"
                   @click="onUploadConfirm"
-                >{{$t("biz.imgbox.confirmUpload")}}</el-button>
+                >
+                  {{ $t("biz.imgbox.confirmUpload") }}
+                </el-button>
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- 选择/创建/修改分组 -->
-        <el-dialog :title="selectGroup?'选择分组':createGroup?'新建分组':''" :visible.sync="showGroupVisible" :append-to-body="showGroupVisible">
-          <el-form :model="groupForm" ref="groupForm" label-width="90px" style="width:400px">
-            <el-form-item v-if="createGroup" label="分组名称" prop="name">
-              <el-input placeholder="请输入分组名称" v-model="groupForm.name"></el-input>
+        <el-dialog
+          v-model:visible="showGroupVisible"
+          :title="selectGroup?'选择分组':createGroup?'新建分组':''"
+          :append-to-body="showGroupVisible"
+        >
+          <el-form
+            ref="groupForm"
+            :model="groupForm"
+            label-width="90px"
+            style="width:400px"
+          >
+            <el-form-item
+              v-if="createGroup"
+              label="分组名称"
+              prop="name"
+            >
+              <el-input
+                v-model="groupForm.name"
+                placeholder="请输入分组名称"
+              />
             </el-form-item>
-            <el-form-item v-if="selectGroup" label="选择分组">
-              <el-select v-model="groupForm.attachFileGroupId" placeholder="请选择">
+            <el-form-item
+              v-if="selectGroup"
+              label="选择分组"
+            >
+              <el-select
+                v-model="groupForm.attachFileGroupId"
+                placeholder="请选择"
+              >
                 <el-option
                   v-for="item in groupList"
                   :key="item.attachFileGroupId"
                   :label="item.name"
-                  :value="item.attachFileGroupId">
-                </el-option>
+                  :value="item.attachFileGroupId"
+                />
               </el-select>
             </el-form-item>
           </el-form>
-          <div slot="footer" class="dialog-footer">
-            <el-button @click="showGroupVisible = false">
-              {{ $t('table.cancel') }}
-            </el-button>
-            <el-button type="primary" @click="groupFormSubmit()">
-              {{ $t('table.confirm') }}
-            </el-button>
-          </div>
+          <template #footer>
+            <div class="dialog-footer">
+              <el-button @click="showGroupVisible = false">
+                {{ $t('table.cancel') }}
+              </el-button>
+              <el-button
+                type="primary"
+                @click="groupFormSubmit()"
+              >
+                {{ $t('table.confirm') }}
+              </el-button>
+            </div>
+          </template>
         </el-dialog>
       </div>
 
       <!-- 修改图片名称 -->
       <el-dialog
+        v-model:visible="changeNameVisible"
         :title="$t('biz.imgbox.revisePicName')"
         :close-on-click-modal="false"
-        :visible.sync="changeNameVisible"
         top="200px"
         :append-to-body="visible"
         width="600px"
       >
-        <el-form :model="imageObject" ref="imgDataForm" label-width="80px" v-if="changeNameVisible">
+        <el-form
+          v-if="changeNameVisible"
+          ref="imgDataForm"
+          :model="imageObject"
+          label-width="80px"
+        >
           <el-form-item :label="$t('biz.imgbox.oldName')">
-            <span>{{imageObject.fileName}}</span>
+            <span>{{ imageObject.fileName }}</span>
           </el-form-item>
           <el-form-item :label="$t('biz.imgbox.revName')">
             <el-input
-              :placeholder="$t('biz.imgbox.inputNewName')"
               v-model="newImgName"
+              :placeholder="$t('biz.imgbox.inputNewName')"
               clearable
-            ></el-input>
+            />
           </el-form-item>
           <el-form-item label="选择分组">
-            <el-select v-model="groupForm.attachFileGroupId" placeholder="请选择">
+            <el-select
+              v-model="groupForm.attachFileGroupId"
+              placeholder="请选择"
+            >
               <el-option
                 v-for="item in groupList"
                 :key="item.attachFileGroupId"
                 :label="item.name"
-                :value="item.attachFileGroupId">
-              </el-option>
+                :value="item.attachFileGroupId"
+              />
             </el-select>
           </el-form-item>
         </el-form>
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="changeNameVisible = false">{{$t("table.cancel")}}</el-button>
-          <el-button @click="submitImgName()">{{$t("table.confirm")}}</el-button>
-        </span>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="changeNameVisible = false">{{ $t("table.cancel") }}</el-button>
+            <el-button @click="submitImgName()">{{ $t("table.confirm") }}</el-button>
+          </span>
+        </template>
       </el-dialog>
       <!-- /修改图片名称 -->
-
     </el-dialog>
-
   </div>
 </template>
 
@@ -228,7 +372,9 @@ import { save, page, updateFileName, deleteFile } from '@/api/biz/attach-file'
 import { getUUID } from '@/utils/index'
 export default {
   name: 'ElxImgbox',
-  data() {
+  emits: ['refreshPic', 'refreshPic'],
+
+  data () {
     return {
       images: [], // 已选图片
       dataForm: {
@@ -238,18 +384,18 @@ export default {
         ossaccessKeyId: '',
         dir: '',
         host: '',
-        attachFileGroupId: 0,
+        attachFileGroupId: 0
       },
       groupList: [], // 分组列表
       attachFiles: [],
       resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      resourcesActionType:process.env.VUE_APP_RESOURCES_TYPE,
+      resourcesActionType: process.env.VUE_APP_RESOURCES_TYPE,
       showGroupVisible: false, // 选择/创建分组弹窗
       selectGroup: false, // 选择分组
       createGroup: false, // 创建分组
       groupForm: {
         attachFileGroupId: '', // 选择分组的值
-        name: '', // 分组名称
+        name: '' // 分组名称
       },
       groupId: null,
       oriImgName: null, // 图片原名称
@@ -292,12 +438,20 @@ export default {
     }
   },
 
+  // mounted() {
+  //   this.loadListImage()
+  // },
+
+  computed: {
+
+  },
+
   methods: {
     /**
      * 初始化
      * type 1：单图  2：多图
      */
-    init(type, limit) {
+    init (type, limit) {
       this.visible = true
       this.isLoading = false
       this.images = []
@@ -317,18 +471,18 @@ export default {
       this.loadImageGroup() // 分组
       this.loadListImage() // 图片列表
     },
-    show() {
+    show () {
       this.visible = true
     },
 
-    hide() {
+    hide () {
       this.visible = false
     },
 
     /**
      * 加载图片分组列表
      */
-    loadImageGroup() {
+    loadImageGroup () {
       pageFileGroup().then((data) => {
         this.groupList = data
       })
@@ -336,7 +490,7 @@ export default {
     /**
      * 点击图片分组item
      */
-    clickOneGroup(id) {
+    clickOneGroup (id) {
       this.dataForm.attachFileGroupId = id
       this.options.activeTab = 'pick'
       this.loadListImage()
@@ -344,7 +498,7 @@ export default {
     /**
      * 打开选择/新建分组
      */
-    selectOrCreateGroup(st, groupId, gIdx) {
+    selectOrCreateGroup (st, groupId, gIdx) {
       if (!groupId) {
         this.groupForm.attachFileGroupId = null
         this.groupForm.name = null
@@ -375,7 +529,7 @@ export default {
     /**
      * 提交选择/创建/修改分组
      */
-    groupFormSubmit() {
+    groupFormSubmit () {
       this.$refs.groupForm.validate(valid => {
         if (!valid) {
           return
@@ -405,7 +559,7 @@ export default {
               duration: 1000
             })
           }
-          var param = {
+          const param = {
             attachFileGroupId: this.groupForm.attachFileGroupId,
             name: this.groupForm.name
           }
@@ -421,14 +575,13 @@ export default {
               }
             })
           })
-          return
         }
       })
     },
     /**
      * 删除分组
      */
-    deleteFileGroup(groupId) {
+    deleteFileGroup (groupId) {
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
@@ -455,7 +608,7 @@ export default {
      * 加载图片列表数据
      * @param page
      */
-    loadListImage() {
+    loadListImage () {
       this.isLoading = true
       const param = {
         pageNum: this.page.current ? this.page.current : 1,
@@ -471,11 +624,11 @@ export default {
       })
     },
 
-    onConfirm() {
+    onConfirm () {
       if (this.type) {
         this.$emit('refreshPic', this.images[0].filePath)
       } else {
-        let imgPaths = this.images.map(file => {
+        const imgPaths = this.images.map(file => {
           return file.filePath
         }).join(',')
         this.$emit('refreshPic', imgPaths)
@@ -485,7 +638,7 @@ export default {
     /**
      * 修改图片名称
      */
-    changeName(img) {
+    changeName (img) {
       this.newImgName = ''
       this.imageObject = img
       this.isTrue = true
@@ -495,7 +648,6 @@ export default {
         if (img.attachFileGroupId == el.attachFileGroupId) {
           this.groupForm.name = el.name
           this.groupForm.attachFileGroupId = el.attachFileGroupId
-          return
         } else {
           this.groupForm.name = null
           this.groupForm.attachFileGroupId = null
@@ -505,7 +657,7 @@ export default {
     /**
      * 提交修改后的图片名称
      */
-    submitImgName() {
+    submitImgName () {
       if (!this.isTrue) {
         return false
       }
@@ -527,7 +679,7 @@ export default {
     /**
      * 删除图片
      */
-    delectImg(fileId) {
+    delectImg (fileId) {
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
@@ -541,7 +693,7 @@ export default {
         //   this.loadListImage()
         // })
         const data = {
-          fileId: fileId
+          fileId
         }
         deleteFile(data).then((data) => {
           this.images = []
@@ -553,7 +705,7 @@ export default {
     /**
      * 点击上传图片按钮
      */
-    uploadFileBtn() {
+    uploadFileBtn () {
       this.options.activeTab = 'upload'
       this.dataForm.attachFileGroupId = null
     },
@@ -562,17 +714,17 @@ export default {
      * 点击图片时选中或取消选中图片
      * @param img object
      */
-    onClickListImage(img) {
+    onClickListImage (img) {
       console.log(img)
       if (this.type) {
         this.clearListSelected()
         this.images = []
         this.disabled = false
       } else {
-        var imgIndex = this.selectedImageIndex(img)
-          // 取消图片已选状态
-          img.selected = false
-          this.images.splice(imgIndex, 1)
+        const imgIndex = this.selectedImageIndex(img)
+        // 取消图片已选状态
+        img.selected = false
+        this.images.splice(imgIndex, 1)
       }
       if (!this.type && this.images.length >= this.limit) {
         this.message(this.$t('biz.imgbox.superiorLimit'))
@@ -585,9 +737,9 @@ export default {
     /**
      * 清除所有已点击图片样式
      */
-    clearListSelected() {
+    clearListSelected () {
       if (this.type) {
-        let list = this.imgRes
+        const list = this.imgRes
         list.forEach(element => {
           element.selected = false
         })
@@ -596,7 +748,7 @@ export default {
     /**
      * 按图片名称搜索图片
      */
-    searchImg() {
+    searchImg () {
       this.page.current = 1
       this.loadListImage()
     },
@@ -604,9 +756,9 @@ export default {
     /**
      * 图片已选则返回下标，未选则返回-1
      */
-    selectedImageIndex(img) {
+    selectedImageIndex (img) {
       for (let i = 0; i < this.images.length; i++) {
-        var selectedImg = this.images[i]
+        const selectedImg = this.images[i]
         if (selectedImg.fileId === img.fileId) {
           return i
         }
@@ -618,7 +770,7 @@ export default {
      * 分页页面变化时刷新数据
      * @param page
      */
-    onPageNumChange(page) {
+    onPageNumChange (page) {
       this.page.current = page
       this.loadListImage()
     },
@@ -626,8 +778,8 @@ export default {
     /**
      * 获取上传图片数据
      */
-    onUploadConfirm() {
-      let fileNum = this.$refs.upload.uploadFiles.length
+    onUploadConfirm () {
+      const fileNum = this.$refs.upload.uploadFiles.length
       ossInfo(fileNum).then(response => {
         console.log('选择图片response：', response)
         if (this.resourcesActionType === '0') {
@@ -646,16 +798,16 @@ export default {
     /**
      * 上传图片
      */
-    httpRequest(event) {
+    httpRequest (event) {
       console.log('上传图片event:', event)
-      
-      let file = event.file
-      let typeArray = file.type.split('/')
+
+      const file = event.file
+      const typeArray = file.type.split('/')
       const attachFile = Object.assign({
         fileType: typeArray[1],
         fileName: file.name,
         fileSize: file.size,
-        type: 1,
+        type: 1
       })
 
       if (this.ossList.length <= 0) {
@@ -665,14 +817,14 @@ export default {
       // aliOss 上传
       if (this.resourcesActionType === '0') {
         attachFile.filePath = '/' + this.dataForm.dir + this.ossList[0].fileName
-        const formdata = new FormData();
-        formdata.append('policy', this.dataForm.policy);
-        formdata.append('signature', this.dataForm.signature);
-        formdata.append('ossaccessKeyId', this.dataForm.ossaccessKeyId);
-        formdata.append('dir', this.dataForm.dir);
-        formdata.append('host', this.resourcesUrl);
-        formdata.append('key', this.ossList[0].dir + this.ossList[0].fileName);
-        formdata.append('file', file);
+        const formdata = new FormData()
+        formdata.append('policy', this.dataForm.policy)
+        formdata.append('signature', this.dataForm.signature)
+        formdata.append('ossaccessKeyId', this.dataForm.ossaccessKeyId)
+        formdata.append('dir', this.dataForm.dir)
+        formdata.append('host', this.resourcesUrl)
+        formdata.append('key', this.ossList[0].dir + this.ossList[0].fileName)
+        formdata.append('file', file)
         aliImgUpdate(this.resourcesUrl, formdata).then(data => {
         }).catch(error => {
           if (!error) {
@@ -699,8 +851,8 @@ export default {
      * @param file
      * @returns {boolean}
      */
-    beforeUpload(file) {
-      let typeArray = file.type.split('/')
+    beforeUpload (file) {
+      const typeArray = file.type.split('/')
       if (typeArray[0] !== 'image') {
         if (this.notImg) {
           this.message(this.$t('biz.imgbox.onlyPictures'), true)
@@ -725,7 +877,7 @@ export default {
       return true
     },
 
-    uploadNumberLimit() {
+    uploadNumberLimit () {
       if (!this.options.multiple) {
         return 1
       }
@@ -733,16 +885,16 @@ export default {
       return this.options.limit - this.images.length
     },
 
-    uploadTypeTip() {
+    uploadTypeTip () {
       return this.$t('biz.imgbox.onlySupported') + ' jpg/png/gif ' + this.$t('biz.imgbox.pic')
     },
 
-    uploadSizeTip() {
+    uploadSizeTip () {
       return this.$t('biz.imgbox.notExceed') + '2M'
     },
 
-    uploadTips() {
-      let tips = [this.uploadTypeTip(), this.uploadSizeTip()]
+    uploadTips () {
+      const tips = [this.uploadTypeTip(), this.uploadSizeTip()]
 
       if (!this.options.multiple) {
         return tips.join('，')
@@ -768,7 +920,7 @@ export default {
      * @param file
      * @param fileList
      */
-    onUploadError(err, file, fileList) {
+    onUploadError (err, file, fileList) {
       this.message(this.$t('biz.imgbox.requestError'), true)
       throw err
     },
@@ -780,12 +932,12 @@ export default {
      * @param fileList
      * @returns {boolean}
      */
-    onUploadSuccess(response, file, fileList) {
-      var filesNames = []
+    onUploadSuccess (response, file, fileList) {
+      const filesNames = []
       fileList.forEach(file => {
         filesNames.push(file.name)
       })
-      var uploadFile = []
+      const uploadFile = []
       this.attachFiles.forEach(file => {
         if (filesNames.indexOf(file.fileName) !== -1) {
           file.attachFileGroupId = this.groupForm.attachFileGroupId
@@ -808,28 +960,20 @@ export default {
     /**
      * 选择上传文件超过限制文件个数提示
      */
-    onUploadExceedTip() {
+    onUploadExceedTip () {
       this.message(this.$t('biz.imgbox.maxSelect') + this.uploadNumberLimit() + this.$t('biz.imgbox.unit') + this.$t('biz.imgbox.upload'))
     },
-    message(msg, isInfo) {
-      var type = 'error'
+    message (msg, isInfo) {
+      let type = 'error'
       if (isInfo) {
         type = 'info'
       }
       this.$message({
         message: msg,
-        type: type,
+        type,
         duration: 1500
       })
     }
-  },
-
-  // mounted() {
-  //   this.loadListImage()
-  // },
-
-  computed: {
-
   }
 }
 </script>

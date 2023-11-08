@@ -1,102 +1,190 @@
 <template>
   <div class="mod-prod-info release-goods">
-    <div class="title">{{ dataForm.spuId ? '编辑商品信息' : '发布新商品' }}</div>
-    <el-form ref="dataForm" class="part-form" :model="dataForm" :rules="rules" label-width="110px">
+    <div class="title">
+      {{ dataForm.spuId ? '编辑商品信息' : '发布新商品' }}
+    </div>
+    <el-form
+      ref="dataForm"
+      class="part-form"
+      :model="dataForm"
+      :rules="rules"
+      label-width="110px"
+    >
       <div class="info-box">
-
         <!-- 1.商品基本信息 -->
         <div class="part-content">
-          <div class="part-tit"><span class="part-tit-num">1</span><span class="part-tit-name">商品基本信息</span></div>
+          <div class="part-tit">
+            <span class="part-tit-num">1</span><span class="part-tit-name">商品基本信息</span>
+          </div>
           <!-- 商品平台分类（不可修改） -->
           <div class="part-form-div">
-            <div class="part-form-item-tit star">平台分类</div>
+            <div class="part-form-item-tit star">
+              平台分类
+            </div>
             <div class="part-form-item">
               <div class="classify-show">
                 <category-group
                   :selected-categorys="selectedCategorys"
                   :show-category-select-btn="showCategorySelectBtn"
                   :single="true"
-                  @selectOrReviseCategory="selectOrReviseCategory('platform')"
+                  @select-or-revise-category="selectOrReviseCategory('platform')"
                 />
                 <!-- <div v-if="!dataForm.categoryId" class="warning">请先选择分类再填写以下商品信息！</div> -->
               </div>
-              <category-selector v-if="categorySelectorVisible" ref="categorySelector" @getCategorySelected="getCategorySelected" />
+              <category-selector
+                v-if="categorySelectorVisible"
+                ref="categorySelector"
+                @get-category-selected="getCategorySelected"
+              />
             </div>
           </div>
 
           <!-- 商品店铺分类 -->
           <div class="part-form-div">
-            <div class="part-form-item-tit star">店铺分类</div>
+            <div class="part-form-item-tit star">
+              店铺分类
+            </div>
             <div class="part-form-item">
               <div class="classify-show">
                 <category-group
                   :selected-categorys="selectedShopCategorys"
                   :show-category-select-btn="showShopCategorySelectBtn"
                   :single="true"
-                  @selectOrReviseCategory="selectOrReviseCategory('shop')"
+                  @select-or-revise-category="selectOrReviseCategory('shop')"
                 />
-                <div v-if="!dataForm.categoryId || !dataForm.shopCategoryId" class="warning">请先选择分类再填写以下商品信息！</div>
+                <div
+                  v-if="!dataForm.categoryId || !dataForm.shopCategoryId"
+                  class="warning"
+                >
+                  请先选择分类再填写以下商品信息！
+                </div>
               </div>
-              <category-selector v-if="categorySelectorVisible" ref="categorySelector" @getCategorySelected="getCategorySelected" />
+              <category-selector
+                v-if="categorySelectorVisible"
+                ref="categorySelector"
+                @get-category-selected="getCategorySelected"
+              />
             </div>
           </div>
 
           <!-- 商品标题 -->
-          <el-form-item label="商品标题" prop="name">
-            <el-input v-model.trim="dataForm.name" placeholder="商品标题组成：商品描述+属性" :disabled="!dataForm.categoryId" style="width:90%" />
+          <el-form-item
+            label="商品标题"
+            prop="name"
+          >
+            <el-input
+              v-model.trim="dataForm.name"
+              placeholder="商品标题组成：商品描述+属性"
+              :disabled="!dataForm.categoryId"
+              style="width:90%"
+            />
           </el-form-item>
           <!-- 商品卖点 -->
-          <el-form-item label="商品卖点" prop="sellingPoint">
-            <el-input v-model.trim="dataForm.sellingPoint" type="textarea" placeholder="商品卖点" :disabled="!dataForm.categoryId" style="width:90%" />
+          <el-form-item
+            label="商品卖点"
+            prop="sellingPoint"
+          >
+            <el-input
+              v-model.trim="dataForm.sellingPoint"
+              type="textarea"
+              placeholder="商品卖点"
+              :disabled="!dataForm.categoryId"
+              style="width:90%"
+            />
           </el-form-item>
           <!-- 商品品牌 -->
           <el-form-item label="所属品牌">
             <div class="brand">
-              <img v-if="brandImgUrl" :src="brandImgUrl" class="brand-img">
-              <el-tag v-if="brandName" class="br" :disable-transitions="true" closable @close="handleCloseBrand()">
+              <img
+                v-if="brandImgUrl"
+                :src="brandImgUrl"
+                class="brand-img"
+              >
+              <el-tag
+                v-if="brandName"
+                class="br"
+                :disable-transitions="true"
+                closable
+                @close="handleCloseBrand()"
+              >
                 <span class="brandname">{{ brandName }}</span>
               </el-tag>
               <el-button
                 type="text"
                 :class="['sel-brand', dataForm.categoryId ? '' : 'gray']"
                 @click="brandSelectHandle()"
-              >{{ brandName ? '修改' : '选择' }}品牌</el-button>
+              >
+                {{ brandName ? '修改' : '选择' }}品牌
+              </el-button>
             </div>
-            <brand-selector v-if="brandSelectVisible" ref="brandSelect" :is-single="true" @refreshSelectBrand="selectBrand" />
+            <brand-selector
+              v-if="brandSelectVisible"
+              ref="brandSelect"
+              :is-single="true"
+              @refresh-select-brand="selectBrand"
+            />
           </el-form-item>
           <!-- 商品基本属性 -->
-          <el-form-item v-if="basicAttrs.length > 0" label="基本属性">
-            <div class="text">请准确填写属性，有利于商品在搜索和推荐中露出，错误填写可能面临商品下架或流量损失！（注：带<span class="stars-icon" />为重要属性，必填）</div>
-            <spu-category-attrs :attrs-list="basicAttrs" @getValueOfBasicAttrs="getValueOfBasicAttrs" />
+          <el-form-item
+            v-if="basicAttrs.length > 0"
+            label="基本属性"
+          >
+            <div class="text">
+              请准确填写属性，有利于商品在搜索和推荐中露出，错误填写可能面临商品下架或流量损失！（注：带<span class="stars-icon" />为重要属性，必填）
+            </div>
+            <spu-category-attrs
+              :attrs-list="basicAttrs"
+              @get-value-of-basic-attrs="getValueOfBasicAttrs"
+            />
           </el-form-item>
           <!-- 商品排序 -->
           <el-form-item label="商品排序">
-            <el-input v-model.number="dataForm.seq" :max="32767" oninput="value=value.replace(/^\.+|[^\d.]/g,'')" placeholder="请输入商品排序" :min="1" validate-event style="width:200px" />
+            <el-input
+              v-model.number="dataForm.seq"
+              :max="32767"
+              oninput="value=value.replace(/^\.+|[^\d.]/g,'')"
+              placeholder="请输入商品排序"
+              :min="1"
+              validate-event
+              style="width:200px"
+            />
           </el-form-item>
           <!-- 商品轮播图 -->
           <div class="part-form-div">
-            <div class="part-form-item-tit star">商品主图</div>
+            <div class="part-form-item-tit star">
+              商品主图
+            </div>
             <div class="part-form-item">
               <img-upload v-model="dataForm.mainImgUrl" />
             </div>
           </div>
           <!-- 商品轮播图 -->
           <div class="part-form-div">
-            <div class="part-form-item-tit star">商品轮播图</div>
+            <div class="part-form-item-tit star">
+              商品轮播图
+            </div>
             <div class="part-form-item">
               <imgs-upload v-model="dataForm.imgUrls" />
-              <div class="banner-tips">建议图片尺寸为 800*800，可拖动排序，最多上传9张</div>
+              <div class="banner-tips">
+                建议图片尺寸为 800*800，可拖动排序，最多上传9张
+              </div>
             </div>
           </div>
         </div>
 
         <!-- 2.商品sku与库存 -->
         <div class="part-content">
-          <div class="part-tit"><span class="part-tit-num">2</span><span class="part-tit-name">商品销售属性与库存</span></div>
+          <div class="part-tit">
+            <span class="part-tit-num">2</span><span class="part-tit-name">商品销售属性与库存</span>
+          </div>
           <div class="part-form-div">
-            <div class="part-form-item-tit">销售属性</div>
+            <div class="part-form-item-tit">
+              销售属性
+            </div>
             <div class="part-form-item">
-              <div class="part-tips">最多添加两个商品属性，第一个商品属性可添加属性图片</div>
+              <div class="part-tips">
+                最多添加两个商品属性，第一个商品属性可添加属性图片
+              </div>
               <!-- sku-组件 -->
               <sku-block
                 v-model="salesAttrs"
@@ -116,45 +204,75 @@
           </div>
           <!-- 价格及库存 -->
           <div class="part-form-div">
-            <div class="part-form-item-tit star">价格及库存</div>
+            <div class="part-form-item-tit star">
+              价格及库存
+            </div>
             <div class="setup-spec">
-              <div class="imp-tips">请如实填写库存信息，以确保商品可以在承诺发货时间内发出，避免可能的物流违规</div>
+              <div class="imp-tips">
+                请如实填写库存信息，以确保商品可以在承诺发货时间内发出，避免可能的物流违规
+              </div>
               <div class="sku-table">
                 <!-- sku表格 -->
-                <sku-table :data="salesAttrs" :flatten="flatten" :is-no-sku-value="isNoSkuValue" :spu-id="parseInt(dataForm.spuId)" :is-category-id="dataForm.shopCategoryId ? true : false" @on-change-data="handleChangeData" />
+                <sku-table
+                  :data="salesAttrs"
+                  :flatten="flatten"
+                  :is-no-sku-value="isNoSkuValue"
+                  :spu-id="parseInt(dataForm.spuId)"
+                  :is-category-id="dataForm.shopCategoryId ? true : false"
+                  @on-change-data="handleChangeData"
+                />
               </div>
             </div>
           </div>
           <div class="part-form-div">
             <div class="part-form-item-tit">
               总库存
-              <el-tooltip class="item" effect="light" content="每个属性库存的总和" placement="top">
+              <el-tooltip
+                class="item"
+                effect="light"
+                content="每个属性库存的总和"
+                placement="top"
+              >
                 <i class="el-icon-question" />
               </el-tooltip>
             </div>
-            <el-input v-model="dataForm.totalStock" :readonly="true" style="width:150px" />
+            <el-input
+              v-model="dataForm.totalStock"
+              :readonly="true"
+              style="width:150px"
+            />
           </div>
         </div>
 
         <!-- 3.商品详情 -->
         <div class="part-content">
-          <div class="part-tit"><span class="part-tit-num">3</span><span class="part-tit-name">商品详情</span></div>
+          <div class="part-tit">
+            <span class="part-tit-num">3</span><span class="part-tit-name">商品详情</span>
+          </div>
           <div class="part-form-info">
             <product-details :data-form="dataForm" />
           </div>
         </div>
-
       </div>
 
       <div class="foot-btn">
         <el-form-item>
-          <el-button type="primary" @click="changeFormatOfFormData('ruleForm')">立即发布</el-button>
-          <el-button @click="resetForm('ruleForm')">重置</el-button>
+          <el-button
+            type="primary"
+            @click="changeFormatOfFormData('ruleForm')"
+          >
+            立即发布
+          </el-button>
+          <el-button @click="resetForm('ruleForm')">
+            重置
+          </el-button>
         </el-form-item>
       </div>
 
-      <picture-preview v-if="picturePreviewVisible" ref="picturePreview" />
-
+      <picture-preview
+        v-if="picturePreviewVisible"
+        ref="picturePreview"
+      />
     </el-form>
   </div>
 </template>
@@ -192,7 +310,7 @@ export default {
     brandSelector,
     picturePreview
   },
-  data() {
+  data () {
     return {
       resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
       dataForm: {
@@ -254,16 +372,16 @@ export default {
     }
   },
 
-  created() {
+  created () {
     this.init()
   },
 
   methods: {
-    init() {
+    init () {
       const spuId = this.dataForm.spuId
       this.dataForm.spuId = spuId || ''
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs.dataForm.resetFields()
         if (!this.dataForm.spuId) {
           return
         }
@@ -299,7 +417,7 @@ export default {
     /**
      * 获取分类
      */
-    getCategoryBack(categoryId, shopCategoryId) {
+    getCategoryBack (categoryId, shopCategoryId) {
       let selectedOfPlatCategory = {}
       let selectedOfShopCategory = {}
       platformCategoryPage().then(data => {
@@ -322,7 +440,7 @@ export default {
     /**
      * 选择/修改分类
      */
-    selectOrReviseCategory(key) {
+    selectOrReviseCategory (key) {
       console.log('选择分类key:', key)
       this.selectKey = key
       this.categorySelectorVisible = true
@@ -334,7 +452,7 @@ export default {
     /**
      * 获取子组件返回分类数据
      */
-    getCategorySelected(selectedCategorys, parentId) {
+    getCategorySelected (selectedCategorys, parentId) {
       console.log('平台分类子组件数据：selectedCategorys:', selectedCategorys, '；parentId:', parentId)
       this.categorySelectorVisible = false
       if (this.selectKey === 'platform') {
@@ -354,9 +472,9 @@ export default {
     /**
      * 根据分类获取基本属性列表
      */
-    getAttrsByCategoryId(categoryId, spuAttrValues) {
+    getAttrsByCategoryId (categoryId, spuAttrValues) {
       const param = {
-        categoryId: categoryId,
+        categoryId,
         attrType: 1 // 基本属性
       }
       api.getAttrsByCategoryId(param).then((data) => {
@@ -383,7 +501,7 @@ export default {
     /**
      * 基本属性数据
      */
-    getValueOfBasicAttrs(attrsList, attrs, st) {
+    getValueOfBasicAttrs (attrsList, attrs, st) {
       const originalSpuAttrValueList = this.originalSpuAttrValueList
       const spuAttrValueList = this.spuAttrValueList
       const spuAttrValue = {}
@@ -429,7 +547,7 @@ export default {
     /**
      * 选择/修改品牌
      */
-    brandSelectHandle(value) {
+    brandSelectHandle (value) {
       if (!this.dataForm.categoryId) {
         return
       }
@@ -443,7 +561,7 @@ export default {
     /**
      * 添加指定品牌
      */
-    selectBrand(brands) {
+    selectBrand (brands) {
       if (brands) {
         this.brandImgUrl = brands[0].brandImgUrl
         this.dataForm.brandId = brands[0].brandId
@@ -455,7 +573,7 @@ export default {
     /**
      * 删除品牌
      */
-    handleCloseBrand() {
+    handleCloseBrand () {
       this.brandImgUrl = ''
       this.brandName = ''
       this.dataForm.brandId = ''
@@ -465,7 +583,7 @@ export default {
     /**
      * sku回显
      */
-    skuBackShow(categoryId, skus) {
+    skuBackShow (categoryId, skus) {
       if (skus && skus.length > 0) {
         const salesAttrs = []
         const ids = []
@@ -525,10 +643,10 @@ export default {
         })
         // console.log('计算后skus:', skus)
         skus.forEach((skuItem, i) => {
-          this.$set(this.flatten, i, skuItem)
+          this.flatten[i] = skuItem
         })
         salesAttrs.forEach((attr, i) => {
-          this.$set(this.salesAttrs, i, attr)
+          this.salesAttrs[i] = attr
         })
         console.log('sku回显salesAttrs:', this.salesAttrs)
         // this.flatten = skus
@@ -539,7 +657,7 @@ export default {
     /**
      * 获取店铺中的销售属性
      */
-    querySalesAttrData(skus) {
+    querySalesAttrData (skus) {
       console.log('获取店铺中的销售属性skus:', skus)
       if (!skus) {
         this.originalSalesAttrs.splice(0, this.originalSalesAttrs.length)
@@ -559,9 +677,9 @@ export default {
       })
     },
     // 去重
-    removeDuplication(items, validKey = validKey) {
-      for (var i = 0; i < items.length; i++) {
-        for (var j = i + 1; j < items.length; j++) {
+    removeDuplication (items, validKey = validKey) {
+      for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) {
           if (items[i][validKey] === items[j][validKey]) {
             items.splice(i, 1)
             j--
@@ -570,20 +688,20 @@ export default {
       }
       return items
     },
-    fetchSkuTree() {
+    fetchSkuTree () {
       // 异步获取规格列表
       return new Promise(resolve => {
         resolve(skuTree)
       })
     },
-    fetchSku(id) {
+    fetchSku (id) {
       // 异步获取规格可选值
       return new Promise(resolve => {
         resolve(this.getSkus(id))
       })
     },
     // 获取规格可选值
-    getSkus(id) {
+    getSkus (id) {
       this.sku = []
       this.originalSalesAttrs.forEach(attr => {
         if (id === attr.attrId) {
@@ -597,7 +715,7 @@ export default {
       })
       return this.sku
     },
-    createGroup(text) {
+    createGroup (text) {
       // 创建新的规格名
       return new Promise((resolve, reject) => {
         const randomId = 'random_'
@@ -608,7 +726,7 @@ export default {
         }
       })
     },
-    createSku(data) {
+    createSku (data) {
       // 创建新的规格值
       return new Promise((resolve, reject) => {
         const randomId = 'random_'
@@ -622,7 +740,7 @@ export default {
       })
     },
     // SkuGroup返回数据
-    changeSkuGroupData(data) {
+    changeSkuGroupData (data) {
       // console.log('SkuGroup返回data:', data)
       this.skuTree = data
       data?.[0]?.leaf.forEach(attr => {
@@ -634,7 +752,7 @@ export default {
       })
     },
     // SkuTable返回数据
-    handleChangeData(data) {
+    handleChangeData (data) {
       // console.log('表格SkuTable返回data:', data)
       this.skuTableData = data
       const salePrices = []
@@ -663,7 +781,7 @@ export default {
     /**
      * 处理提交的skuList的数据格式
      */
-    changeSkuFormat() {
+    changeSkuFormat () {
       const { originalSalesAttrs, skuTree, skuTableData } = this
       const attrs = []
       let nameOfAttrs = [] // 属性名组合
@@ -718,7 +836,7 @@ export default {
     /**
      * 基本属性未填写部分数据处理
      */
-    basicAttrData() {
+    basicAttrData () {
       const spuAttrIds = []
       this.dataForm.spuAttrValues.some(spuAttrItem => {
         spuAttrIds.push(spuAttrItem.attrId)
@@ -742,7 +860,7 @@ export default {
     /**
      * 基本属性填写校验
      */
-    basicAttrVerification() {
+    basicAttrVerification () {
       this.dataForm.spuAttrValues.some(attrValue => {
         this.basicAttrs.some(attr => {
           if (attr.attrId === attrValue.attrId) {
@@ -765,7 +883,7 @@ export default {
     /**
      * 表单验证
      */
-    formValidation() {
+    formValidation () {
       const { dataForm } = this
       this.basicAttrData() // 基本属性校验
       if (this.basicAttrNotComplete) {
@@ -821,7 +939,7 @@ export default {
     /**
      * 表单提交数据处理
      */
-    changeFormatOfFormData() {
+    changeFormatOfFormData () {
       this.$refs.dataForm.validate(valid => {
         if (!valid) {
           this.$message({
@@ -881,7 +999,7 @@ export default {
     /**
      * 表单提交
      */
-    dataFormSubmit(dataForm) {
+    dataFormSubmit (dataForm) {
       const request = this.dataForm.spuId ? api.update(dataForm) : api.save(dataForm)
       request.then(data => {
         this.$message({
@@ -898,8 +1016,8 @@ export default {
     },
 
     // 重置
-    resetForm() {
-      this.$refs['dataForm'].resetFields()
+    resetForm () {
+      this.$refs.dataForm.resetFields()
       this.brandName = ''
       this.brandImgUrl = ''
       this.dataForm.mainImgUrl = ''
@@ -921,11 +1039,11 @@ export default {
     },
 
     // 精度运算-乘法
-    bigProductTotalAmount(a, b) {
+    bigProductTotalAmount (a, b) {
       return new Big(a).times(b).valueOf()
     },
     // 精度运算-除法
-    bigActualTotal(a, b) {
+    bigActualTotal (a, b) {
       if (a == null) {
         return ''
       }
@@ -933,7 +1051,7 @@ export default {
     },
 
     // 图片预览
-    picturePreview(imgUrl) {
+    picturePreview (imgUrl) {
       this.picturePreviewVisible = true
       this.$nextTick(() => {
         this.$refs.picturePreview.init(imgUrl)

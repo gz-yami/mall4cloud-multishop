@@ -2,8 +2,24 @@
   <div class="app-container">
     <!-- 搜索相关区域 -->
     <div class="filter-container">
-      <el-button size="mini" icon="el-icon-search" class="filter-item" @click="getPage()">{{ $t('table.search') }}</el-button>
-      <el-button v-permission="['multishop:shopUser:save']" size="mini" icon="el-icon-plus" type="primary" class="filter-item" @click="addOrUpdateHandle()">{{ $t('table.create') }}</el-button>
+      <el-button
+        size="mini"
+        icon="el-icon-search"
+        class="filter-item"
+        @click="getPage()"
+      >
+        {{ $t('table.search') }}
+      </el-button>
+      <el-button
+        v-permission="['multishop:shopUser:save']"
+        size="mini"
+        icon="el-icon-plus"
+        type="primary"
+        class="filter-item"
+        @click="addOrUpdateHandle()"
+      >
+        {{ $t('table.create') }}
+      </el-button>
     </div>
 
     <!-- 列表相关区域 -->
@@ -16,52 +32,110 @@
       style="width: 100%;"
     >
       <!-- 昵称 -->
-      <el-table-column :label="$t('multishop.shopUser.nickName')" prop="nickName" align="center" width="250">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('multishop.shopUser.nickName')"
+        prop="nickName"
+        align="center"
+        width="250"
+      >
+        <template #default="{row}">
           <span>{{ row.nickName }}</span>
         </template>
       </el-table-column>
       <!-- 头像 -->
-      <el-table-column :label="$t('multishop.shopUser.avatar')" prop="avatar" align="center" width="100">
-        <template slot-scope="{row}">
-          <el-image :src="row.avatar" fit="contain" />
+      <el-table-column
+        :label="$t('multishop.shopUser.avatar')"
+        prop="avatar"
+        align="center"
+        width="100"
+      >
+        <template #default="{row}">
+          <el-image
+            :src="row.avatar"
+            fit="contain"
+          />
         </template>
       </el-table-column>
       <!-- 员工编号 -->
-      <el-table-column :label="$t('multishop.shopUser.code')" prop="code" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('multishop.shopUser.code')"
+        prop="code"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.code }}</span>
         </template>
       </el-table-column>
       <!-- 联系方式 -->
-      <el-table-column :label="$t('multishop.shopUser.phoneNum')" prop="phoneNum" align="center">
-        <template slot-scope="{row}">
+      <el-table-column
+        :label="$t('multishop.shopUser.phoneNum')"
+        prop="phoneNum"
+        align="center"
+      >
+        <template #default="{row}">
           <span>{{ row.phoneNum }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.actions')" align="center" width="230" class-name="small-padding fixed-width">
-        <template slot-scope="{row}">
-          <el-button v-if="!row.hasAccount" v-permission="['account:authAccount:shopSave']" type="text" @click="addOrUpdateAccountHandle(row.shopUserId,row.hasAccount)">
+      <el-table-column
+        :label="$t('table.actions')"
+        align="center"
+        width="230"
+        class-name="small-padding fixed-width"
+      >
+        <template #default="{row}">
+          <el-button
+            v-if="!row.hasAccount"
+            v-permission="['account:authAccount:shopSave']"
+            type="text"
+            @click="addOrUpdateAccountHandle(row.shopUserId,row.hasAccount)"
+          >
             设置账号
           </el-button>
-          <el-button v-if="row.hasAccount" v-permission="['account:authAccount:shopUpdate']" type="text" @click="addOrUpdateAccountHandle(row.shopUserId,row.hasAccount)">
+          <el-button
+            v-if="row.hasAccount"
+            v-permission="['account:authAccount:shopUpdate']"
+            type="text"
+            @click="addOrUpdateAccountHandle(row.shopUserId,row.hasAccount)"
+          >
             修改账号
           </el-button>
-          <el-button v-permission="['multishop:shopUser:update']" type="text" @click="addOrUpdateHandle(row.shopUserId)">
+          <el-button
+            v-permission="['multishop:shopUser:update']"
+            type="text"
+            @click="addOrUpdateHandle(row.shopUserId)"
+          >
             {{ $t('table.edit') }}
           </el-button>
-          <el-button v-permission="['multishop:shopUser:delete']" type="text" @click="deleteHandle(row.shopUserId)">
+          <el-button
+            v-permission="['multishop:shopUser:delete']"
+            type="text"
+            @click="deleteHandle(row.shopUserId)"
+          >
             {{ $t('table.delete') }}
           </el-button>
         </template>
       </el-table-column>
     </el-table>
     <!-- 分页条 -->
-    <pagination v-show="pageVO.total>0" :total="pageVO.total" :page.sync="pageQuery.pageNum" :limit.sync="pageQuery.pageSize" @pagination="getPage()" />
+    <pagination
+      v-show="pageVO.total>0"
+      v-model:page="pageQuery.pageNum"
+      v-model:limit="pageQuery.pageSize"
+      :total="pageVO.total"
+      @pagination="getPage()"
+    />
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getPage()" />
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refresh-data-list="getPage()"
+    />
     <!-- 账户弹窗, 新增 / 修改 -->
-    <account-add-or-update v-if="accountaddOrUpdateVisible" ref="accountAddOrUpdate" @refreshDataList="getPage()" />
+    <account-add-or-update
+      v-if="accountaddOrUpdateVisible"
+      ref="accountAddOrUpdate"
+      @refresh-data-list="getPage()"
+    />
   </div>
 </template>
 
@@ -76,7 +150,7 @@ export default {
   name: '',
   components: { Pagination, AddOrUpdate, AccountAddOrUpdate },
   directives: { permission },
-  data() {
+  data () {
     return {
       // 查询的参数
       pageQuery: {
@@ -98,37 +172,37 @@ export default {
       accountaddOrUpdateVisible: false
     }
   },
-  mounted() {
+  mounted () {
     this.getPage()
   },
   methods: {
-    getPage() {
+    getPage () {
       this.pageLoading = true
       api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
         this.pageVO = pageVO
         this.pageLoading = false
       })
     },
-    addOrUpdateHandle(shopUserId) {
+    addOrUpdateHandle (shopUserId) {
       this.addOrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.addOrUpdate.init(shopUserId)
       })
     },
-    addOrUpdateAccountHandle(shopUserId, hasAccount) {
+    addOrUpdateAccountHandle (shopUserId, hasAccount) {
       this.accountaddOrUpdateVisible = true
       this.$nextTick(() => {
         this.$refs.accountAddOrUpdate.init(shopUserId, hasAccount)
       })
     },
-    deleteHandle(shopUserId) {
+    deleteHandle (shopUserId) {
       this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
         confirmButtonText: this.$t('table.confirm'),
         cancelButtonText: this.$t('table.cancel'),
         type: 'warning'
       }).then(() => this.deleteById(shopUserId))
     },
-    deleteById(shopUserId) {
+    deleteById (shopUserId) {
       api.deleteById(shopUserId).then(() => {
         this.$message({
           message: this.$t('table.actionSuccess'),

@@ -5,9 +5,14 @@
         <img src="~@/assets/images/login-img.jpg">
       </div>
       <div class="login-info">
-        <div class="title">蓝海商家端管理系统</div>
+        <div class="title">
+          蓝海商家端管理系统
+        </div>
         <div class="input-box">
-          <div class="number inp-item" :class="[selectItem==='username'? 'selected' : '', usernameErrTips? 'err-line' : '']">
+          <div
+            class="number inp-item"
+            :class="[selectItem==='username'? 'selected' : '', usernameErrTips? 'err-line' : '']"
+          >
             <img src="~@/assets/images/number.png">
             <input
               v-model="loginInfo.username"
@@ -16,9 +21,17 @@
               @focus="inputFocus('username')"
               @blur="inputDefocus('username')"
             >
-            <div v-if="usernameErrTips" class="err-tips">请输入正确的用户名</div>
+            <div
+              v-if="usernameErrTips"
+              class="err-tips"
+            >
+              请输入正确的用户名
+            </div>
           </div>
-          <div class="password inp-item" :class="[selectItem==='password'? 'selected' : '', passwordErrTips? 'err-line' : '']">
+          <div
+            class="password inp-item"
+            :class="[selectItem==='password'? 'selected' : '', passwordErrTips? 'err-line' : '']"
+          >
             <img src="~@/assets/images/password.png">
             <input
               v-model="loginInfo.password"
@@ -28,24 +41,49 @@
               @focus="inputFocus('password')"
               @blur="inputDefocus('password')"
             >
-            <div v-if="passwordErrTips" class="err-tips">密码不能少于6位</div>
+            <div
+              v-if="passwordErrTips"
+              class="err-tips"
+            >
+              密码不能少于6位
+            </div>
           </div>
         </div>
-        <div class="login-btn" :loading="loading" @click="handleLogin">登录</div>
+        <div
+          class="login-btn"
+          :loading="loading"
+          @click="handleLogin"
+        >
+          登录
+        </div>
       </div>
       <div class="switch-language">
         <el-dropdown @command="handleSetLanguage">
           <span class="el-dropdown-link">
             语言<i class="el-icon-caret-bottom el-icon--right" />
           </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item :disabled="language==='zh'" command="zh">中文</el-dropdown-item>
-            <el-dropdown-item :disabled="language==='en'" command="en">English</el-dropdown-item>
-          </el-dropdown-menu>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                :disabled="language==='zh'"
+                command="zh"
+              >
+                中文
+              </el-dropdown-item>
+              <el-dropdown-item
+                :disabled="language==='en'"
+                command="en"
+              >
+                English
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
         </el-dropdown>
       </div>
     </div>
-    <div class="bottom">Copyright 2018-2021 广州市蓝海创新科技有限公司</div>
+    <div class="bottom">
+      Copyright 2018-2021 广州市蓝海创新科技有限公司
+    </div>
     <Verify
       v-if="initVerify"
       ref="verify"
@@ -63,7 +101,7 @@ import Verify from '@/components/Verifition/Verify'
 export default {
   name: 'Login',
   components: { Verify },
-  data() {
+  data () {
     return {
       selectItem: '', // '':未选中；'username':用户名；'password':密码
       usernameErrTips: false,
@@ -80,13 +118,13 @@ export default {
     }
   },
   computed: {
-    language() {
+    language () {
       return this.$store.getters.language
     }
   },
   watch: {
     $route: {
-      handler: function(route) {
+      handler: function (route) {
         const query = route.query
         if (query) {
           this.redirect = query.redirect
@@ -98,7 +136,7 @@ export default {
   },
   methods: {
     // 切换语言
-    handleSetLanguage(lang) {
+    handleSetLanguage (lang) {
       this.$i18n.locale = lang
       this.$store.dispatch('app/setLanguage', lang)
       this.$message({
@@ -107,7 +145,7 @@ export default {
       })
     },
     // 输入框聚焦监听
-    inputFocus(item) {
+    inputFocus (item) {
       this.lightOutline(item)
       if (item === 'username') {
         this.usernameErrTips = false
@@ -116,20 +154,20 @@ export default {
       }
     },
     // 输入框失焦监听
-    inputDefocus(item) {
+    inputDefocus (item) {
       this.lightDisappear()
       this.judgeMonitorInput(item)
     },
     // 底边框换颜色
-    lightOutline(item) {
+    lightOutline (item) {
       this.selectItem = item
     },
     // 底边框恢复成灰色
-    lightDisappear() {
+    lightDisappear () {
       this.selectItem = ''
     },
     // 判断监听的是哪个输入框
-    judgeMonitorInput(item) {
+    judgeMonitorInput (item) {
       // if (item === 'username') {
       //   this.userNameVerification()
       // } else if (item === 'password') {
@@ -137,7 +175,7 @@ export default {
       // }
     },
     // 用户名输入框验证
-    userNameVerification() {
+    userNameVerification () {
       const username = this.loginInfo.username
       if (!validUsername(username)) {
         this.usernameErrTips = true
@@ -146,7 +184,7 @@ export default {
       }
     },
     // 密码输入框验证
-    passwordVerification() {
+    passwordVerification () {
       const password = this.loginInfo.password
       if (password.length < 6) {
         this.passwordErrTips = true
@@ -154,7 +192,7 @@ export default {
         this.passwordErrTips = false
       }
     },
-    handleLogin() {
+    handleLogin () {
       // 验证用户名和密码是否符合规则
       // this.userNameVerification()
       // this.passwordVerification()
@@ -169,7 +207,7 @@ export default {
         this.$refs.verify.show()
       })
     },
-    login(verifyResult) {
+    login (verifyResult) {
       console.log(verifyResult.captchaVerification)
       this.loading = true
       this.loginInfo.captcha = verifyResult.captchaVerification
@@ -183,7 +221,7 @@ export default {
           this.loading = false
         })
     },
-    getOtherQuery(query) {
+    getOtherQuery (query) {
       return Object.keys(query).reduce((acc, cur) => {
         if (cur !== 'redirect') {
           acc[cur] = query[cur]

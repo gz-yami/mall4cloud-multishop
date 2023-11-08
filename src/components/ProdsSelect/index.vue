@@ -1,50 +1,65 @@
 <template>
   <el-dialog
+    v-model:visible="visible"
     title="商品选择"
     :modal-append-to-body="false"
     :append-to-body="true"
     top="4vh"
     :close-on-click-modal="false"
-    :visible.sync="visible"
     width="800px"
     @close="closeModule"
   >
-    <el-form :inline="true" :model="dataForm" class="demo-form-inline">
+    <el-form
+      :inline="true"
+      :model="dataForm"
+      class="demo-form-inline"
+    >
       <el-form-item label="商品名称">
         <el-input
           v-model.trim="dataForm.name"
           placeholder="商品名称"
           clearable
           style="width: 180px"
-        ></el-input>
+        />
       </el-form-item>
       <el-form-item label="上级分类">
         <el-cascader
+          v-model="selectedCategory"
           expand-trigger="hover"
           :options="categoryList"
           :props="categoryTreeProps"
           :clearable="true"
-          v-model="selectedCategory"
-          @change="handleChange"
           style="width: 180px"
-        ></el-cascader>
+          @change="handleChange"
+        />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="searchProd" icon="el-icon-search">查询</el-button>
+        <el-button
+          type="primary"
+          icon="el-icon-search"
+          @click="searchProd"
+        >
+          查询
+        </el-button>
       </el-form-item>
       <el-form-item>
-        <el-button @click="clean" icon="el-icon-delete">清空</el-button>
+        <el-button
+          icon="el-icon-delete"
+          @click="clean"
+        >
+          清空
+        </el-button>
       </el-form-item>
     </el-form>
     <div class="prods-select-body">
       <el-table
         ref="prodTable"
+        v-loading="dataListLoading"
         :data="pageVO.list"
         border
-        v-loading="dataListLoading"
         highlight-current-row
-        @selection-change="selectChangeHandle"
         style="width: 100%"
+        @selection-change="selectChangeHandle"
       >
         <el-table-column
           v-if="isSingle"
@@ -52,14 +67,16 @@
           header-align="center"
           align="center"
         >
-          <template slot-scope="{row}">
+          <template #default="{row}">
             <div>
+              <!-- native modifier has been removed, please confirm whether the function has been affected  -->
               <el-radio
-                :label="row.spuId"
                 v-model="singleSelectspuId"
-                @change.native="getSelectProdRow(row)"
-                >&nbsp;</el-radio
+                :label="row.spuId"
+                @change="getSelectProdRow(row)"
               >
+&nbsp;
+              </el-radio>
             </div>
           </template>
         </el-table-column>
@@ -69,14 +86,18 @@
           header-align="center"
           align="center"
           width="50"
-        ></el-table-column>
+        />
         <el-table-column
           align="center"
           width="140"
           label="商品图片"
         >
-          <template slot-scope="{row}">
-            <img :src="(row.mainImgUrl).indexOf('http')===-1 ? resourcesUrl + row.mainImgUrl : row.mainImgUrl" width="100" height="100" />
+          <template #default="{row}">
+            <img
+              :src="(row.mainImgUrl).indexOf('http')===-1 ? resourcesUrl + row.mainImgUrl : row.mainImgUrl"
+              width="100"
+              height="100"
+            >
           </template>
         </el-table-column>
         <el-table-column
@@ -84,22 +105,33 @@
           header-align="center"
           align="center"
           label="商品名称"
-        ></el-table-column>
+        />
         <el-table-column
           prop="priceFee"
           header-align="center"
           align="center"
           label="商品价格"
           width="200px"
-        ></el-table-column>
+        />
       </el-table>
     </div>
     <!-- 分页条 -->
-    <pagination v-show="pageVO.total>0" :total="pageVO.total" :page.sync="pageQuery.pageNum" :limit.sync="pageQuery.pageSize" @pagination="getDataList()" />
-    <span slot="footer">
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="submitProds()">确认</el-button>
-    </span>
+    <pagination
+      v-show="pageVO.total>0"
+      v-model:page="pageQuery.pageNum"
+      v-model:limit="pageQuery.pageSize"
+      :total="pageVO.total"
+      @pagination="getDataList()"
+    />
+    <template #footer>
+      <span>
+        <el-button @click="visible = false">取消</el-button>
+        <el-button
+          type="primary"
+          @click="submitProds()"
+        >确认</el-button>
+      </span>
+    </template>
   </el-dialog>
 </template>
 
@@ -111,7 +143,24 @@ import Pagination from '@/components/Pagination'
 import Big from 'big.js'
 export default {
   components: { Pagination },
-  data() {
+
+  props: {
+    isSingle: {
+      default: false,
+      type: Boolean
+    },
+    prodType: {
+      default: null,
+      type: Number
+    },
+    dataUrl: {
+      default: '/prod/prod/page',
+      type: String
+    }
+  },
+  emits: ['refreshSelectProds'],
+
+  data () {
     return {
       visible: false,
       resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
@@ -153,26 +202,14 @@ export default {
       }
     }
   },
-  props: {
-    isSingle: {
-      default: false,
-      type: Boolean
-    },
-    prodType: {
-      default: null,
-      type: Number
-    },
-    dataUrl: {
-      default: '/prod/prod/page',
-      type: String
-    }
-  },
-  activated() {
+
+  activated () {
     this.getDataList()
   },
+
   methods: {
     // 获取数据列表
-    init(selectProds) {
+    init (selectProds) {
       this.singleSelectspuId = 0
       this.selectProds = selectProds
       this.visible = true
@@ -186,12 +223,12 @@ export default {
       this.getDataList()
       this.getCategoryList()
     },
-    getCategoryList() {
+    getCategoryList () {
       shopCategoryPage().then((data) => {
         this.categoryList = treeDataTranslate(data, 'categoryId', 'parentId')
       })
     },
-    getDataList() {
+    getDataList () {
       page({ ...this.pageQuery, ...this.searchParam }).then((pageVO) => {
         this.pageVO = pageVO
         this.pageVO.list.forEach(prod => {
@@ -201,7 +238,7 @@ export default {
         if (this.selectProds) {
           this.$nextTick(() => {
             this.selectProds.forEach(row => {
-              let index = this.pageVO.list.findIndex((prodItem) => prodItem.spuId === row.spuId)
+              const index = this.pageVO.list.findIndex((prodItem) => prodItem.spuId === row.spuId)
               this.$refs.prodTable.toggleRowSelection(this.pageVO.list[index])
             })
           })
@@ -209,30 +246,30 @@ export default {
       })
     },
     // 每页数
-    sizeChangeHandle(val) {
+    sizeChangeHandle (val) {
       this.pageQuery.pageSize = val
       this.pageQuery.pageNum = 1
       this.getDataList()
     },
     // 当前页
-    currentChangeHandle(val) {
+    currentChangeHandle (val) {
       this.pageQuery.pageNum = val
       this.getDataList()
     },
     // 单选商品事件
-    getSelectProdRow(row) {
+    getSelectProdRow (row) {
       this.dataListSelections = [row]
     },
     // 多选点击事件
-    selectChangeHandle(selection) {
+    selectChangeHandle (selection) {
       this.pageVO.list.forEach((tableItem) => {
-        let selectedProdIndex = selection.findIndex((selectedProd) => {
+        const selectedProdIndex = selection.findIndex((selectedProd) => {
           if (!selectedProd) {
             return false
           }
           return selectedProd.spuId === tableItem.spuId
         })
-        let dataSelectedProdIndex = this.dataListSelections.findIndex((dataSelectedProd) => dataSelectedProd.spuId === tableItem.spuId)
+        const dataSelectedProdIndex = this.dataListSelections.findIndex((dataSelectedProd) => dataSelectedProd.spuId === tableItem.spuId)
         if (selectedProdIndex > -1 && dataSelectedProdIndex === -1) {
           this.dataListSelections.push(tableItem)
         } else if (selectedProdIndex === -1 && dataSelectedProdIndex > -1) {
@@ -243,13 +280,13 @@ export default {
     /**
      * 获取分类id
      */
-    handleChange(val) {
+    handleChange (val) {
       this.shopCategoryId = val[val.length - 1]
     },
     /**
      * 根据条件搜索商品
      */
-    searchProd() {
+    searchProd () {
       this.pageQuery.pageNum = 1
       this.searchParam = {
         name: this.dataForm.name,
@@ -260,22 +297,22 @@ export default {
     /**
      * 清空搜索条件
      */
-    clean() {
+    clean () {
       this.name = ''
       this.shopCategoryId = null
       this.selectedCategory = idList(this.categoryList, this.shopCategoryId, 'categoryId', 'children').reverse()
     },
 
-    closeModule() {
+    closeModule () {
       this.name = ''
       this.shopCategoryId = null
     },
 
     // 确定事件
-    submitProds() {
-      let prods = []
+    submitProds () {
+      const prods = []
       this.dataListSelections.forEach(item => {
-        let prodIndex = prods.findIndex((prod) => prod.spuId === item.spuId)
+        const prodIndex = prods.findIndex((prod) => prod.spuId === item.spuId)
         if (prodIndex === -1) {
           prods.push(
             {
@@ -303,7 +340,7 @@ export default {
       this.dataListSelections = []
       this.visible = false
       // }
-    },
+    }
     /**
      * 查询商品是否在参与秒杀活动
      */

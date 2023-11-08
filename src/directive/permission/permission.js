@@ -1,6 +1,6 @@
 import store from '@/store'
 
-function checkPermission(el, binding) {
+function checkPermission (el, binding) {
   const { value } = binding
   const roles = store.getters && store.getters.roles
   const isAdmin = store.getters && store.getters.isAdmin
@@ -21,15 +21,15 @@ function checkPermission(el, binding) {
       }
     }
   } else {
-    throw new Error(`need roles! Like v-permission="['admin','editor']"`)
+    throw new Error('need roles! Like v-permission="[\'admin\',\'editor\']"')
   }
 }
 
 export default {
-  inserted(el, binding) {
+  inserted (el, binding) {
     checkPermission(el, binding)
   },
-  update(el, binding) {
+  update (el, binding) {
     checkPermission(el, binding)
   }
 }

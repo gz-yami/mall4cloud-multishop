@@ -8,8 +8,15 @@
       :on-success="handleUploadSuccess"
       :before-upload="beforeUpload"
     >
-      <img v-if="value" :src="getImgSrc" class="pic">
-      <i v-else class="el-icon-plus pic-uploader-icon" />
+      <img
+        v-if="value"
+        :src="getImgSrc"
+        class="pic"
+      >
+      <i
+        v-else
+        class="el-icon-plus pic-uploader-icon"
+      />
     </el-upload>
   </div>
 </template>
@@ -18,13 +25,16 @@
 import { ossInfo } from '@/api/biz/oss'
 import { getUUID } from '@/utils/index'
 export default {
+
   props: {
     value: {
       default: '',
       type: String
     }
   },
-  data() {
+  emits: ['input'],
+
+  data () {
     return {
       dataForm: {
         policy: '',
@@ -37,8 +47,9 @@ export default {
       resourcesUrl: process.env.VUE_APP_RESOURCES_URL
     }
   },
+
   computed: {
-    getImgSrc() {
+    getImgSrc () {
       if (!this.value) {
         return ''
       }
@@ -48,14 +59,15 @@ export default {
       return this.resourcesUrl + this.value
     }
   },
+
   methods: {
     // 图片上传
-    handleUploadSuccess(response, file, fileList) {
+    handleUploadSuccess (response, file, fileList) {
       this.dataForm.key
       this.$emit('input', '/' + this.dataForm.key)
     },
     // 限制图片上传大小
-    beforeUpload(file) {
+    beforeUpload (file) {
       const isLt2M = file.size / 1024 / 1024 < 2
       if (!isLt2M) {
         this.$message.error('上传图片大小不能超过 2MB!')
