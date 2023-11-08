@@ -56,7 +56,7 @@
           class="bat-set-item"
           size="mini"
           :mini="0 "
-          oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+          oninput="value=value.replace(/^\.+|[^\d.]/g,'')"
           placeholder="库存"
           style="width:90px"
         />
@@ -93,7 +93,7 @@
           v-model.number="barCodeIntVal"
           class="bat-set-item"
           size="mini"
-          oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+          oninput="value=value.replace(/^\.+|[^\d.]/g,'')"
           placeholder="商品条形码"
           style="width:90px"
         />
@@ -102,7 +102,7 @@
           v-model.number="skuCodeIntVal"
           class="bat-set-item"
           size="mini"
-          oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+          oninput="value=value.replace(/^\.+|[^\d.]/g,'')"
           placeholder="商品编码"
           style="width:90px"
         />
@@ -191,7 +191,7 @@
             v-model.number="scope.row.modelId"
             :min="0"
             :disabled="scope.row.status===0"
-            oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+            oninput="value=value.replace(/^\.+|[^\d.]/g,'')"
             class="tab-int"
           />
         </template>
@@ -206,7 +206,7 @@
             v-model.number="scope.row.partyCode"
             :min="0"
             :disabled="scope.row.status===0"
-            oninput="this.value=this.value.replace(/^\.+|[^\d.]/g,'')"
+            oninput="value=value.replace(/^\.+|[^\d.]/g,'')"
             class="tab-int"
           />
         </template>
@@ -229,70 +229,66 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { flatten as genFlatten } from '@/utils'
 
-export default {
-  name: 'SkuTable',
 
-  props: {
-    data: {
-      type: Array,
-      default () {
-        return []
-      }
-    },
-    // 需要附加的字段
-    flatten: {
-      type: Array,
-      default () {
-        return []
-      }
-    },
-    // 自定义sku的id key
-    optionValue: {
-      type: String,
-      default: 'id'
-    },
-    // 自定义sku的text key
-    optionText: {
-      type: String,
-      default: 'text'
-    },
-    spuId: {
-      type: Number,
-      default: null
-    },
-    isNoSkuValue: {
-      type: Boolean,
-      default: false
+
+const props = defineProps({
+  data: {
+    type: Array,
+    default () {
+      return []
     }
   },
+  // 需要附加的字段
+  flatten: {
+    type: Array,
+    default () {
+      return []
+    }
+  },
+  // 自定义sku的id key
+  optionValue: {
+    type: String,
+    default: 'id'
+  },
+  // 自定义sku的text key
+  optionText: {
+    type: String,
+    default: 'text'
+  },
+  spuId: {
+    type: Number,
+    default: null
+  },
+  isNoSkuValue: {
+    type: Boolean,
+    default: false
+  }
+})
   emits: ['on-change-data'],
 
   originList: [],
 
-  data () {
-    return {
-      rowspan: [],
-      lists: [],
-      firstSkuVal: -1,
-      secondSkuVal: -1,
-      stockIntVal: '', // 库存
-      markedPriceIntVal: '',
-      priceIntVal: '',
-      barCodeIntVal: '', // 条形码
-      skuCodeIntVal: ''
-    }
-  },
+
+var rowspan = ref([])
+var lists = ref([])
+var firstSkuVal = reactive(-1)
+var secondSkuVal = reactive(-1)
+var stockIntVal = ref('') // 库存
+var markedPriceIntVal = ref('')
+var priceIntVal = ref('')
+var barCodeIntVal = ref('') // 条形码
+var skuCodeIntVal = ref('')
 
   computed: {
     filter () {
-      return this.data.filter(item => item.text && item.leaf.length)
+      return data.filter(item => item.text && item.leaf.length)
     },
 
     columns () {
-      return this.filter.map(item => item[this.optionText])
+      return filter.map(item => item[optionText])
     },
 
     firstSkuValOptions () {
@@ -324,16 +320,16 @@ export default {
       deep: true,
       immediate: true,
       handler () {
-        const lists = this.genLists(this.filter, this.flatten)
-        this.lists = lists
-        this.computeRowspan()
+        const lists = genLists(filter, flatten)
+        lists = lists
+        computeRowspan()
       }
     },
     flatten () {
-      const lists = this.genLists(this.filter, this.flatten)
-      this.originList = JSON.parse(JSON.stringify(this.genLists(this.filter, this.flatten)))
-      if (this.lists.length === 1 && !this.lists[0].spuSkuAttrValues) {
-        this.flatten.forEach(el => {
+      const lists = genLists(filter, flatten)
+      originList = JSON.parse(JSON.stringify(genLists(filter, flatten)))
+      if (lists.length === 1 && !lists[0].spuSkuAttrValues) {
+        flatten.forEach(el => {
           const baseData = {
             stock: el.stock, // 库存
             marketPriceFee: el.marketPriceFee, // 市场价
@@ -341,7 +337,7 @@ export default {
             partyCode: el.partyCode, // 商品编码
             modelId: el.modelId // 条形码
           }
-          this.lists = [baseData]
+          lists = [baseData]
         })
       }
     },
@@ -350,146 +346,145 @@ export default {
       deep: true,
       immediate: true,
       handler (data) {
-        this.$emit('on-change-data', data)
+        emit('on-change-data', data)
       }
     }
   },
 
-  methods: {
-    genLists: (filter, flatten) => {
-      const baseData = {
-        stock: 0, // 库存
-        marketPriceFee: '', // 市场价
-        priceFee: 0.01, // 销售价
-        partyCode: '', // 商品编码
-        modelId: '' // 条形码
-      }
-      if (filter.length && genFlatten(filter, flatten).length) {
-        return genFlatten(filter, flatten, { extraData: baseData })
-      } else {
-        return [baseData]
-      }
-    },
 
-    computeRowspan () {
-      this.rowspan = []
-      const rowspan = (index) => {
-        const span = []
-        let dot = 0
-        this.lists.map((item, idx) => {
-          if (idx === 0) {
-            span.push(1)
-          } else {
-            if (item.spuSkuAttrValues?.[index].attrValueName === this.lists[idx - 1].spuSkuAttrValues?.[index].attrValueName) {
-              span[dot] += 1
-              span.push(0)
-            } else {
-              dot = idx
-              span.push(1)
-            }
-          }
-        })
-
-        this.rowspan.push(span)
-      }
-
-      this.filter.map((item, index) => {
-        rowspan(index)
-      })
-    },
-
-    handleSpanMethod ({ row, column, rowIndex, columnIndex }) {
-      for (let i = 0; i < this.filter.length; i++) {
-        if (columnIndex === i) {
-          if (this.rowspan[i] && this.rowspan[i][rowIndex]) {
-            return {
-              rowspan: this.rowspan[i][rowIndex],
-              colspan: 1
-            }
-          } else {
-            return {
-              rowspan: 0,
-              colspan: 0
-            }
-          }
-        }
-      }
-    },
-
-    // 库存修改与验证
-    stockValidAndChange (scope) {
-      const { $index, row } = scope
-      const originStock = this.originList?.[$index]?.stock
-      if (!this.lists[$index].stock) {
-        this.lists[$index].stock = 0
-      }
-      if (originStock !== undefined) {
-        if (originStock > row.stock) {
-          // 用户输入错误
-          // row.stock = originStock;
-          this.lists[$index].stock = originStock
-          this.$message({
-            message: '输入库存不得小于原有库存',
-            duration: 1000
-          })
-          return
-        }
-        this.lists[$index].changeStock = parseInt(row.stock) - parseInt(originStock)
-      }
-    },
-
-    // 立即设置
-    setNow () {
-      const {
-        lists, firstSkuVal = '', secondSkuVal = '', spuId,
-        stockIntVal = parseInt(stockIntVal), markedPriceIntVal = parseInt(markedPriceIntVal),
-        priceIntVal = parseFloat(priceIntVal), skuCodeIntVal = parseInt(skuCodeIntVal),
-        barCodeIntVal = parseInt(barCodeIntVal)
-      } = this
-      const newItem = {}
-      const setItem = (item, index) => {
-        // item.stock = stockIntVal ? parseInt(stockIntVal) : item.stock || 0 // 库存，正整数
-        item.marketPriceFee = markedPriceIntVal >= 0 ? markedPriceIntVal : item.marketPriceFee || 0
-        item.priceFee = priceIntVal || item.priceFee || 0.01 // 销售价
-        item.partyCode = skuCodeIntVal || item.partyCode || '' // 商品编码
-        item.modelId = barCodeIntVal || item.modelId || '' // 商品条形码
-        // 回显 && 原库存 > 0
-        if (spuId && item.stock >= 0) {
-          // 输入库存 是否>=0 且 是否>=原有库存
-          if (stockIntVal >= item.stock) {
-            item.stock = stockIntVal
-            this.lists[index].changeStock = stockIntVal - parseInt(this.originList[index].stock) // 改变的库存数量(新增-原有)
-          }
-        } else {
-          item.stock = stockIntVal >= 0 ? stockIntVal : item.stock || 0
-        }
-        return item
-      }
-      const vaildSkuValArr = [firstSkuVal, secondSkuVal]
-      lists.forEach((item, index) => {
-        const { spuSkuAttrValues } = item
-        // secondSkuVal
-        if (
-          spuSkuAttrValues.every((attr, idx) => vaildSkuValArr[idx] === -1 || attr.attrValueId === vaildSkuValArr[idx])
-        ) {
-          setItem(item, index)
-        }
-      })
-      this.lists = lists
-    },
-
-    /**
-     * sku状态
-     */
-    skuStatusOperation (scope) {
-      const { $index, row } = scope
-      const currentStatus = this.lists?.[$index]?.status
-      const newStatus = currentStatus === 0 ? 1 : 0
-      this.lists[$index].status = newStatus
-    }
-
+genLists: (filter, flatten) => {
+  const baseData = {
+    stock: 0, // 库存
+    marketPriceFee: '', // 市场价
+    priceFee: 0.01, // 销售价
+    partyCode: '', // 商品编码
+    modelId: '' // 条形码
+  }
+  if (filter.length && genFlatten(filter, flatten).length) {
+    return genFlatten(filter, flatten, { extraData: baseData })
+  } else {
+    return [baseData]
   }
 }
+
+const computeRowspan  = () => {
+  rowspan = []
+  const rowspan = (index) => {
+    const span = []
+    let dot = 0
+    lists.map((item, idx) => {
+      if (idx === 0) {
+        span.push(1)
+      } else {
+        if (item.spuSkuAttrValues?.[index].attrValueName === lists[idx - 1].spuSkuAttrValues?.[index].attrValueName) {
+          span[dot] += 1
+          span.push(0)
+        } else {
+          dot = idx
+          span.push(1)
+        }
+      }
+    })
+
+    rowspan.push(span)
+  }
+
+  filter.map((item, index) => {
+    rowspan(index)
+  })
+}
+
+const handleSpanMethod  = ({ row, column, rowIndex, columnIndex }) => {
+  for (let i = 0; i < filter.length; i++) {
+    if (columnIndex === i) {
+      if (rowspan[i] && rowspan[i][rowIndex]) {
+        return {
+          rowspan: rowspan[i][rowIndex],
+          colspan: 1
+        }
+      } else {
+        return {
+          rowspan: 0,
+          colspan: 0
+        }
+      }
+    }
+  }
+}
+
+// 库存修改与验证
+const stockValidAndChange  = (scope) => {
+  const { $index, row } = scope
+  const originStock = originList?.[$index]?.stock
+  if (!lists[$index].stock) {
+    lists[$index].stock = 0
+  }
+  if (originStock !== undefined) {
+    if (originStock > row.stock) {
+      // 用户输入错误
+      // row.stock = originStock;
+      lists[$index].stock = originStock
+      ElMessage({
+        message: '输入库存不得小于原有库存',
+        duration: 1000
+      })
+      return
+    }
+    lists[$index].changeStock = parseInt(row.stock) - parseInt(originStock)
+  }
+}
+
+// 立即设置
+const setNow  = () => {
+  const {
+    lists, firstSkuVal = '', secondSkuVal = '', spuId,
+    stockIntVal = parseInt(stockIntVal), markedPriceIntVal = parseInt(markedPriceIntVal),
+    priceIntVal = parseFloat(priceIntVal), skuCodeIntVal = parseInt(skuCodeIntVal),
+    barCodeIntVal = parseInt(barCodeIntVal)
+  } = this
+  const newItem = {}
+  const setItem = (item, index) => {
+    // item.stock = stockIntVal ? parseInt(stockIntVal) : item.stock || 0 // 库存，正整数
+    item.marketPriceFee = markedPriceIntVal >= 0 ? markedPriceIntVal : item.marketPriceFee || 0
+    item.priceFee = priceIntVal || item.priceFee || 0.01 // 销售价
+    item.partyCode = skuCodeIntVal || item.partyCode || '' // 商品编码
+    item.modelId = barCodeIntVal || item.modelId || '' // 商品条形码
+    // 回显 && 原库存 > 0
+    if (spuId && item.stock >= 0) {
+      // 输入库存 是否>=0 且 是否>=原有库存
+      if (stockIntVal >= item.stock) {
+        item.stock = stockIntVal
+        lists[index].changeStock = stockIntVal - parseInt(originList[index].stock) // 改变的库存数量(新增-原有)
+      }
+    } else {
+      item.stock = stockIntVal >= 0 ? stockIntVal : item.stock || 0
+    }
+    return item
+  }
+  const vaildSkuValArr = [firstSkuVal, secondSkuVal]
+  lists.forEach((item, index) => {
+    const { spuSkuAttrValues } = item
+    // secondSkuVal
+    if (
+      spuSkuAttrValues.every((attr, idx) => vaildSkuValArr[idx] === -1 || attr.attrValueId === vaildSkuValArr[idx])
+    ) {
+      setItem(item, index)
+    }
+  })
+  lists = lists
+}
+
+/**
+ * sku状态
+ */
+const skuStatusOperation  = (scope) => {
+  const { $index, row } = scope
+  const currentStatus = lists?.[$index]?.status
+  const newStatus = currentStatus === 0 ? 1 : 0
+  lists[$index].status = newStatus
+}
+
+
 </script>
 
 <style lang="scss">

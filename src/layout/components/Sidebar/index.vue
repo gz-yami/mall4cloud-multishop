@@ -20,19 +20,18 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { mapGetters } from 'vuex'
 import SidebarItem from './SidebarItem'
 import variables from '@/styles/variables.scss'
 
-export default {
-  components: { SidebarItem },
+
   computed: {
     ...mapGetters([
       'permission_routes'
     ]),
     activeMenu () {
-      const route = this.$route
+      const route = useRoute()
       const { meta, path } = route
       // if set path, the sidebar will highlight the path you set
       if (meta.activeMenu) {
@@ -42,7 +41,7 @@ export default {
     },
     // 所有sub-menu的index的数组(用来默认展开所有菜单)
     openeds () {
-      const permission_routes = this.permission_routes
+      const permission_routes = permission_routes
       const ids = []
       permission_routes.forEach(route => {
         ids.push(route.path)
@@ -53,5 +52,5 @@ export default {
       return variables
     }
   }
-}
+
 </script>

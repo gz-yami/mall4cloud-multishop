@@ -21,24 +21,16 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { AppMain, Navbar, Sidebar } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 import { mapState } from 'vuex'
 
-export default {
-  name: 'Layout',
-  components: {
-    AppMain,
-    Navbar,
-    Sidebar
-  },
+
+
   mixins: [ResizeMixin],
-  data () {
-    return {
-      isCoverHead: false
-    }
-  },
+
+var isCoverHead = ref(false)
   computed: {
     ...mapState({
       sidebar: state => state.app.sidebar,
@@ -49,27 +41,26 @@ export default {
     }),
     classObj () {
       return {
-        withoutAnimation: this.sidebar.withoutAnimation,
-        mobile: this.device === 'mobile'
+        withoutAnimation: sidebar.withoutAnimation,
+        mobile: device === 'mobile'
       }
     }
   },
-  mounted () {
-    window.addEventListener('scroll', () => {
-      const scrollTop = document.documentElement.scrollTop || document.body.scrollTop || window.pageYOffset
-      if (scrollTop > 80) {
-        this.isCoverHead = true
-      } else {
-        this.isCoverHead = false
-      }
-    })
-  },
-  methods: {
-    handleClickOutside () {
-      this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
+onMounted(() => {
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop || window.pageYOffset
+    if (scrollTop > 80) {
+      isCoverHead = true
+    } else {
+      isCoverHead = false
     }
-  }
+  })
+})
+
+const handleClickOutside  = () => {
+  $store.dispatch('app/closeSideBar', { withoutAnimation: false })
 }
+
 </script>
 
 <style lang="scss" scoped>

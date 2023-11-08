@@ -46,56 +46,51 @@
   </div>
 </template>
 
-<script>
-export default {
+<script setup>
 
-  props: {
-    selectedCategorys: {
-      type: Array,
-      default () {
-        return []
-      }
-    },
-    showCategorySelectBtn: {
-      type: Boolean,
-      default () {
-        return true
-      }
-    },
-    multiple: {
-      type: Boolean,
-      default () {
-        return false
-      }
-    },
-    single: {
-      type: Boolean,
-      default () {
-        return false
-      }
+const props = defineProps({
+  selectedCategorys: {
+    type: Array,
+    default () {
+      return []
     }
   },
-  emits: ['selectOrReviseCategory', 'deleteCategoryItemOfSelected'],
-
-  data () {
-    return {
-
+  showCategorySelectBtn: {
+    type: Boolean,
+    default () {
+      return true
     }
   },
-
-  methods: {
-    // 选择/修改分类
-    selectOrReviseCategory () {
-      this.$emit('selectOrReviseCategory')
-    },
-
-    // 删除
-    deleteCategoryItemOfSelected (index) {
-      console.log('组件内删除分类index：', index)
-      this.$emit('deleteCategoryItemOfSelected', index)
+  multiple: {
+    type: Boolean,
+    default () {
+      return false
+    }
+  },
+  single: {
+    type: Boolean,
+    default () {
+      return false
     }
   }
+})
+  emits: ['selectOrReviseCategory', 'deleteCategoryItemOfSelected'],
+
+
+
+
+
+// 选择/修改分类
+const selectOrReviseCategory  = () => {
+  emit('selectOrReviseCategory')
 }
+
+// 删除
+const deleteCategoryItemOfSelected  = (index) => {
+  console.log('组件内删除分类index：', index)
+  emit('deleteCategoryItemOfSelected', index)
+}
+
 </script>
 
 <style lang="scss" scoped>

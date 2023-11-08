@@ -21,7 +21,7 @@
                       :imgSize="imgSize"
                       :blockSize="blockSize"
                       :barSize="barSize"
-                      ref="instance"></components>
+                      ref="instanceRef"></components>
       </div>
     </div>
   </div>
@@ -34,112 +34,107 @@
 import VerifySlide from './Verify/VerifySlide'
 import VerifyPoints from './Verify/VerifyPoints'
 
-export default {
-  name: 'Vue2Verify',
-  props: {
-    // 双语化
-    locale: {
-      require: false,
-      type: String,
-      default() {
-        // 默认语言不输入为浏览器语言
-        if (navigator.language) {
-          var language = navigator.language;
-        }
-        else {
-          var language = navigator.browserLanguage;
-        }
-        return language
+
+const props = defineProps({
+  // 双语化
+  locale: {
+    require: false,
+    type: String,
+    default() {
+      // 默认语言不输入为浏览器语言
+      if (navigator.language) {
+        var language = navigator.language;
       }
-    },
-    captchaType: {
-      type: String,
-      required: true
-    },
-    figure: {
-      type: Number
-    },
-    arith: {
-      type: Number
-    },
-    mode: {
-      type: String,
-      default: 'pop'
-    },
-    vSpace: {
-      type: Number
-    },
-    explain: {
-      type: String
-    },
-    imgSize: {
-      type: Object,
-      default() {
-        return {
-          width: '310px',
-          height: '155px'
-        }
+      else {
+        var language = navigator.browserLanguage;
       }
-    },
-    blockSize: {
-      type: Object
-    },
-    barSize: {
-      type: Object
-    },
-  },
-  data() {
-    return {
-      // showBox:true,
-      clickShow: false,
-      // 内部类型
-      verifyType: undefined,
-      // 所用组件类型
-      componentType: undefined
+      return language
     }
   },
-  methods: {
-    /**
-     * i18n
-     * @description 兼容vue-i18n 调用$t来转换ok
-     * @param {String} text-被转换的目标
-     * @return {String} i18n的结果
-     * */
-    i18n(text) {
-      if (this.$t) {
-        return this.$t(text)
-      } else {
-        // 兼容不存在的语言
-        let i18n = this.$options.i18n.messages[this.locale] || this.$options.i18n.messages['en-US']
-        return i18n[text]
-      }
-    },
-    /**
-     * refresh
-     * @description 刷新
-     * */
-    refresh() {
-      if (this.instance.refresh) {
-        this.instance.refresh()
-      }
-    },
-    closeBox() {
-      this.clickShow = false
-      this.refresh()
-    },
-    show() {
-      if (this.mode == "pop") {
-        this.clickShow = true
+  captchaType: {
+    type: String,
+    required: true
+  },
+  figure: {
+    type: Number
+  },
+  arith: {
+    type: Number
+  },
+  mode: {
+    type: String,
+    default: 'pop'
+  },
+  vSpace: {
+    type: Number
+  },
+  explain: {
+    type: String
+  },
+  imgSize: {
+    type: Object,
+    default() {
+      return {
+        width: '310px',
+        height: '155px'
       }
     }
   },
+  blockSize: {
+    type: Object
+  },
+  barSize: {
+    type: Object
+  },
+})
+
+// showBox:true
+var clickShow = ref(false)
+// 内部类型
+var verifyType = reactive(undefined)
+// 所用组件类型
+var componentType = undefined
+
+/**
+ * i18n
+ * @description 兼容vue-i18n 调用$t来转换ok
+ * @param {String} text-被转换的目标
+ * @return {String} i18n的结果
+ * */
+const i18n = (text) => {
+  if ($t) {
+    return $t(text)
+  } else {
+    // 兼容不存在的语言
+    let i18n = $options.i18n.messages[locale] || $options.i18n.messages['en-US']
+    return i18n[text]
+  }
+}
+/**
+ * refresh
+ * @description 刷新
+ * */
+const refresh = () => {
+  if (instance.refresh) {
+    instance.refresh()
+  }
+}
+const closeBox = () => {
+  clickShow = false
+  refresh()
+}
+const show = () => {
+  if (mode == "pop") {
+    clickShow = true
+  }
+}
   computed: {
     instance() {
-      return this.$refs.instance || {}
+      return $refs.instance || {}
     },
     showBox() {
-      if (this.mode == 'pop') {
-        return this.clickShow
+      if (mode == 'pop') {
+        return clickShow
       } else {
         return true;
       }
@@ -151,22 +146,18 @@ export default {
       handler(captchaType) {
         switch (captchaType.toString()) {
           case 'blockPuzzle':
-            this.verifyType = '2'
-            this.componentType = 'VerifySlide'
+            verifyType = '2'
+            componentType = 'VerifySlide'
             break
           case 'clickWord':
-            this.verifyType = ''
-            this.componentType = 'VerifyPoints'
+            verifyType = ''
+            componentType = 'VerifyPoints'
             break
         }
       }
     }
   },
-  components: {
-    VerifySlide,
-    VerifyPoints
-  }
-}
+
 </script>
 <style>
 .verifybox {

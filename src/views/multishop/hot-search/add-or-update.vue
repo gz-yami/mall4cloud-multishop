@@ -4,7 +4,7 @@
     :title="dataForm.hotSearchId? $t('table.edit'): $t('table.create')"
   >
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       :rules="rules"
       :model="dataForm"
       label-position="right"
@@ -57,7 +57,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -66,68 +66,64 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/multishop/hot-search'
 
-export default {
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        hotSearchId: 0,
-        content: null,
-        seq: null,
-        status: 1,
-        title: null
-      },
-      rules: {
-        title: [
-          { required: true, message: '标题不能为空', trigger: 'blur' }
-        ],
-        content: [
-          { required: true, message: '内容不能为空', trigger: 'blur' }
-        ]
-      }
-    }
-  },
 
-  methods: {
-    init (hotSearchId) {
-      this.dataForm.hotSearchId = hotSearchId || 0
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.hotSearchId) {
-          return
-        }
-        api.get(hotSearchId).then(data => {
-          this.dataForm = data
-        })
-      })
-    },
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        const request = this.dataForm.hotSearchId ? api.update(this.dataForm) : api.save(this.dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
-      })
-    }
-  }
+var visible = ref(false)
+var dataForm = reactive({
+  hotSearchId: 0,
+  content: null,
+  seq: null,
+  status: 1,
+  title: null
+})
+var rules = {
+  title: [
+    { required: true, message: '标题不能为空', trigger: 'blur' }
+  ],
+  content: [
+    { required: true, message: '内容不能为空', trigger: 'blur' }
+  ]
 }
+
+
+const init  = (hotSearchId) => {
+  dataForm.hotSearchId = hotSearchId || 0
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.hotSearchId) {
+      return
+    }
+    api.get(hotSearchId).then(data => {
+      dataForm = data
+    })
+  })
+}
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    const request = dataForm.hotSearchId ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
 </script>

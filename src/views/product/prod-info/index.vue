@@ -4,7 +4,7 @@
       {{ dataForm.spuId ? '编辑商品信息' : '发布新商品' }}
     </div>
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       class="part-form"
       :model="dataForm"
       :rules="rules"
@@ -33,7 +33,7 @@
               </div>
               <category-selector
                 v-if="categorySelectorVisible"
-                ref="categorySelector"
+                ref="categorySelectorRef"
                 @get-category-selected="getCategorySelected"
               />
             </div>
@@ -61,7 +61,7 @@
               </div>
               <category-selector
                 v-if="categorySelectorVisible"
-                ref="categorySelector"
+                ref="categorySelectorRef"
                 @get-category-selected="getCategorySelected"
               />
             </div>
@@ -119,7 +119,7 @@
             </div>
             <brand-selector
               v-if="brandSelectVisible"
-              ref="brandSelect"
+              ref="brandSelectRef"
               :is-single="true"
               @refresh-select-brand="selectBrand"
             />
@@ -271,13 +271,13 @@
 
       <picture-preview
         v-if="picturePreviewVisible"
-        ref="picturePreview"
+        ref="picturePreviewRef"
       />
     </el-form>
   </div>
 </template>
 
-<script>
+<script setup>
 // import { run } from 'runjs'
 import * as api from '@/api/product/prod-info'
 import { treeDataTranslate, idList } from '@/utils'
@@ -297,769 +297,753 @@ const skuTree = [] // 规格列表
 
 const sku = []
 
-export default {
-  components: {
-    categorySelector,
-    imgUpload,
-    imgsUpload,
-    skuBlock,
-    skuTable,
-    spuCategoryAttrs,
-    productDetails,
-    categoryGroup,
-    brandSelector,
-    picturePreview
-  },
-  data () {
-    return {
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      dataForm: {
-        spuId: this.$route.query.spuId || null, // 商品id
-        categoryId: null, // 分类id
-        shopCategoryId: null, // 店铺分类id
-        name: '', // 商品名称
-        sellingPoint: '', // 商品卖点
-        brandId: 0, // 品牌id（非必选）
-        imgUrls: '', // 轮播图 多个图片逗号分隔
-        isCompose: 0, // 是否为组合商品0普通商品，1组合商品
-        mainImgUrl: '', // 商品主图
-        hasSkuImg: 0, // sku是否含有图片 0无 1有
-        scoreFee: 0, // 积分价格（非必填）
-        seq: null, // 商品排序（非必填）
-        spuAttrValues: [], // 商品属性值列表
-        detail: '', // 详情信息（非必填）
-        skuList: [], // sku列表
-        totalStock: 0 // 商品总库存
-      },
-      backTotalStock: null, // 回显总库存
-      brandName: '', // 品牌名称
-      brandImgUrl: '', // 品牌logo
-      brandSelectVisible: false, // 品牌选择组件显隐
-      basicAttrs: [], // 基本属性列表
-      salesAttrs: [], // 销售属性列表
-      originalSalesAttrs: [], // 起初的(不变的)销售属性
-      basicAttrNotComplete: false, // 基本属性不完整
-      categorySelectorVisible: false, // 分类选择器弹窗显隐
-      selectedCategorys: [], // 选中的平台分类
-      selectedShopCategorys: [], // 选中的店铺分类
-      showCategorySelectBtn: true, // '选择分类'按钮显隐
-      showShopCategorySelectBtn: true, // 店铺'选择分类'按钮显隐
-      spuAttrValueList: [], // 商品基本属性值列表
-      value: null,
-      skuTree,
-      sku,
-      checked: false,
-      content: '',
-      contentCn: '',
-      skuTableData: [], // sku表格返回数据
-      originalSkuTree: [], // sku属性选项列表(不受改变影响)
-      rules: {
-        name: [
-          { required: true, message: '请输入商品标题', trigger: 'blur' }
-        ],
-        sellingPoint: [
-          { required: true, message: '请输入商品卖点', trigger: 'blur' }
-        ],
-        seq: [
-          { required: true, message: '请输入商品排序', trigger: 'blur' }
-        ]
-      },
-      flatten: [],
-      originalSpuAttrValueList: [], // 基本属性回显原数据
-      isNoSkuValue: false, // 回显时的商品是否有sku
-      picturePreviewVisible: false, // 预览图片弹窗
-      hasSkuValue: true // 是否有属性值
+
+
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var dataForm = reactive({
+  spuId: useRoute().query.spuId || null, // 商品id
+  categoryId: null, // 分类id
+  shopCategoryId: null, // 店铺分类id
+  name: '', // 商品名称
+  sellingPoint: '', // 商品卖点
+  brandId: 0, // 品牌id（非必选）
+  imgUrls: '', // 轮播图 多个图片逗号分隔
+  isCompose: 0, // 是否为组合商品0普通商品，1组合商品
+  mainImgUrl: '', // 商品主图
+  hasSkuImg: 0, // sku是否含有图片 0无 1有
+  scoreFee: 0, // 积分价格（非必填）
+  seq: null, // 商品排序（非必填）
+  spuAttrValues: [], // 商品属性值列表
+  detail: '', // 详情信息（非必填）
+  skuList: [], // sku列表
+  totalStock: 0 // 商品总库存
+})
+let backTotalStock = null // 回显总库存
+var brandName = ref('') // 品牌名称
+var brandImgUrl = ref('') // 品牌logo
+var brandSelectVisible = ref(false) // 品牌选择组件显隐
+var basicAttrs = ref([]) // 基本属性列表
+var salesAttrs = ref([]) // 销售属性列表
+var originalSalesAttrs = ref([]) // 起初的(不变的)销售属性
+var basicAttrNotComplete = ref(false) // 基本属性不完整
+var categorySelectorVisible = ref(false) // 分类选择器弹窗显隐
+var selectedCategorys = ref([]) // 选中的平台分类
+var selectedShopCategorys = ref([]) // 选中的店铺分类
+var showCategorySelectBtn = ref(true) // '选择分类'按钮显隐
+var showShopCategorySelectBtn = ref(true) // 店铺'选择分类'按钮显隐
+var spuAttrValueList = ref([]) // 商品基本属性值列表
+let value = null
+skuTree
+sku
+var checked = ref(false)
+var content = ref('')
+var contentCn = ref('')
+var skuTableData = ref([]) // sku表格返回数据
+var originalSkuTree = ref([]) // sku属性选项列表(不受改变影响)
+var rules = reactive({
+  name: [
+    { required: true, message: '请输入商品标题', trigger: 'blur' }
+  ],
+  sellingPoint: [
+    { required: true, message: '请输入商品卖点', trigger: 'blur' }
+  ],
+  seq: [
+    { required: true, message: '请输入商品排序', trigger: 'blur' }
+  ]
+})
+var flatten = ref([])
+var originalSpuAttrValueList = ref([]) // 基本属性回显原数据
+var isNoSkuValue = ref(false) // 回显时的商品是否有sku
+var picturePreviewVisible = ref(false) // 预览图片弹窗
+var hasSkuValue = ref(true) // 是否有属性值
+
+onMounted(() => {
+  init()
+})
+
+
+const init  = () => {
+  const spuId = dataForm.spuId
+  dataForm.spuId = spuId || ''
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.spuId) {
+      return
     }
-  },
-
-  created () {
-    this.init()
-  },
-
-  methods: {
-    init () {
-      const spuId = this.dataForm.spuId
-      this.dataForm.spuId = spuId || ''
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.spuId) {
-          return
-        }
-        api.getProdInfoPage(spuId).then(data => {
-          console.log('获取data:', data)
-          this.dataForm = data
-          this.originalSpuAttrValueList = data.spuAttrValues
-          this.backTotalStock = data.skus.reduce((res, { stock }) => {
-            res += (stock || 0)
-            return res
-          }, 0)
-          // 回显分类
-          console.log('回显分类')
-          this.getCategoryBack(data.categoryId, data.shopCategoryId)
-          // 商品分类选择按钮
-          this.showCategorySelectBtn = false
-          if (data.brand?.imgUrl) {
-            const img = data.brand.imgUrl
-            if (img.indexOf('http://') === 0 || img.indexOf('https://') === 0) {
-              this.brandImgUrl = img
-            } else {
-              this.brandImgUrl = this.resourcesUrl + img
-            }
-          }
-          this.brandName = data.brand?.name // 品牌名字
-          // 根据分类获取基本属性列表
-          this.getAttrsByCategoryId(data.categoryId, data.spuAttrValues)
-          // sku回显
-          this.skuBackShow(data.shopCategoryId, data.skus) // 销售属性
-        })
-      })
-    },
-    /**
-     * 获取分类
-     */
-    getCategoryBack (categoryId, shopCategoryId) {
-      let selectedOfPlatCategory = {}
-      let selectedOfShopCategory = {}
-      platformCategoryPage().then(data => {
-        console.log(data)
-        // 获取平台分类数据
-        const categoryList = treeDataTranslate(data, 'categoryId', 'parentId')
-        selectedOfPlatCategory = idList(categoryList, categoryId, 'categoryId', 'children').reverse()
-        console.log('选中的平台分类selectedOfPlatCategory:', selectedOfPlatCategory)
-        selectedOfPlatCategory.forEach(el => this.selectedCategorys.push(el.name)) // 选中的分类
-        console.log('选中的平台分类selectedCategorys:', this.selectedCategorys)
-      })
-      shopCategoryPage().then(data => {
-        // 获取店铺分类数据
-        const shopCategoryList = treeDataTranslate(data, 'categoryId', 'parentId')
-        selectedOfShopCategory = idList(shopCategoryList, shopCategoryId, 'categoryId', 'children').reverse()
-        selectedOfShopCategory.forEach(el => this.selectedShopCategorys.push(el.name)) // 选中的分类
-      })
-    },
-
-    /**
-     * 选择/修改分类
-     */
-    selectOrReviseCategory (key) {
-      console.log('选择分类key:', key)
-      this.selectKey = key
-      this.categorySelectorVisible = true
-      this.$nextTick(() => {
-        this.$refs.categorySelector.init(0, key) // 1代表从创建分类进入
-      })
-    },
-
-    /**
-     * 获取子组件返回分类数据
-     */
-    getCategorySelected (selectedCategorys, parentId) {
-      console.log('平台分类子组件数据：selectedCategorys:', selectedCategorys, '；parentId:', parentId)
-      this.categorySelectorVisible = false
-      if (this.selectKey === 'platform') {
-        this.selectedCategorys = selectedCategorys
-        this.dataForm.categoryId = parentId
-        this.getAttrsByCategoryId(parentId) // 请求基本属性
-      } else {
-        this.selectedShopCategorys = selectedCategorys
-        this.dataForm.shopCategoryId = parentId
-        this.querySalesAttrData() // 请求销售属性
-      }
-      console.log('店铺分类selectedShopCategorys:', this.selectedShopCategorys)
-      console.log('平台分类selectedCategorys:', this.selectedCategorys)
-      console.log('dataForm:', this.dataForm)
-    },
-
-    /**
-     * 根据分类获取基本属性列表
-     */
-    getAttrsByCategoryId (categoryId, spuAttrValues) {
-      const param = {
-        categoryId,
-        attrType: 1 // 基本属性
-      }
-      api.getAttrsByCategoryId(param).then((data) => {
-        // 获取数据回显
-        if (spuAttrValues) {
-          data.forEach((attr, idx) => {
-            spuAttrValues.forEach(spuAttr => {
-              if (!attr.attrValues.length && (!spuAttr.attrValueId || spuAttr.attrValueId === 0)) {
-                if (attr.attrId === spuAttr.attrId) {
-                  attr.attrValue = spuAttr.attrValueName
-                }
-              } else {
-                if (attr.attrValues.some(attr => spuAttr.attrValueId === attr.attrValueId)) {
-                  attr.attrValue = spuAttr.attrValueId
-                }
-              }
-            })
-          })
-        }
-        this.basicAttrs = data
-      })
-    },
-
-    /**
-     * 基本属性数据
-     */
-    getValueOfBasicAttrs (attrsList, attrs, st) {
-      const originalSpuAttrValueList = this.originalSpuAttrValueList
-      const spuAttrValueList = this.spuAttrValueList
-      const spuAttrValue = {}
-      if (this.dataForm.spuId) { // 回显
-        originalSpuAttrValueList.forEach((item, index) => {
-          if (item.attrId === attrs.attrId) {
-            attrs.spuAttrValueId = item.spuAttrValueId
-            spuAttrValue.spuAttrValueId = attrs.spuAttrValueId
-          }
-        })
-      }
-      // 获取基本属性子组件返回数据
-      spuAttrValue.attrId = attrs.attrId
-      spuAttrValue.attrName = attrs.name
-      if (st === 0) { // 下拉选择
-        attrs.attrValues.some(attr => {
-          if (attrs.attrValue === attr.attrValueId) {
-            spuAttrValue.attrValueId = attrs.attrValue
-            spuAttrValue.attrValueName = attr.value
-            spuAttrValueList.push(spuAttrValue)
-            return true
-          }
-        })
-      }
-      if (st === 1) { // 输入框
-        spuAttrValue.attrValueId = ''
-        spuAttrValue.attrValueName = attrs.attrValue
-        if (attrs.searchType === 1 && !attrs.attrValue) {
-          this.$message({
-            message: '当前属性为必填属性，请填写属性值！',
-            duration: 1500
-          })
-          return
+    api.getProdInfoPage(spuId).then(data => {
+      console.log('获取data:', data)
+      dataForm = data
+      originalSpuAttrValueList = data.spuAttrValues
+      backTotalStock = data.skus.reduce((res, { stock }) => {
+        res += (stock || 0)
+        return res
+      }, 0)
+      // 回显分类
+      console.log('回显分类')
+      getCategoryBack(data.categoryId, data.shopCategoryId)
+      // 商品分类选择按钮
+      showCategorySelectBtn = false
+      if (data.brand?.imgUrl) {
+        const img = data.brand.imgUrl
+        if (img.indexOf('http://') === 0 || img.indexOf('https://') === 0) {
+          brandImgUrl = img
         } else {
-          spuAttrValueList.push(spuAttrValue)
+          brandImgUrl = resourcesUrl + img
         }
       }
-      // 去重
-      this.removeDuplication(spuAttrValueList, 'attrId')
-      this.dataForm.spuAttrValues = spuAttrValueList
-    },
+      brandName = data.brand?.name // 品牌名字
+      // 根据分类获取基本属性列表
+      getAttrsByCategoryId(data.categoryId, data.spuAttrValues)
+      // sku回显
+      skuBackShow(data.shopCategoryId, data.skus) // 销售属性
+    })
+  })
+}
+/**
+ * 获取分类
+ */
+const getCategoryBack  = (categoryId, shopCategoryId) => {
+  let selectedOfPlatCategory = {}
+  let selectedOfShopCategory = {}
+  platformCategoryPage().then(data => {
+    console.log(data)
+    // 获取平台分类数据
+    const categoryList = treeDataTranslate(data, 'categoryId', 'parentId')
+    selectedOfPlatCategory = idList(categoryList, categoryId, 'categoryId', 'children').reverse()
+    console.log('选中的平台分类selectedOfPlatCategory:', selectedOfPlatCategory)
+    selectedOfPlatCategory.forEach(el => selectedCategorys.push(el.name)) // 选中的分类
+    console.log('选中的平台分类selectedCategorys:', selectedCategorys)
+  })
+  shopCategoryPage().then(data => {
+    // 获取店铺分类数据
+    const shopCategoryList = treeDataTranslate(data, 'categoryId', 'parentId')
+    selectedOfShopCategory = idList(shopCategoryList, shopCategoryId, 'categoryId', 'children').reverse()
+    selectedOfShopCategory.forEach(el => selectedShopCategorys.push(el.name)) // 选中的分类
+  })
+}
 
-    /**
-     * 选择/修改品牌
-     */
-    brandSelectHandle (value) {
-      if (!this.dataForm.categoryId) {
-        return
-      }
-      const brands = []
-      brands.push({ brandId: this.dataForm.brandId })
-      this.brandSelectVisible = true
-      this.$nextTick(() => {
-        this.$refs.brandSelect.init(brands, this.dataForm.categoryId)
-      })
-    },
-    /**
-     * 添加指定品牌
-     */
-    selectBrand (brands) {
-      if (brands) {
-        this.brandImgUrl = brands[0].brandImgUrl
-        this.dataForm.brandId = brands[0].brandId
-        this.brandName = brands[0].brandName
-        // 删除多余参数
-        this.dataForm.brand = undefined
-      }
-    },
-    /**
-     * 删除品牌
-     */
-    handleCloseBrand () {
-      this.brandImgUrl = ''
-      this.brandName = ''
-      this.dataForm.brandId = ''
-      this.dataForm.brand = undefined
-    },
+/**
+ * 选择/修改分类
+ */
+const selectOrReviseCategory  = (key) => {
+  console.log('选择分类key:', key)
+  selectKey = key
+  categorySelectorVisible = true
+  nextTick(() => {
+    categorySelectorRef.value?.init(0, key) // 1代表从创建分类进入
+  })
+}
 
-    /**
-     * sku回显
-     */
-    skuBackShow (categoryId, skus) {
-      if (skus && skus.length > 0) {
-        const salesAttrs = []
-        const ids = []
-        const attrValueNameMapId = []
-        skus.forEach(sku => {
-          sku.spuSkuAttrValues?.forEach((attrInfo, idx) => {
-            // 无sku
-            if (attrInfo.attrName === null && attrInfo.attrValueName === null) {
-              this.isNoSkuValue = true
-              return
+/**
+ * 获取子组件返回分类数据
+ */
+const getCategorySelected  = (selectedCategorys, parentId) => {
+  console.log('平台分类子组件数据：selectedCategorys:', selectedCategorys, '；parentId:', parentId)
+  categorySelectorVisible = false
+  if (selectKey === 'platform') {
+    selectedCategorys = selectedCategorys
+    dataForm.categoryId = parentId
+    getAttrsByCategoryId(parentId) // 请求基本属性
+  } else {
+    selectedShopCategorys = selectedCategorys
+    dataForm.shopCategoryId = parentId
+    querySalesAttrData() // 请求销售属性
+  }
+  console.log('店铺分类selectedShopCategorys:', selectedShopCategorys)
+  console.log('平台分类selectedCategorys:', selectedCategorys)
+  console.log('dataForm:', dataForm)
+}
+
+/**
+ * 根据分类获取基本属性列表
+ */
+const getAttrsByCategoryId  = (categoryId, spuAttrValues) => {
+  const param = {
+    categoryId,
+    attrType: 1 // 基本属性
+  }
+  api.getAttrsByCategoryId(param).then((data) => {
+    // 获取数据回显
+    if (spuAttrValues) {
+      data.forEach((attr, idx) => {
+        spuAttrValues.forEach(spuAttr => {
+          if (!attr.attrValues.length && (!spuAttr.attrValueId || spuAttr.attrValueId === 0)) {
+            if (attr.attrId === spuAttr.attrId) {
+              attr.attrValue = spuAttr.attrValueName
             }
-
-            /** 有sku */
-
-            const randomId = 'random_'
-
-            /** left的每一项 */
-            // 每一层id一致
-            ids[idx] = ids[idx] || attrInfo.attrId || randomId + parseInt(Math.random() * 100, 10) + 1 // 无attrId则随机生成一个带有前缀的新id
-            attrInfo.attrId = ids[idx]
-
-            if (!attrValueNameMapId[idx]) {
-              attrValueNameMapId[idx] = {}
-            }
-
-            const attrValueId = attrValueNameMapId[idx][attrInfo.attrValueName] || attrInfo.attrValueId || randomId + parseInt(Math.random() * 100, 10) + parseInt(Math.random() * 100, 10)
-            attrValueNameMapId[idx][attrInfo.attrValueName] = attrValueId
-            attrInfo.attrValueId = attrValueId
-            const skuValueItem = {
-              id: attrValueId,
-              is_show: !!sku.imgUrl,
-              text: attrInfo.attrValueName
-            }
-
-            if (idx === 0) {
-              skuValueItem.imgUrl = sku.imgUrl || ''
-            }
-            if (salesAttrs[idx] === undefined) {
-              salesAttrs[idx] = {
-                id: ids[idx],
-                leaf: [skuValueItem],
-                text: attrInfo.attrName
-              }
-            } else {
-              salesAttrs[idx].leaf.push(skuValueItem)
-            }
-          })
-        })
-
-        // 去重
-        salesAttrs.forEach(attr => {
-          attr.leaf = this.removeDuplication(attr.leaf, 'id')
-        })
-        skus.some(skuItem => {
-          skuItem.marketPriceFee = parseFloat(this.bigActualTotal(parseFloat(skuItem.marketPriceFee), 100)) // 市场价
-          skuItem.priceFee = parseFloat(this.bigActualTotal(parseFloat(skuItem.priceFee), 100)) // 销售价
-        })
-        // console.log('计算后skus:', skus)
-        skus.forEach((skuItem, i) => {
-          this.flatten[i] = skuItem
-        })
-        salesAttrs.forEach((attr, i) => {
-          this.salesAttrs[i] = attr
-        })
-        console.log('sku回显salesAttrs:', this.salesAttrs)
-        // this.flatten = skus
-      }
-      this.querySalesAttrData(skus)
-    },
-
-    /**
-     * 获取店铺中的销售属性
-     */
-    querySalesAttrData (skus) {
-      console.log('获取店铺中的销售属性skus:', skus)
-      if (!skus) {
-        this.originalSalesAttrs.splice(0, this.originalSalesAttrs.length)
-      }
-      this.skuTree.splice(0, this.skuTree.length) // 清空
-      getShopAttrs().then((data) => {
-        console.log('获取店铺中的销售属性data:', data)
-        this.originalSalesAttrs = data
-        let skuTrees = []
-        data.forEach((item, idx) => {
-          skuTrees.push({ id: item.attrId, text: item.name })
-        })
-        // 去重
-        skuTrees = this.removeDuplication(skuTrees, 'id')
-        this.originalSkuTree = skuTrees
-        this.skuTree = skuTrees
-      })
-    },
-    // 去重
-    removeDuplication (items, validKey = validKey) {
-      for (let i = 0; i < items.length; i++) {
-        for (let j = i + 1; j < items.length; j++) {
-          if (items[i][validKey] === items[j][validKey]) {
-            items.splice(i, 1)
-            j--
-          }
-        }
-      }
-      return items
-    },
-    fetchSkuTree () {
-      // 异步获取规格列表
-      return new Promise(resolve => {
-        resolve(skuTree)
-      })
-    },
-    fetchSku (id) {
-      // 异步获取规格可选值
-      return new Promise(resolve => {
-        resolve(this.getSkus(id))
-      })
-    },
-    // 获取规格可选值
-    getSkus (id) {
-      this.sku = []
-      this.originalSalesAttrs.forEach(attr => {
-        if (id === attr.attrId) {
-          attr.attrValues.forEach(attrVal => {
-            const attrValue = {}
-            attrValue.text = attrVal.value
-            attrValue.id = attrVal.attrValueId
-            this.sku.push(attrValue)
-          })
-        }
-      })
-      return this.sku
-    },
-    createGroup (text) {
-      // 创建新的规格名
-      return new Promise((resolve, reject) => {
-        const randomId = 'random_'
-        if (text) {
-          resolve(randomId + parseInt(Math.random() * 100, 10) + 1)
-        } else {
-          reject(new Error())
-        }
-      })
-    },
-    createSku (data) {
-      // 创建新的规格值
-      return new Promise((resolve, reject) => {
-        const randomId = 'random_'
-        resolve(data.data.map(item => {
-          return {
-            id: randomId + parseInt(Math.random() * 100, 10) + parseInt(Math.random() * 100, 10),
-            text: item,
-            leaf: []
-          }
-        }))
-      })
-    },
-    // SkuGroup返回数据
-    changeSkuGroupData (data) {
-      // console.log('SkuGroup返回data:', data)
-      this.skuTree = data
-      data?.[0]?.leaf.forEach(attr => {
-        if (attr.is_show) {
-          this.dataForm.hasSkuImg = 1
-        } else {
-          this.dataForm.hasSkuImg = 0
-        }
-      })
-    },
-    // SkuTable返回数据
-    handleChangeData (data) {
-      // console.log('表格SkuTable返回data:', data)
-      this.skuTableData = data
-      const salePrices = []
-      const marketPrices = []
-      let totalStock = 0
-      this.skuTableData?.forEach((sku, idx) => {
-        if (!sku.marketPriceFee) {
-          sku.marketPriceFee = 0
-        }
-        if (sku.stock) {
-          totalStock += Number(sku.stock) // 库存累加
-        }
-        salePrices.push(sku.priceFee) // 售价
-        marketPrices.push(sku.marketPriceFee) // 市场价
-      })
-      if (this.dataForm.skus) {
-        this.dataForm.skus.some((backSkuItem, backIdx) => {
-          this.dataForm.changeStock = totalStock - this.backTotalStock
-        })
-      }
-      this.dataForm.priceFee = Math.min.apply(null, salePrices) // 最低价-售价
-      this.dataForm.marketPriceFee = Math.min.apply(null, marketPrices) // 最低价-市场价
-      this.dataForm.totalStock = totalStock // 总库存
-    },
-
-    /**
-     * 处理提交的skuList的数据格式
-     */
-    changeSkuFormat () {
-      const { originalSalesAttrs, skuTree, skuTableData } = this
-      const attrs = []
-      let nameOfAttrs = [] // 属性名组合
-      /** 原始sku属性选项Id数组 */
-      const originalSkuIds = originalSalesAttrs.map((attr) => attr.attrId)
-      skuTableData.forEach(skuItem => {
-        if (skuItem.spuSkuAttrValues && skuItem.spuSkuAttrValues.length > 0) {
-          skuItem.spuSkuAttrValues?.forEach(attr => {
-            // sku图片
-            skuTree[0]?.leaf?.forEach(attrVal => {
-              if (attr.attrValueId === attrVal.id) {
-                if (attrVal.is_show) {
-                  skuItem.imgUrl = attrVal.imgUrl ? attrVal.imgUrl : ''
-                }
-              }
-            })
-            // 新增(手动输入)属性的id为空
-            if (!originalSkuIds.includes(attr.attrId)) {
-              attr.attrId = ''
-            }
-            const originalSku = this.getSkus(attr.attrId)
-            const originalSkuValIds = originalSku.map(sku => sku.id) // 原始sku属性值选项Id数组
-            // 当sku属性id为空时，sku属性值id也为空 || 请求到的属性值列表中不包含当前的id
-            if (!attr.attrId || !originalSkuValIds.includes(attr.attrValueId)) {
-              // 新增(手动输入)属性值的id为空
-              attr.attrValueId = ''
-            }
-            // 多个属性名收集
-            attrs.push(attr.attrName)
-          })
-
-          // attrs（属性名拼接）
-          nameOfAttrs = Array.from(new Set(attrs))
-          skuItem.attrs = nameOfAttrs.join(',') // 多个销售属性名逗号分隔  如：'颜色,版本'
-          // skuName（属性值拼接）
-          if (skuItem.spuSkuAttrValues[1]) {
-            skuItem.skuName = [skuItem.spuSkuAttrValues[0].attrValueName, skuItem.spuSkuAttrValues[1].attrValueName].join(' ') // 属性值名称 如：'红色 256G'
-          } else if (skuItem.spuSkuAttrValues[0] && !skuItem.spuSkuAttrValues[1]) {
-            skuItem.skuName = String(skuItem.spuSkuAttrValues[0].attrValueName)
-          }
-        } else {
-          skuItem.spuSkuAttrValues = []
-        }
-        if (this.dataForm.hasSkuImg === 0) {
-          skuItem.imgUrl = ''
-        }
-      })
-      this.dataForm.skuList = skuTableData
-      // console.log('处理skuList数据后this.dataForm.skuList:', this.dataForm.skuList)
-    },
-
-    /**
-     * 基本属性未填写部分数据处理
-     */
-    basicAttrData () {
-      const spuAttrIds = []
-      this.dataForm.spuAttrValues.some(spuAttrItem => {
-        spuAttrIds.push(spuAttrItem.attrId)
-      })
-      // 当前项是重要属性 && 已填id数组中不包含当前项id
-      this.basicAttrs.forEach(attr => {
-        if (!spuAttrIds.includes(attr.attrId)) {
-          this.dataForm.spuAttrValues.push({
-            attrId: attr.attrId,
-            attrName: attr.name,
-            attrValueId: '',
-            attrValueName: ''
-          })
-        }
-      })
-      // 去重
-      this.removeDuplication(this.dataForm.spuAttrValues, 'attrId')
-      this.basicAttrVerification()
-    },
-
-    /**
-     * 基本属性填写校验
-     */
-    basicAttrVerification () {
-      this.dataForm.spuAttrValues.some(attrValue => {
-        this.basicAttrs.some(attr => {
-          if (attr.attrId === attrValue.attrId) {
-            if (attr.searchType === 1 && !attrValue.attrValueName) {
-              this.$message({
-                message: '重要基本属性不能为空！',
-                duration: 1000
-              })
-              this.basicAttrNotComplete = true
-              return true
-            } else {
-              this.basicAttrNotComplete = false
+          } else {
+            if (attr.attrValues.some(attr => spuAttr.attrValueId === attr.attrValueId)) {
+              attr.attrValue = spuAttr.attrValueId
             }
           }
         })
-        if (this.basicAttrNotComplete) return true
-      })
-    },
-
-    /**
-     * 表单验证
-     */
-    formValidation () {
-      const { dataForm } = this
-      this.basicAttrData() // 基本属性校验
-      if (this.basicAttrNotComplete) {
-        return false
-      }
-      if (!dataForm.mainImgUrl) {
-        this.$message({
-          message: '请上传商品主图！',
-          duration: 1000
-        })
-        return false
-      }
-      if (!dataForm.imgUrls) {
-        this.$message({
-          message: '请上传商品轮播图！',
-          duration: 1000
-        })
-        return false
-      }
-      if (this.skuTree?.some((item) => item.id && item.leaf && !item.leaf.length)) {
-        this.$message({
-          message: '请选择已添加销售属性的属性值！',
-          duration: 1500
-        })
-        this.hasSkuValue = false
-        return false
-      }
-      // 勾选“添加属性图片”但未上传图片时
-      if (dataForm.skuList.some((skuItem, idx) => skuItem.imgUrl === '') && dataForm.hasSkuImg === 1) {
-        this.$message({
-          message: '请上传属性图片！',
-          duration: 1000
-        })
-        return false
-      }
-      if (dataForm.skuList.some((skuItem, idx) => skuItem.stock === '' || skuItem.stock === null)) {
-        this.$message({
-          message: '商品库存不能为空！',
-          duration: 1000
-        })
-        return false
-      }
-      if (dataForm.skuList.some((skuItem, idx) => !skuItem.priceFee)) {
-        this.$message({
-          message: '商品销售价格必须大于0！',
-          duration: 1000
-        })
-        return false
-      }
-      return true
-    },
-
-    /**
-     * 表单提交数据处理
-     */
-    changeFormatOfFormData () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          this.$message({
-            message: '请先将必填信息填写完整！',
-            duration: 1500
-          })
-          return
-        }
-        // sku数据格式转换
-        this.changeSkuFormat()
-        // 修改商品详情时，将未修改的基本属性项push到dataForm.spuAttrValues
-        if (this.dataForm.spuId) {
-          const spuAttrValIds = []
-          this.dataForm.spuAttrValues.forEach(attr => {
-            spuAttrValIds.push(attr.attrId)
-          })
-          this.originalSpuAttrValueList.forEach(attr => {
-            if (!spuAttrValIds.includes(attr.attrId)) {
-              this.dataForm.spuAttrValues.push(attr)
-            }
-          })
-        }
-        // 表单验证
-        const dataFormVal = this.formValidation()
-        if (!dataFormVal) {
-          return
-        }
-        // 深拷贝dataForm，使页面展示数据不受下面数据修改的影响
-        const dataForm = JSON.parse(JSON.stringify(this.dataForm))
-        // deliveryMode转换格式
-        dataForm.deliveryMode = JSON.stringify(dataForm.deliveryMode)
-        dataForm.skuList.forEach(sku => {
-          // 修改商品时，删除已有属性的spuSkuAttrValues
-          if ((sku.skuId !== undefined && sku.spuId !== undefined) && sku.spuSkuAttrValues) {
-            sku.spuSkuAttrValues = undefined
-          }
-          // 价格 * 100
-          if (sku.priceFee > 0) {
-            sku.priceFee = parseFloat(this.bigProductTotalAmount(parseFloat(sku.priceFee), 100)) // 售价*100
-          }
-          if (sku.marketPriceFee > 0) {
-            sku.marketPriceFee = parseFloat(this.bigProductTotalAmount(parseFloat(sku.marketPriceFee), 100)) // 市场价*100
-          }
-        })
-        dataForm.priceFee = parseFloat(this.bigProductTotalAmount(parseFloat(dataForm.priceFee), 100)) // 最低-售价*100
-        dataForm.marketPriceFee = parseFloat(this.bigProductTotalAmount(parseFloat(dataForm.marketPriceFee), 100)) // 最低-市场价*100
-        // 删除多余参数(修改商品时)
-        if (this.dataForm.skus) {
-          dataForm.skus = undefined
-        }
-        console.log('提交前dataForm:', dataForm)
-        // 请求提交表单
-        this.dataFormSubmit(dataForm)
-      })
-    },
-
-    /**
-     * 表单提交
-     */
-    dataFormSubmit (dataForm) {
-      const request = this.dataForm.spuId ? api.update(dataForm) : api.save(dataForm)
-      request.then(data => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1000,
-          onClose: () => {
-            this.resetForm()
-            // this.$router.go(0)
-            this.$router.push('/product/list')
-          }
-        })
-      })
-    },
-
-    // 重置
-    resetForm () {
-      this.$refs.dataForm.resetFields()
-      this.brandName = ''
-      this.brandImgUrl = ''
-      this.dataForm.mainImgUrl = ''
-      this.dataForm.imgUrls = ''
-      this.dataForm.seq = ''
-      this.dataForm.deliveryTemplateId = ''
-      this.dataForm.deliveryMode = {
-        hasShopDelivery: true,
-        hasUserPickUp: false,
-        hasCityDelivery: false
-      }
-      this.dataForm.detail = ''
-      if (!this.dataForm.spuId) {
-        this.selectedCategorys = []
-        this.dataForm.categoryId = ''
-        this.basicAttrs = [] // 基本属性列表
-      }
-      console.log('重置this.dataForm:', this.dataForm)
-    },
-
-    // 精度运算-乘法
-    bigProductTotalAmount (a, b) {
-      return new Big(a).times(b).valueOf()
-    },
-    // 精度运算-除法
-    bigActualTotal (a, b) {
-      if (a == null) {
-        return ''
-      }
-      return new Big(a).div(b).valueOf()
-    },
-
-    // 图片预览
-    picturePreview (imgUrl) {
-      this.picturePreviewVisible = true
-      this.$nextTick(() => {
-        this.$refs.picturePreview.init(imgUrl)
       })
     }
+    basicAttrs = data
+  })
+}
 
+/**
+ * 基本属性数据
+ */
+const getValueOfBasicAttrs  = (attrsList, attrs, st) => {
+  const originalSpuAttrValueList = originalSpuAttrValueList
+  const spuAttrValueList = spuAttrValueList
+  const spuAttrValue = {}
+  if (dataForm.spuId) { // 回显
+    originalSpuAttrValueList.forEach((item, index) => {
+      if (item.attrId === attrs.attrId) {
+        attrs.spuAttrValueId = item.spuAttrValueId
+        spuAttrValue.spuAttrValueId = attrs.spuAttrValueId
+      }
+    })
+  }
+  // 获取基本属性子组件返回数据
+  spuAttrValue.attrId = attrs.attrId
+  spuAttrValue.attrName = attrs.name
+  if (st === 0) { // 下拉选择
+    attrs.attrValues.some(attr => {
+      if (attrs.attrValue === attr.attrValueId) {
+        spuAttrValue.attrValueId = attrs.attrValue
+        spuAttrValue.attrValueName = attr.value
+        spuAttrValueList.push(spuAttrValue)
+        return true
+      }
+    })
+  }
+  if (st === 1) { // 输入框
+    spuAttrValue.attrValueId = ''
+    spuAttrValue.attrValueName = attrs.attrValue
+    if (attrs.searchType === 1 && !attrs.attrValue) {
+      ElMessage({
+        message: '当前属性为必填属性，请填写属性值！',
+        duration: 1500
+      })
+      return
+    } else {
+      spuAttrValueList.push(spuAttrValue)
+    }
+  }
+  // 去重
+  removeDuplication(spuAttrValueList, 'attrId')
+  dataForm.spuAttrValues = spuAttrValueList
+}
+
+/**
+ * 选择/修改品牌
+ */
+const brandSelectHandle  = (value) => {
+  if (!dataForm.categoryId) {
+    return
+  }
+  const brands = []
+  brands.push({ brandId: dataForm.brandId })
+  brandSelectVisible = true
+  nextTick(() => {
+    brandSelect.init(brands, dataFormRef.value?.categoryId)
+  })
+}
+/**
+ * 添加指定品牌
+ */
+const selectBrand  = (brands) => {
+  if (brands) {
+    brandImgUrl = brands[0].brandImgUrl
+    dataForm.brandId = brands[0].brandId
+    brandName = brands[0].brandName
+    // 删除多余参数
+    dataForm.brand = undefined
   }
 }
+/**
+ * 删除品牌
+ */
+const handleCloseBrand  = () => {
+  brandImgUrl = ''
+  brandName = ''
+  dataForm.brandId = ''
+  dataForm.brand = undefined
+}
+
+/**
+ * sku回显
+ */
+const skuBackShow  = (categoryId, skus) => {
+  if (skus && skus.length > 0) {
+    const salesAttrs = []
+    const ids = []
+    const attrValueNameMapId = []
+    skus.forEach(sku => {
+      sku.spuSkuAttrValues?.forEach((attrInfo, idx) => {
+        // 无sku
+        if (attrInfo.attrName === null && attrInfo.attrValueName === null) {
+          isNoSkuValue = true
+          return
+        }
+
+        /** 有sku */
+
+        const randomId = 'random_'
+
+        /** left的每一项 */
+        // 每一层id一致
+        ids[idx] = ids[idx] || attrInfo.attrId || randomId + parseInt(Math.random() * 100, 10) + 1 // 无attrId则随机生成一个带有前缀的新id
+        attrInfo.attrId = ids[idx]
+
+        if (!attrValueNameMapId[idx]) {
+          attrValueNameMapId[idx] = {}
+        }
+
+        const attrValueId = attrValueNameMapId[idx][attrInfo.attrValueName] || attrInfo.attrValueId || randomId + parseInt(Math.random() * 100, 10) + parseInt(Math.random() * 100, 10)
+        attrValueNameMapId[idx][attrInfo.attrValueName] = attrValueId
+        attrInfo.attrValueId = attrValueId
+        const skuValueItem = {
+          id: attrValueId,
+          is_show: !!sku.imgUrl,
+          text: attrInfo.attrValueName
+        }
+
+        if (idx === 0) {
+          skuValueItem.imgUrl = sku.imgUrl || ''
+        }
+        if (salesAttrs[idx] === undefined) {
+          salesAttrs[idx] = {
+            id: ids[idx],
+            leaf: [skuValueItem],
+            text: attrInfo.attrName
+          }
+        } else {
+          salesAttrs[idx].leaf.push(skuValueItem)
+        }
+      })
+    })
+
+    // 去重
+    salesAttrs.forEach(attr => {
+      attr.leaf = removeDuplication(attr.leaf, 'id')
+    })
+    skus.some(skuItem => {
+      skuItem.marketPriceFee = parseFloat(bigActualTotal(parseFloat(skuItem.marketPriceFee), 100)) // 市场价
+      skuItem.priceFee = parseFloat(bigActualTotal(parseFloat(skuItem.priceFee), 100)) // 销售价
+    })
+    // console.log('计算后skus:', skus)
+    skus.forEach((skuItem, i) => {
+      flatten[i] = skuItem
+    })
+    salesAttrs.forEach((attr, i) => {
+      salesAttrs[i] = attr
+    })
+    console.log('sku回显salesAttrs:', salesAttrs)
+    // flatten = skus
+  }
+  querySalesAttrData(skus)
+}
+
+/**
+ * 获取店铺中的销售属性
+ */
+const querySalesAttrData  = (skus) => {
+  console.log('获取店铺中的销售属性skus:', skus)
+  if (!skus) {
+    originalSalesAttrs.splice(0, originalSalesAttrs.length)
+  }
+  skuTree.splice(0, skuTree.length) // 清空
+  getShopAttrs().then((data) => {
+    console.log('获取店铺中的销售属性data:', data)
+    originalSalesAttrs = data
+    let skuTrees = []
+    data.forEach((item, idx) => {
+      skuTrees.push({ id: item.attrId, text: item.name })
+    })
+    // 去重
+    skuTrees = removeDuplication(skuTrees, 'id')
+    originalSkuTree = skuTrees
+    skuTree = skuTrees
+  })
+}
+// 去重
+const removeDuplication  = (items, validKey = validKey) => {
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      if (items[i][validKey] === items[j][validKey]) {
+        items.splice(i, 1)
+        j--
+      }
+    }
+  }
+  return items
+}
+const fetchSkuTree  = () => {
+  // 异步获取规格列表
+  return new Promise(resolve => {
+    resolve(skuTree)
+  })
+}
+const fetchSku  = (id) => {
+  // 异步获取规格可选值
+  return new Promise(resolve => {
+    resolve(getSkus(id))
+  })
+}
+// 获取规格可选值
+const getSkus  = (id) => {
+  sku = []
+  originalSalesAttrs.forEach(attr => {
+    if (id === attr.attrId) {
+      attr.attrValues.forEach(attrVal => {
+        const attrValue = {}
+        attrValue.text = attrVal.value
+        attrValue.id = attrVal.attrValueId
+        sku.push(attrValue)
+      })
+    }
+  })
+  return sku
+}
+const createGroup  = (text) => {
+  // 创建新的规格名
+  return new Promise((resolve, reject) => {
+    const randomId = 'random_'
+    if (text) {
+      resolve(randomId + parseInt(Math.random() * 100, 10) + 1)
+    } else {
+      reject(new Error())
+    }
+  })
+}
+const createSku  = (data) => {
+  // 创建新的规格值
+  return new Promise((resolve, reject) => {
+    const randomId = 'random_'
+    resolve(data.data.map(item => {
+      return {
+        id: randomId + parseInt(Math.random() * 100, 10) + parseInt(Math.random() * 100, 10),
+        text: item,
+        leaf: []
+      }
+    }))
+  })
+}
+// SkuGroup返回数据
+const changeSkuGroupData  = (data) => {
+  // console.log('SkuGroup返回data:', data)
+  skuTree = data
+  data?.[0]?.leaf.forEach(attr => {
+    if (attr.is_show) {
+      dataForm.hasSkuImg = 1
+    } else {
+      dataForm.hasSkuImg = 0
+    }
+  })
+}
+// SkuTable返回数据
+const handleChangeData  = (data) => {
+  // console.log('表格SkuTable返回data:', data)
+  skuTableData = data
+  const salePrices = []
+  const marketPrices = []
+  let totalStock = 0
+  skuTableData?.forEach((sku, idx) => {
+    if (!sku.marketPriceFee) {
+      sku.marketPriceFee = 0
+    }
+    if (sku.stock) {
+      totalStock += Number(sku.stock) // 库存累加
+    }
+    salePrices.push(sku.priceFee) // 售价
+    marketPrices.push(sku.marketPriceFee) // 市场价
+  })
+  if (dataForm.skus) {
+    dataForm.skus.some((backSkuItem, backIdx) => {
+      dataForm.changeStock = totalStock - backTotalStock
+    })
+  }
+  dataForm.priceFee = Math.min.apply(null, salePrices) // 最低价-售价
+  dataForm.marketPriceFee = Math.min.apply(null, marketPrices) // 最低价-市场价
+  dataForm.totalStock = totalStock // 总库存
+}
+
+/**
+ * 处理提交的skuList的数据格式
+ */
+const changeSkuFormat  = () => {
+  const { originalSalesAttrs, skuTree, skuTableData } = this
+  const attrs = []
+  let nameOfAttrs = [] // 属性名组合
+  /** 原始sku属性选项Id数组 */
+  const originalSkuIds = originalSalesAttrs.map((attr) => attr.attrId)
+  skuTableData.forEach(skuItem => {
+    if (skuItem.spuSkuAttrValues && skuItem.spuSkuAttrValues.length > 0) {
+      skuItem.spuSkuAttrValues?.forEach(attr => {
+        // sku图片
+        skuTree[0]?.leaf?.forEach(attrVal => {
+          if (attr.attrValueId === attrVal.id) {
+            if (attrVal.is_show) {
+              skuItem.imgUrl = attrVal.imgUrl ? attrVal.imgUrl : ''
+            }
+          }
+        })
+        // 新增(手动输入)属性的id为空
+        if (!originalSkuIds.includes(attr.attrId)) {
+          attr.attrId = ''
+        }
+        const originalSku = getSkus(attr.attrId)
+        const originalSkuValIds = originalSku.map(sku => sku.id) // 原始sku属性值选项Id数组
+        // 当sku属性id为空时，sku属性值id也为空 || 请求到的属性值列表中不包含当前的id
+        if (!attr.attrId || !originalSkuValIds.includes(attr.attrValueId)) {
+          // 新增(手动输入)属性值的id为空
+          attr.attrValueId = ''
+        }
+        // 多个属性名收集
+        attrs.push(attr.attrName)
+      })
+
+      // attrs（属性名拼接）
+      nameOfAttrs = Array.from(new Set(attrs))
+      skuItem.attrs = nameOfAttrs.join(',') // 多个销售属性名逗号分隔  如：'颜色,版本'
+      // skuName（属性值拼接）
+      if (skuItem.spuSkuAttrValues[1]) {
+        skuItem.skuName = [skuItem.spuSkuAttrValues[0].attrValueName, skuItem.spuSkuAttrValues[1].attrValueName].join(' ') // 属性值名称 如：'红色 256G'
+      } else if (skuItem.spuSkuAttrValues[0] && !skuItem.spuSkuAttrValues[1]) {
+        skuItem.skuName = String(skuItem.spuSkuAttrValues[0].attrValueName)
+      }
+    } else {
+      skuItem.spuSkuAttrValues = []
+    }
+    if (dataForm.hasSkuImg === 0) {
+      skuItem.imgUrl = ''
+    }
+  })
+  dataForm.skuList = skuTableData
+  // console.log('处理skuList数据后dataForm.skuList:', dataForm.skuList)
+}
+
+/**
+ * 基本属性未填写部分数据处理
+ */
+const basicAttrData  = () => {
+  const spuAttrIds = []
+  dataForm.spuAttrValues.some(spuAttrItem => {
+    spuAttrIds.push(spuAttrItem.attrId)
+  })
+  // 当前项是重要属性 && 已填id数组中不包含当前项id
+  basicAttrs.forEach(attr => {
+    if (!spuAttrIds.includes(attr.attrId)) {
+      dataForm.spuAttrValues.push({
+        attrId: attr.attrId,
+        attrName: attr.name,
+        attrValueId: '',
+        attrValueName: ''
+      })
+    }
+  })
+  // 去重
+  removeDuplication(dataForm.spuAttrValues, 'attrId')
+  basicAttrVerification()
+}
+
+/**
+ * 基本属性填写校验
+ */
+const basicAttrVerification  = () => {
+  dataForm.spuAttrValues.some(attrValue => {
+    basicAttrs.some(attr => {
+      if (attr.attrId === attrValue.attrId) {
+        if (attr.searchType === 1 && !attrValue.attrValueName) {
+          ElMessage({
+            message: '重要基本属性不能为空！',
+            duration: 1000
+          })
+          basicAttrNotComplete = true
+          return true
+        } else {
+          basicAttrNotComplete = false
+        }
+      }
+    })
+    if (basicAttrNotComplete) return true
+  })
+}
+
+/**
+ * 表单验证
+ */
+const formValidation  = () => {
+  const { dataForm } = this
+  basicAttrData() // 基本属性校验
+  if (basicAttrNotComplete) {
+    return false
+  }
+  if (!dataForm.mainImgUrl) {
+    ElMessage({
+      message: '请上传商品主图！',
+      duration: 1000
+    })
+    return false
+  }
+  if (!dataForm.imgUrls) {
+    ElMessage({
+      message: '请上传商品轮播图！',
+      duration: 1000
+    })
+    return false
+  }
+  if (skuTree?.some((item) => item.id && item.leaf && !item.leaf.length)) {
+    ElMessage({
+      message: '请选择已添加销售属性的属性值！',
+      duration: 1500
+    })
+    hasSkuValue = false
+    return false
+  }
+  // 勾选“添加属性图片”但未上传图片时
+  if (dataForm.skuList.some((skuItem, idx) => skuItem.imgUrl === '') && dataForm.hasSkuImg === 1) {
+    ElMessage({
+      message: '请上传属性图片！',
+      duration: 1000
+    })
+    return false
+  }
+  if (dataForm.skuList.some((skuItem, idx) => skuItem.stock === '' || skuItem.stock === null)) {
+    ElMessage({
+      message: '商品库存不能为空！',
+      duration: 1000
+    })
+    return false
+  }
+  if (dataForm.skuList.some((skuItem, idx) => !skuItem.priceFee)) {
+    ElMessage({
+      message: '商品销售价格必须大于0！',
+      duration: 1000
+    })
+    return false
+  }
+  return true
+}
+
+/**
+ * 表单提交数据处理
+ */
+const changeFormatOfFormData  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      ElMessage({
+        message: '请先将必填信息填写完整！',
+        duration: 1500
+      })
+      return
+    }
+    // sku数据格式转换
+    changeSkuFormat()
+    // 修改商品详情时，将未修改的基本属性项push到dataForm.spuAttrValues
+    if (dataForm.spuId) {
+      const spuAttrValIds = []
+      dataForm.spuAttrValues.forEach(attr => {
+        spuAttrValIds.push(attr.attrId)
+      })
+      originalSpuAttrValueList.forEach(attr => {
+        if (!spuAttrValIds.includes(attr.attrId)) {
+          dataForm.spuAttrValues.push(attr)
+        }
+      })
+    }
+    // 表单验证
+    const dataFormVal = formValidation()
+    if (!dataFormVal) {
+      return
+    }
+    // 深拷贝dataForm，使页面展示数据不受下面数据修改的影响
+    const dataForm = JSON.parse(JSON.stringify(dataForm))
+    // deliveryMode转换格式
+    dataForm.deliveryMode = JSON.stringify(dataForm.deliveryMode)
+    dataForm.skuList.forEach(sku => {
+      // 修改商品时，删除已有属性的spuSkuAttrValues
+      if ((sku.skuId !== undefined && sku.spuId !== undefined) && sku.spuSkuAttrValues) {
+        sku.spuSkuAttrValues = undefined
+      }
+      // 价格 * 100
+      if (sku.priceFee > 0) {
+        sku.priceFee = parseFloat(bigProductTotalAmount(parseFloat(sku.priceFee), 100)) // 售价*100
+      }
+      if (sku.marketPriceFee > 0) {
+        sku.marketPriceFee = parseFloat(bigProductTotalAmount(parseFloat(sku.marketPriceFee), 100)) // 市场价*100
+      }
+    })
+    dataForm.priceFee = parseFloat(bigProductTotalAmount(parseFloat(dataForm.priceFee), 100)) // 最低-售价*100
+    dataForm.marketPriceFee = parseFloat(bigProductTotalAmount(parseFloat(dataForm.marketPriceFee), 100)) // 最低-市场价*100
+    // 删除多余参数(修改商品时)
+    if (dataForm.skus) {
+      dataForm.skus = undefined
+    }
+    console.log('提交前dataForm:', dataForm)
+    // 请求提交表单
+    onSubmit(dataForm)
+  })
+}
+
+/**
+ * 表单提交
+ */
+const onSubmit  = (dataForm) => {
+  const request = dataForm.spuId ? api.update(dataForm) : api.save(dataForm)
+  request.then(data => {
+    ElMessage({
+      message: $t('table.actionSuccess'),
+      type: 'success',
+      duration: 1000,
+      onClose: () => {
+        resetForm()
+        // useRouter().go(0)
+        useRouter().push('/product/list')
+      }
+    })
+  })
+}
+
+// 重置
+const resetForm  = () => {
+  dataFormRef.value?.resetFields()
+  brandName = ''
+  brandImgUrl = ''
+  dataForm.mainImgUrl = ''
+  dataForm.imgUrls = ''
+  dataForm.seq = ''
+  dataForm.deliveryTemplateId = ''
+  dataForm.deliveryMode = {
+    hasShopDelivery: true,
+    hasUserPickUp: false,
+    hasCityDelivery: false
+  }
+  dataForm.detail = ''
+  if (!dataForm.spuId) {
+    selectedCategorys = []
+    dataForm.categoryId = ''
+    basicAttrs = [] // 基本属性列表
+  }
+  console.log('重置dataForm:', dataForm)
+}
+
+// 精度运算-乘法
+const bigProductTotalAmount  = (a, b) => {
+  return new Big(a).times(b).valueOf()
+}
+// 精度运算-除法
+const bigActualTotal  = (a, b) => {
+  if (a == null) {
+    return ''
+  }
+  return new Big(a).div(b).valueOf()
+}
+
+// 图片预览
+const picturePreview  = (imgUrl) => {
+  picturePreviewVisible = true
+  nextTick(() => {
+    picturePreviewRef.value?.init(imgUrl)
+  })
+}
+
+
 </script>
 
 <style lang="scss">

@@ -9,7 +9,7 @@
       @close="closeDialog"
     >
       <el-form
-        ref="dataForm"
+        ref="dataFormRef"
         :rules="rules"
         :model="dataForm"
         label-position="left"
@@ -98,237 +98,226 @@
           </el-button>
           <el-button
             type="primary"
-            @click="dataFormSubmit()"
+            @click="onSubmit()"
           >
             {{ $t('table.confirm') }}
           </el-button>
         </div>
       </template>
     </el-dialog>
-    <!-- <category-selector v-if="categorySelectorVisible" ref="categorySelector" @getCategorySelected="getCategorySelected" /> -->
+    <!-- <category-selector v-if="categorySelectorVisible" ref="categorySelectorRef" @getCategorySelected="getCategorySelected" /> -->
   </div>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/product/attr'
 // import categorySelector from '@/components/CategorySelector'
 // import categoryGroup from '@/components/CategoryGroup'
-export default {
 
-  components: {
-    // categorySelector
-    // categoryGroup
-  },
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        attrId: '',
-        attrType: 0, // 属性类型 0:销售属性，1:基本属性
-        attrValues: [], // 属性值列表
-        categoryIds: [], // 分类id列表
-        desc: '', // 属性描述
-        name: '', // 属性名称
-        searchType: 1 // 作为搜索参数 0:不需要，1:需要
-      },
-      rules: {
-        name: [
-          { required: true, message: '请输入属性名称', trigger: 'blur' }
-        ]
-      },
-      attrValue: null,
-      selectedCategorys: [],
-      categorySelectorVisible: false // 分类弹窗显隐
+
+var visible = ref(false)
+var dataForm = reactive({
+  attrId: '',
+  attrType: 0, // 属性类型 0:销售属性，1:基本属性
+  attrValues: [], // 属性值列表
+  categoryIds: [], // 分类id列表
+  desc: '', // 属性描述
+  name: '', // 属性名称
+  searchType: 1 // 作为搜索参数 0:不需要，1:需要
+})
+var rules = reactive({
+  name: [
+    { required: true, message: '请输入属性名称', trigger: 'blur' }
+  ]
+})
+let attrValue = null
+var selectedCategorys = ref([])
+var categorySelectorVisible = ref(false) // 分类弹窗显隐
+
+
+
+
+
+const init  = (attrId) => {
+  dataForm.attrId = attrId || 0
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.attrId) {
+      attrValue = null
+      dataForm.attrValues = []
+      return
     }
-  },
+    api.get(attrId).then(data => {
+      dataForm = data
+      dataForm.attrValues = data.attrValues ? data.attrValues : []
+      // categoryShow(data.categories) // 分类回显
+    })
+  })
+}
 
-  mounted () {
-  },
-
-  created () {
-  },
-
-  methods: {
-    init (attrId) {
-      this.dataForm.attrId = attrId || 0
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.attrId) {
-          this.attrValue = null
-          this.dataForm.attrValues = []
-          return
-        }
-        api.get(attrId).then(data => {
-          this.dataForm = data
-          this.dataForm.attrValues = data.attrValues ? data.attrValues : []
-          // this.categoryShow(data.categories) // 分类回显
-        })
-      })
-    },
-
-    /**
-     * 分类回显
-     */
-    categoryShow (categorys) {
-      if (categorys.length) {
-        let categoryObj = {}
-        const categoryIds = []
-        let catagorys = []
-        categorys.forEach((el, index) => {
-          categoryIds.push(el.categoryId)
-          if (el.pathNames && el.pathNames.length) {
-            if (el.pathNames[0]) catagorys.push(el.pathNames[0])
-            if (el.pathNames[1]) catagorys.push(el.pathNames[1])
-          }
-          if (el.name) catagorys.push(el.name)
-          categoryObj.firstCategoryName = catagorys[0]
-          categoryObj.secondCategoryName = catagorys[1]
-          categoryObj.threeCategoryName = catagorys[2]
-          this.selectedCategorys.push(categoryObj)
-          catagorys = []
-          categoryObj = {}
-        })
-        this.dataForm.categoryIds = categoryIds
+/**
+ * 分类回显
+ */
+const categoryShow  = (categorys) => {
+  if (categorys.length) {
+    let categoryObj = {}
+    const categoryIds = []
+    let catagorys = []
+    categorys.forEach((el, index) => {
+      categoryIds.push(el.categoryId)
+      if (el.pathNames && el.pathNames.length) {
+        if (el.pathNames[0]) catagorys.push(el.pathNames[0])
+        if (el.pathNames[1]) catagorys.push(el.pathNames[1])
       }
-    },
-
-    // 关闭dialog时
-    closeDialog () {
-      this.dataForm = {
-        attrId: 0,
-        attrValues: [], // 属性值列表
-        desc: '', // 属性描述
-        name: '' // 属性名称
-        // attrType: 0, // 属性类型 0:销售属性，1:基本属性
-        // categoryIds: [], // 分类id列表
-        // searchType: 1 // 作为搜索参数 0:不需要，1:需要
-      }
-      this.selectedCategorys = []
-    },
-
-    /**
-     * 选择分类弹窗
-     */
-    selectOrReviseCategory () {
-      this.categorySelectorVisible = true
-      this.$nextTick(() => {
-        this.$refs.categorySelector.init() // 1代表从创建分类进入
-      })
-    },
-
-    /**
-     * 获取子组件返回数据
-     */
-    getCategorySelected (selectedCategorys, categoryId) {
-      // console.log('获取子组件返回数据：selectedCategorys:', selectedCategorys, '；parentId:', categoryId)
-      this.categorySelectorVisible = false
-      const categoryObj = {}
-      categoryObj.firstCategoryName = selectedCategorys[0]
-      categoryObj.secondCategoryName = selectedCategorys[1]
-      categoryObj.threeCategoryName = selectedCategorys[2]
-      // 去重
-      if (this.selectedCategorys.length) {
-        this.dataForm.categoryIds.forEach((item, index) => {
-          if (item === categoryId) {
-            this.selectedCategorys.splice(index, 1)
-            this.dataForm.categoryIds.splice(index, 1)
-          }
-        })
-      }
-      this.dataForm.categoryIds.push(categoryId)
-      this.selectedCategorys.push(categoryObj)
-    },
-
-    // 删除选中的某一项分类
-    deleteCategoryItemOfSelected (index) {
-      this.selectedCategorys.splice(index, 1)
-      this.dataForm.categoryIds.splice(index, 1)
-    },
-
-    /**
-     * 添加属性值
-     */
-    addAttrValue (attrVal) {
-      if (!attrVal) {
-        return
-      }
-      this.dataForm.attrValues.forEach((el, idx) => {
-        if (el.value === attrVal) {
-          this.dataForm.attrValues.splice(idx, 1)
-        }
-      })
-      this.dataForm.attrValues.push({ attrValueId: null, attrId: null, value: attrVal })
-      this.attrValue = ''
-      // console.log('添加属性值dataForm.attrValues：', this.dataForm.attrValues)
-    },
-
-    /**
-     * 删除属性值
-     */
-    deleteAttrCalue (idx) {
-      this.dataForm.attrValues.splice(idx, 1)
-      // console.log('删除属性值dataForm.attrValues：', this.dataForm.attrValues)
-    },
-
-    /**
-     * 失焦时属性值是否为空
-     */
-    checkIntValue (idx) {
-      if (!this.dataForm.attrValues[idx].value) {
-        this.$message({
-          message: '已创建的属性值不能为空！请重新创建',
-          type: 'warining',
-          duration: 1500
-        })
-        this.dataForm.attrValues.splice(idx, 1)
-      }
-    },
-
-    /**
-     * 表单提交
-     */
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        // if (!this.dataForm.categoryIds.length) {
-        //   this.$message({
-        //     message: '请至少选择一个分类',
-        //     type: 'warining',
-        //     duration: 1500
-        //   })
-        //   return
-        // }
-        if (!this.dataForm.attrValues.length) {
-          this.$message({
-            message: '请至少创建一个属性值',
-            type: 'warining',
-            duration: 1500
-          })
-          return
-        }
-        const request = this.dataForm.attrId ? api.update(this.dataForm) : api.save(this.dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
-      })
-    }
-
+      if (el.name) catagorys.push(el.name)
+      categoryObj.firstCategoryName = catagorys[0]
+      categoryObj.secondCategoryName = catagorys[1]
+      categoryObj.threeCategoryName = catagorys[2]
+      selectedCategorys.push(categoryObj)
+      catagorys = []
+      categoryObj = {}
+    })
+    dataForm.categoryIds = categoryIds
   }
 }
+
+// 关闭dialog时
+const closeDialog  = () => {
+  dataForm = {
+    attrId: 0,
+    attrValues: [], // 属性值列表
+    desc: '', // 属性描述
+    name: '' // 属性名称
+    // attrType: 0, // 属性类型 0:销售属性，1:基本属性
+    // categoryIds: [], // 分类id列表
+    // searchType: 1 // 作为搜索参数 0:不需要，1:需要
+  }
+  selectedCategorys = []
+}
+
+/**
+ * 选择分类弹窗
+ */
+const selectOrReviseCategory  = () => {
+  categorySelectorVisible = true
+  nextTick(() => {
+    categorySelectorRef.value?.init() // 1代表从创建分类进入
+  })
+}
+
+/**
+ * 获取子组件返回数据
+ */
+const getCategorySelected  = (selectedCategorys, categoryId) => {
+  // console.log('获取子组件返回数据：selectedCategorys:', selectedCategorys, '；parentId:', categoryId)
+  categorySelectorVisible = false
+  const categoryObj = {}
+  categoryObj.firstCategoryName = selectedCategorys[0]
+  categoryObj.secondCategoryName = selectedCategorys[1]
+  categoryObj.threeCategoryName = selectedCategorys[2]
+  // 去重
+  if (selectedCategorys.length) {
+    dataForm.categoryIds.forEach((item, index) => {
+      if (item === categoryId) {
+        selectedCategorys.splice(index, 1)
+        dataForm.categoryIds.splice(index, 1)
+      }
+    })
+  }
+  dataForm.categoryIds.push(categoryId)
+  selectedCategorys.push(categoryObj)
+}
+
+// 删除选中的某一项分类
+const deleteCategoryItemOfSelected  = (index) => {
+  selectedCategorys.splice(index, 1)
+  dataForm.categoryIds.splice(index, 1)
+}
+
+/**
+ * 添加属性值
+ */
+const addAttrValue  = (attrVal) => {
+  if (!attrVal) {
+    return
+  }
+  dataForm.attrValues.forEach((el, idx) => {
+    if (el.value === attrVal) {
+      dataForm.attrValues.splice(idx, 1)
+    }
+  })
+  dataForm.attrValues.push({ attrValueId: null, attrId: null, value: attrVal })
+  attrValue = ''
+  // console.log('添加属性值dataForm.attrValues：', dataForm.attrValues)
+}
+
+/**
+ * 删除属性值
+ */
+const deleteAttrCalue  = (idx) => {
+  dataForm.attrValues.splice(idx, 1)
+  // console.log('删除属性值dataForm.attrValues：', dataForm.attrValues)
+}
+
+/**
+ * 失焦时属性值是否为空
+ */
+const checkIntValue  = (idx) => {
+  if (!dataForm.attrValues[idx].value) {
+    ElMessage({
+      message: '已创建的属性值不能为空！请重新创建',
+      type: 'warining',
+      duration: 1500
+    })
+    dataForm.attrValues.splice(idx, 1)
+  }
+}
+
+/**
+ * 表单提交
+ */
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    // if (!dataForm.categoryIds.length) {
+    //   ElMessage({
+    //     message: '请至少选择一个分类',
+    //     type: 'warining',
+    //     duration: 1500
+    //   })
+    //   return
+    // }
+    if (!dataForm.attrValues.length) {
+      ElMessage({
+        message: '请至少创建一个属性值',
+        type: 'warining',
+        duration: 1500
+      })
+      return
+    }
+    const request = dataForm.attrId ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
+
 </script>
 
 <style lang="scss">

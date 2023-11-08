@@ -29,22 +29,21 @@
   </el-dropdown>
 </template>
 
-<script>
-export default {
+<script setup>
+
   computed: {
     language () {
-      return this.$store.getters.language
+      return $store.getters.language
     }
   },
-  methods: {
-    handleSetLanguage (lang) {
-      this.$i18n.locale = lang
-      this.$store.dispatch('app/setLanguage', lang)
-      this.$message({
-        message: 'Switch Language Success',
-        type: 'success'
-      })
-    }
-  }
+
+const handleSetLanguage  = (lang) => {
+  $i18n.locale = lang
+  $store.dispatch('app/setLanguage', lang)
+  ElMessage({
+    message: 'Switch Language Success',
+    type: 'success'
+  })
 }
+
 </script>

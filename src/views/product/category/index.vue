@@ -9,7 +9,7 @@
         icon="el-icon-plus"
         type="primary"
         class="filter-item"
-        @click="addOrUpdateHandle()"
+        @click="onAddOrUpdate()"
       >
         {{ $t('table.create') }}
       </el-button>
@@ -45,7 +45,7 @@
                 </el-tag>
                 <el-tag
                   v-else
-                  size="small"
+                  
                 >
                   正常
                 </el-tag>
@@ -54,8 +54,8 @@
                 v-permission="['product:category:update']"
                 type="text"
                 icon="el-icon-edit"
-                size="small"
-                @click="addOrUpdateHandle(item.categoryId)"
+                
+                @click="onAddOrUpdate(item.categoryId)"
               >
                 编辑
               </el-button>
@@ -81,8 +81,8 @@
                 v-permission="['product:category:delete']"
                 type="text"
                 icon="el-icon-delete"
-                size="small"
-                @click="deleteHandle(item, level)"
+                
+                @click="onDelete(item, level)"
               >
                 删除
               </el-button>
@@ -103,169 +103,161 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getPage()"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import permission from '@/directive/permission/index.js'
 // import Pagination from '@/components/Pagination'
 import AddOrUpdate from './add-or-update.vue'
 import * as api from '@/api/product/category'
 import { treeDataTranslate } from '@/utils'
-export default {
+
   name: '',
-  components: {
-    // Pagination,
-    AddOrUpdate
-  },
   directives: { permission },
-  data () {
-    return {
-      selectedsData: [], // 记录选中值
-      renderListData: [], // 地址列表
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      // 查询的参数
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1
-      },
-      // 返回参数
-      pageVO: {
-        list: [] // 返回的列表
-        // total: 0, // 一共多少条数据
-        // pages: 0 // 一共多少页
-      },
-      secondList: [],
-      threeList: [],
-      secondItemId: null,
-      firstItemId: null,
-      pageLoading: true,
-      // 查询参数
-      searchParam: {
-      },
-      addOrUpdateVisible: false,
-      disable: false,
-      currentSelectId: '' // 当前选中的id
-    }
-  },
-  mounted () {
-    this.getPage()
-  },
-  methods: {
-    getPage () {
-      this.pageLoading = true
-      api.shopCategoryPage({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
-        this.secondList = this.threeList = []
-        this.pageVO.list = treeDataTranslate(pageVO, 'categoryId', 'parentId')
-        this.pageLoading = false
-        this.setInitRenderListData(this.pageVO.list)
-      })
-    },
 
-    // 设置初始数据
-    setInitRenderListData (treeData) {
-      this.selectedsData.splice(0, this.selectedsData.length) // 1. 删除旧已选中数据
-      // 删除旧的渲染列表并添加新的第一级渲染列表
-      if (treeData.length > 0) {
-        this.changeRenderListData({
-          startLevel: 0,
-          changeLength: this.renderListData.length, // 删除的长度
-          changeValue: [treeData] // 添加新值
-        })
-      }
-    },
-    // 获取渲染列表
-    getRenderListData (data) {
-      return data && data.children || []
-    },
-    /**
-     * 监听列表项选择
-     */
-    handleAddrListSelect (selectData, level) {
-      this.selectedsData.splice(level, 1, selectData) // 记录选中值
-      this.currentSelectId = selectData.categoryId
-      console.log('记录选中值selectedsData:', this.selectedsData)
-      // 生成下一级的列表渲染数据
-      const childRenderData = this.getRenderListData(selectData)
-      // 删除所有子孙级渲染数据, 并添加下级渲染数据
-      if (childRenderData.length > 0) {
-        this.changeRenderListData({
-          startLevel: level + 1,
-          changeLength: this.renderListData.length,
-          changeValue: [childRenderData]
-        })
-      }
-      console.log('renderListData:', this.renderListData)
-    },
-    // 更改渲染列表数据
-    changeRenderListData ({ startLevel, changeLength, changeValue }) {
-      this.renderListData.splice(startLevel, changeLength, ...changeValue)
-    },
+var selectedsData = ref([]) // 记录选中值
+var renderListData = ref([]) // 地址列表
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+// 查询的参数
+var pageQuery = reactive({
+  pageSize: 10,
+  pageNum: 1
+})
+// 返回参数
+var pageVO = reactive({
+  list: [] // 返回的列表
+  // total: 0, // 一共多少条数据
+  // pages: 0 // 一共多少页
+})
+var secondList = ref([])
+var threeList = ref([])
+let secondItemId = null
+let firstItemId = null
+var pageLoading = ref(true)
+// 查询参数
+var searchParam = {
+}
+var addOrUpdateVisible = ref(false)
+var disable = ref(false)
+var currentSelectId = ref('') // 当前选中的id
+onMounted(() => {
+  getPage()
+})
 
-    /**
-     * 更新
-     */
-    addOrUpdateHandle (categoryId) {
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(categoryId)
-      })
-    },
-    /**
-     * 删除
-     */
-    deleteHandle (item, level) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => {
-        this.deleteById(item.categoryId)
-        this.changeRenderListData({
-          startLevel: level,
-          changeLength: this.renderListData.length
-        })
-      })
-    },
-    deleteById (categoryId) {
-      api.deleteById(categoryId).then(() => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getPage()
-        })
-      })
-    },
+const getPage  = () => {
+  pageLoading = true
+  api.shopCategoryPage({ ...pageQuery, ...searchParam }).then(pageVO => {
+    secondList = threeList = []
+    pageVO.list = treeDataTranslate(pageVO, 'categoryId', 'parentId')
+    pageLoading = false
+    setInitRenderListData(pageVO.list)
+  })
+}
 
-    /**
-     * 上架/下架分类
-     */
-    enableOrDisable (categoryId, sts, idx) {
-      const categoryDTO = {}
-      categoryDTO.categoryId = categoryId
-      categoryDTO.status = sts === 0 ? 1 : 0
-      this.$confirm(sts === 1 ? '下架当前分类后，当前分类下的所有商品也将被下架，是否确认下架当前分类?' : '是否确认上架当前分类?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        api.enableOrDisable(categoryDTO).then((data) => {
-          this.$message({
-            message: data ? '操作成功' : data,
-            type: data ? 'success' : 'error',
-            duration: 1500,
-            onClose: () => this.getPage()
-          })
-        })
-      }).catch(() => { })
-    }
-
+// 设置初始数据
+const setInitRenderListData  = (treeData) => {
+  selectedsData.splice(0, selectedsData.length) // 1. 删除旧已选中数据
+  // 删除旧的渲染列表并添加新的第一级渲染列表
+  if (treeData.length > 0) {
+    changeRenderListData({
+      startLevel: 0,
+      changeLength: renderListData.length, // 删除的长度
+      changeValue: [treeData] // 添加新值
+    })
   }
 }
+// 获取渲染列表
+const getRenderListData  = (data) => {
+  return data && data.children || []
+}
+/**
+ * 监听列表项选择
+ */
+const handleAddrListSelect  = (selectData, level) => {
+  selectedsData.splice(level, 1, selectData) // 记录选中值
+  currentSelectId = selectData.categoryId
+  console.log('记录选中值selectedsData:', selectedsData)
+  // 生成下一级的列表渲染数据
+  const childRenderData = getRenderListData(selectData)
+  // 删除所有子孙级渲染数据, 并添加下级渲染数据
+  if (childRenderData.length > 0) {
+    changeRenderListData({
+      startLevel: level + 1,
+      changeLength: renderListData.length,
+      changeValue: [childRenderData]
+    })
+  }
+  console.log('renderListData:', renderListData)
+}
+// 更改渲染列表数据
+const changeRenderListData  = ({ startLevel, changeLength, changeValue }) => {
+  renderListData.splice(startLevel, changeLength, ...changeValue)
+}
+
+/**
+ * 更新
+ */
+const onAddOrUpdate  = (categoryId) => {
+  addOrUpdateVisible = true
+  nextTick(() => {
+    addOrUpdate.value?.init(categoryId)
+  })
+}
+/**
+ * 删除
+ */
+const onDelete  = (item, level) => {
+  ElMessageBox.confirm($t('table.sureToDelete'), $t('table.tips'), {
+    confirmButtonText: $t('table.confirm'),
+    cancelButtonText: $t('table.cancel'),
+    type: 'warning'
+  }).then(() => {
+    deleteById(item.categoryId)
+    changeRenderListData({
+      startLevel: level,
+      changeLength: renderListData.length
+    })
+  })
+}
+const deleteById  = (categoryId) => {
+  api.deleteById(categoryId).then(() => {
+    ElMessage({
+      message: $t('table.actionSuccess'),
+      type: 'success',
+      duration: 1500,
+      onClose: () => getPage()
+    })
+  })
+}
+
+/**
+ * 上架/下架分类
+ */
+const enableOrDisable  = (categoryId, sts, idx) => {
+  const categoryDTO = {}
+  categoryDTO.categoryId = categoryId
+  categoryDTO.status = sts === 0 ? 1 : 0
+  ElMessageBox.confirm(sts === 1 ? '下架当前分类后，当前分类下的所有商品也将被下架，是否确认下架当前分类?' : '是否确认上架当前分类?', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    api.enableOrDisable(categoryDTO).then((data) => {
+      ElMessage({
+        message: data ? '操作成功' : data,
+        type: data ? 'success' : 'error',
+        duration: 1500,
+        onClose: () => getPage()
+      })
+    })
+  }).catch(() => { })
+}
+
+
 </script>
 
 <style lang="scss">

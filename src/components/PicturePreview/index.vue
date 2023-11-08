@@ -17,25 +17,21 @@
   </el-dialog>
 </template>
 
-<script>
-export default {
+<script setup>
 
-  data () {
-    return {
-      imgUrl: '',
-      visible: false,
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL
-    }
-  },
 
-  methods: {
-    init (imgUrl) {
-      this.imgUrl = imgUrl
-      this.visible = true
-    }
-  }
 
+var imgUrl = ref('')
+var visible = ref(false)
+var resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+
+
+const init  = (imgUrl) => {
+  imgUrl = imgUrl
+  visible = true
 }
+
+
 </script>
 
 <style lang="scss" scoped>

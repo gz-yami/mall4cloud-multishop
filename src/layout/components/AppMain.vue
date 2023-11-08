@@ -16,18 +16,18 @@
   </section>
 </template>
 
-<script>
-export default {
-  name: 'AppMain',
+<script setup>
+
+
   computed: {
     cachedViews () {
-      return this.$store.state.tagsView.cachedViews
+      return $store.state.tagsView.cachedViews
     },
     key () {
-      return this.$route.path
+      return useRoute().path
     }
   }
-}
+
 </script>
 
 <style lang="scss" scoped>

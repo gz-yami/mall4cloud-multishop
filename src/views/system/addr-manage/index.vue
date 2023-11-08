@@ -11,7 +11,7 @@
         icon="el-icon-plus"
         type="primary"
         class="rea-add-btn"
-        @click="addOrUpdateHandle()"
+        @click="onAddOrUpdate()"
       >
         {{ $t('table.create') }}
       </el-button>
@@ -42,8 +42,8 @@
                 v-permission="['system:addrManage:update']"
                 type="text"
                 icon="el-icon-edit"
-                size="small"
-                @click="addOrUpdateHandle(item, level)"
+                
+                @click="onAddOrUpdate(item, level)"
               >
                 编辑
               </el-button>
@@ -51,8 +51,8 @@
                 v-permission="['system:addrManage:delete']"
                 type="text"
                 icon="el-icon-delete"
-                size="small"
-                @click="deleteHandle(item, level)"
+                
+                @click="onDelete(item, level)"
               >
                 删除
               </el-button>
@@ -72,160 +72,153 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getPage()"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import permission from '@/directive/permission/index.js'
 import * as api from '@/api/system/addr-manage'
 import AddOrUpdate from './add-or-update.vue'
 import { treeDataTranslate } from '@/utils'
-export default {
-  components: {
-    AddOrUpdate
-  },
+
   directives: { permission },
-  data () {
-    return {
-      treeData: [],
-      selectedsData: [], // 记录选中值
-      renderListData: [], // 地址列表
-      data: [],
-      regionList: [], // 区域
-      provList: [], // 省
-      cityList: [], // 市
-      areaList: [], // 区
-      areaName: '',
-      params: {
-        areaName: null
-      },
-      pageLoading: true,
-      props: {
-        id: 'areaId',
-        label: 'areaName',
-        children: 'children'
-      },
-      regionId: 0,
-      provId: 0,
-      cityId: 0,
-      // 查询参数
-      searchParam: {
-      },
-      addOrUpdateVisible: false,
-      disable: false,
-      currentSelectId: '' // 当前选中id
-    }
-  },
+
+var treeData = ref([])
+var selectedsData = ref([]) // 记录选中值
+var renderListData = ref([]) // 地址列表
+var data = ref([])
+var regionList = ref([]) // 区域
+var provList = ref([]) // 省
+var cityList = ref([]) // 市
+var areaList = ref([]) // 区
+var areaName = ref('')
+var params = reactive({
+  areaName: null
+})
+var pageLoading = ref(true)
+var props = reactive({
+  id: 'areaId',
+  label: 'areaName',
+  children: 'children'
+})
+var regionId = ref(0)
+var provId = ref(0)
+var cityId = ref(0)
+// 查询参数
+var searchParam = {
+}
+var addOrUpdateVisible = ref(false)
+var disable = ref(false)
+var currentSelectId = ref('') // 当前选中id
   watch: {
     areaName (val) {
       console.log('监听val:', val)
     }
   },
-  mounted () {
-    this.getPage()
-  },
-  methods: {
-    /**
-     * 获取地址数据
-     */
-    getPage () {
-      this.pageLoading = true
-      api.page().then(data => {
-        this.pageLoading = false
-        const treeData = treeDataTranslate(data, 'areaId', 'parentId')
-        this.treeData = treeData
-        this.setInitRenderListData(treeData)
-      })
-    },
-    // 设置初始数据
-    setInitRenderListData (treeData) {
-      this.selectedsData.splice(0, this.selectedsData.length) // 1. 删除旧已选中数据
-      // 删除旧的渲染列表并添加新的第一级渲染列表
-      this.changeRenderListData({
-        startLevel: 0,
-        changeLength: this.renderListData.length, // 删除的长度
-        changeValue: [treeData] // 添加新值
-      })
-      console.log('初始数据renderListData:', this.renderListData)
-    },
-    // 获取渲染列表
-    getRenderListData (data) {
-      return data && data.children || []
-    },
-    /**
-     * 监听列表项选择
-     */
-    handleAddrListSelect (selectData, level) {
-      this.selectedsData.splice(level, 1, selectData) // 记录选中值
-      this.currentSelectId = selectData.areaId
-      // 生成下一级的列表渲染数据
-      const childRenderData = this.getRenderListData(selectData)
-      // 删除所有子孙级渲染数据, 并添加下级渲染数据
-      if (childRenderData.length > 0) {
-        this.changeRenderListData({
-          startLevel: level + 1,
-          changeLength: this.renderListData.length,
-          changeValue: [childRenderData]
-        })
-      }
-      console.log('renderListData:', this.renderListData)
-    },
-    // 更改渲染列表数据
-    changeRenderListData ({ startLevel, changeLength, changeValue }) {
-      this.renderListData.splice(startLevel, changeLength, ...changeValue)
-    },
+onMounted(() => {
+  getPage()
+})
 
-    /**
-     * 新增
-     */
-    addOrUpdateHandle (item, level) {
-      // console.log('新增item.level:', item.level)
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(item?.areaId, item?.level)
-      })
-    },
-
-    /**
-     * 删除
-     */
-    // remove(node, data) {
-    //   this.deleteHandle(data.areaId)
-    // },
-    deleteHandle (item, level) {
-      this.$confirm('确认删除当前地址项?', this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => {
-        this.deleteById(item.areaId)
-        this.changeRenderListData({
-          startLevel: level,
-          changeLength: this.renderListData.length
-        })
-      })
-    },
-    deleteById (areaId) {
-      api.deleteById(areaId).then(() => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getPage()
-        })
-      })
-    },
-
-    filterNode (value, data) {
-      if (!value) return true
-      return data.areaName.indexOf(value) !== -1
-    }
-  }
-
+/**
+ * 获取地址数据
+ */
+const getPage  = () => {
+  pageLoading = true
+  api.page().then(data => {
+    pageLoading = false
+    const treeData = treeDataTranslate(data, 'areaId', 'parentId')
+    treeData = treeData
+    setInitRenderListData(treeData)
+  })
 }
+// 设置初始数据
+const setInitRenderListData  = (treeData) => {
+  selectedsData.splice(0, selectedsData.length) // 1. 删除旧已选中数据
+  // 删除旧的渲染列表并添加新的第一级渲染列表
+  changeRenderListData({
+    startLevel: 0,
+    changeLength: renderListData.length, // 删除的长度
+    changeValue: [treeData] // 添加新值
+  })
+  console.log('初始数据renderListData:', renderListData)
+}
+// 获取渲染列表
+const getRenderListData  = (data) => {
+  return data && data.children || []
+}
+/**
+ * 监听列表项选择
+ */
+const handleAddrListSelect  = (selectData, level) => {
+  selectedsData.splice(level, 1, selectData) // 记录选中值
+  currentSelectId = selectData.areaId
+  // 生成下一级的列表渲染数据
+  const childRenderData = getRenderListData(selectData)
+  // 删除所有子孙级渲染数据, 并添加下级渲染数据
+  if (childRenderData.length > 0) {
+    changeRenderListData({
+      startLevel: level + 1,
+      changeLength: renderListData.length,
+      changeValue: [childRenderData]
+    })
+  }
+  console.log('renderListData:', renderListData)
+}
+// 更改渲染列表数据
+const changeRenderListData  = ({ startLevel, changeLength, changeValue }) => {
+  renderListData.splice(startLevel, changeLength, ...changeValue)
+}
+
+/**
+ * 新增
+ */
+const onAddOrUpdate  = (item, level) => {
+  // console.log('新增item.level:', item.level)
+  addOrUpdateVisible = true
+  nextTick(() => {
+    addOrUpdate.value?.init(item?.areaId, item?.level)
+  })
+}
+
+/**
+ * 删除
+ */
+// remove(node, data) {
+//   onDelete(data.areaId)
+// },
+const onDelete  = (item, level) => {
+  ElMessageBox.confirm('确认删除当前地址项?', $t('table.tips'), {
+    confirmButtonText: $t('table.confirm'),
+    cancelButtonText: $t('table.cancel'),
+    type: 'warning'
+  }).then(() => {
+    deleteById(item.areaId)
+    changeRenderListData({
+      startLevel: level,
+      changeLength: renderListData.length
+    })
+  })
+}
+const deleteById  = (areaId) => {
+  api.deleteById(areaId).then(() => {
+    ElMessage({
+      message: $t('table.actionSuccess'),
+      type: 'success',
+      duration: 1500,
+      onClose: () => getPage()
+    })
+  })
+}
+
+const filterNode  = (value, data) => {
+  if (!value) return true
+  return data.areaName.indexOf(value) !== -1
+}
+
+
 </script>
 
 <style lang="scss" scoped>

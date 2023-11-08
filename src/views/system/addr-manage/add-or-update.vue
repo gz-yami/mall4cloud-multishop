@@ -9,7 +9,7 @@
       @close="closeDialog"
     >
       <el-form
-        ref="dataForm"
+        ref="dataFormRef"
         :rules="rules"
         :model="dataForm"
         label-position="left"
@@ -50,7 +50,7 @@
           </el-button>
           <el-button
             type="primary"
-            @click="dataFormSubmit()"
+            @click="onSubmit()"
           >
             {{ $t('table.confirm') }}
           </el-button>
@@ -60,117 +60,113 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/system/addr-manage'
 import { treeDataTranslate } from '@/utils'
-export default {
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      disableSelector: false, // 是否禁用选择上级分类
-      dataForm: {
-        areaId: '',
-        areaName: null,
-        parentId: null,
-        level: null
-      },
-      areaList: [],
-      categoryTreeProps: {
-        value: 'areaId',
-        label: 'areaName'
-      },
-      selectedOptions: [],
-      value: '',
-      rules: {
-        name: [
-          { required: true, message: '请填写地区名称', trigger: 'blur' }
-        ]
-      }
-    }
-  },
 
-  methods: {
-    init (areaId, level) {
-      this.visible = true
-      this.dataForm.areaId = areaId || 0
-      this.visible = true
-      this.isSubmit = false
-      this.selectedOptions = []
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (this.dataForm.areaId) {
-          api.get(areaId).then((data) => {
-            this.dataForm = data
-            this.selectedOptions = this.dataForm.parentId
-            this.categoryTreeProps.areaId = this.dataForm.areaId
-            this.categoryTreeProps.areaName = this.dataForm.areaName
-          })
-        }
-        level === 0 ? this.disableSelector = true : this.disableSelector = false
-        api.page().then((data) => {
-          this.areaList = treeDataTranslate(data, 'areaId', 'parentId')
-          console.log('this.areaList:', this.areaList)
-        })
-      })
-    },
+var visible = ref(false)
+var disableSelector = ref(false) // 是否禁用选择上级分类
+var dataForm = reactive({
+  areaId: '',
+  areaName: null,
+  parentId: null,
+  level: null
+})
+var areaList = ref([])
+var categoryTreeProps = reactive({
+  value: 'areaId',
+  label: 'areaName'
+})
+var selectedOptions = ref([])
+var value = ref('')
+var rules = {
+  name: [
+    { required: true, message: '请填写地区名称', trigger: 'blur' }
+  ]
+}
 
-    handleChange (val) {
-      this.dataForm.parentId = val[val.length - 1]
-    },
 
-    // 关闭弹窗时
-    closeDialog () {
-      this.dataForm = {
-        areaId: '',
-        areaName: null,
-        parentId: null,
-        level: null
-      }
-    },
-
-    /**
-     * 表单提交
-     */
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        if (!this.dataForm.areaName) {
-          this.$message({
-            message: '地区名称不能为空！',
-            type: 'warning',
-            duration: 1500
-          })
-        }
-        if (!this.dataForm.areaId) {
-          if (!this.dataForm.parentId) {
-            this.dataForm.parentId = 0
-            this.dataForm.level = 0
-          } else {
-            this.dataForm.level = this.selectedOptions.length
-          }
-        }
-        const request = this.dataForm.areaId ? api.update(this.dataForm) : api.save(this.dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
+const init  = (areaId, level) => {
+  visible = true
+  dataForm.areaId = areaId || 0
+  visible = true
+  isSubmit = false
+  selectedOptions = []
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (dataForm.areaId) {
+      api.get(areaId).then((data) => {
+        dataForm = data
+        selectedOptions = dataForm.parentId
+        categoryTreeProps.areaId = dataForm.areaId
+        categoryTreeProps.areaName = dataForm.areaName
       })
     }
+    level === 0 ? disableSelector = true : disableSelector = false
+    api.page().then((data) => {
+      areaList = treeDataTranslate(data, 'areaId', 'parentId')
+      console.log('areaList:', areaList)
+    })
+  })
+}
 
+const handleChange  = (val) => {
+  dataForm.parentId = val[val.length - 1]
+}
+
+// 关闭弹窗时
+const closeDialog  = () => {
+  dataForm = {
+    areaId: '',
+    areaName: null,
+    parentId: null,
+    level: null
   }
 }
+
+/**
+ * 表单提交
+ */
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    if (!dataForm.areaName) {
+      ElMessage({
+        message: '地区名称不能为空！',
+        type: 'warning',
+        duration: 1500
+      })
+    }
+    if (!dataForm.areaId) {
+      if (!dataForm.parentId) {
+        dataForm.parentId = 0
+        dataForm.level = 0
+      } else {
+        dataForm.level = selectedOptions.length
+      }
+    }
+    const request = dataForm.areaId ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
+
 </script>
 
 <style lang="scss" scoped>

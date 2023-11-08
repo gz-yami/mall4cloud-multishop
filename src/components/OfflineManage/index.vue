@@ -110,46 +110,42 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/product/list'
-export default {
+
   emits: ['rereapplyDataSubmit'],
 
-  data () {
-    return {
-      operateDialogVisible: false, // 操作对话框
-      offlineDetail: {}, // 最新下线商品
-      offlineReasonError: false, // 理由出错
-      reapplyReason: '' // 申请理由
-    }
-  },
 
-  methods: {
-    init (data) {
-      this.operateDialogVisible = true
-      this.offlineDetail = data
-    },
+var operateDialogVisible = ref(false) // 操作对话框
+var offlineDetail = reactive({}) // 最新下线商品
+var offlineReasonError = ref(false) // 理由出错
+var reapplyReason = ref('') // 申请理由
 
-    /**
-     * 提交上架申请
-     */
-    rereapplyDataSubmit () {
-      if (!this.reapplyReason) {
-        this.$message({
-          message: '请填写申请理由',
-          type: 'warning',
-          duration: 1000
-        })
-        return
-      }
-      const data = {
-        eventId: this.offlineDetail.eventId,
-        reapplyReason: this.reapplyReason
-      }
-      this.$emit('rereapplyDataSubmit', data)
-    }
-  }
+
+const init  = (data) => {
+  operateDialogVisible = true
+  offlineDetail = data
 }
+
+/**
+ * 提交上架申请
+ */
+const rereapplyDataSubmit  = () => {
+  if (!reapplyReason) {
+    ElMessage({
+      message: '请填写申请理由',
+      type: 'warning',
+      duration: 1000
+    })
+    return
+  }
+  const data = {
+    eventId: offlineDetail.eventId,
+    reapplyReason: reapplyReason
+  }
+  emit('rereapplyDataSubmit', data)
+}
+
 </script>
 
 <style lang="scss" scoped>

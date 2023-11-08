@@ -8,7 +8,7 @@
         icon="el-icon-plus"
         type="primary"
         class="filter-item"
-        @click="addOrUpdateHandle()"
+        @click="onAddOrUpdate()"
       >
         {{ $t('table.create') }}
       </el-button>
@@ -58,14 +58,14 @@
         <template #default="{row}">
           <el-tag
             v-if="row.status === 0"
-            size="small"
+            
             type="danger"
           >
             {{ $t("product.category.offline") }}
           </el-tag>
           <el-tag
             v-else
-            size="small"
+            
           >
             {{ $t("product.category.normal") }}
           </el-tag>
@@ -91,14 +91,14 @@
           <el-button
             v-permission="['multishop:indexImg:update']"
             type="text"
-            @click="addOrUpdateHandle(row.imgId)"
+            @click="onAddOrUpdate(row.imgId)"
           >
             {{ $t('table.edit') }}
           </el-button>
           <el-button
             v-permission="['multishop:indexImg:delete']"
             type="text"
-            @click="deleteHandle(row.imgId)"
+            @click="onDelete(row.imgId)"
           >
             {{ $t('table.delete') }}
           </el-button>
@@ -116,84 +116,19 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getPage()"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import permission from '@/directive/permission/index.js'
 import Pagination from '@/components/Pagination'
 import AddOrUpdate from './add-or-update.vue'
 import * as api from '@/api/multishop/index-img'
-export default {
-  components: { Pagination, AddOrUpdate },
-  directives: { permission },
-  data () {
-    return {
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      // 查询的参数
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1,
-        name: null,
-        attrType: null
-      },
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      // loading
-      pageLoading: true,
-      addOrUpdateVisible: false
-    }
-  },
-  mounted () {
-    this.getPage()
-  },
-  methods: {
-    getPage () {
-      this.pageLoading = true
-      api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
-        this.pageVO = pageVO
-        this.pageLoading = false
-      })
-    },
-    addOrUpdateHandle (imgId) {
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(imgId)
-      })
-    },
-    deleteHandle (imgId) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => this.deleteById(imgId))
-    },
-    deleteById (imgId) {
-      api.deleteById(imgId).then(() => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getPage()
-        })
-      })
-    },
 
-    /**
-     * 搜索
-     */
-    search () {
 
-    }
-  }
-}
 </script>
 
 <style lang="scss" scoped>

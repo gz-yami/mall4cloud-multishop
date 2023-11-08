@@ -6,11 +6,11 @@
     <div class="up-wrapper">
       <!-- native modifier has been removed, please confirm whether the function has been affected  -->
       <el-form
-        ref="dataForm"
+        ref="dataFormRef"
         :model="dataForm"
         :rules="dataRule"
         label-width="80px"
-        @keyup.enter="dataFormSubmit()"
+        @keyup.enter="onSubmit()"
       >
         <!-- 资源名称 -->
         <el-form-item
@@ -71,7 +71,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -80,103 +80,99 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import { treeDataTranslate, idList } from '@/utils'
 import * as menuApi from '@/api/rbac/menu'
 import * as api from '@/api/rbac/menu-permission'
 
-export default {
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        menuPermissionId: 0,
-        menuId: null,
-        permission: null,
-        name: '',
-        uri: '',
-        method: 1
-      },
-      dataRule: {
-        name: [
-          { required: true, message: '资源名称不能为空', trigger: 'blur' }
-        ],
-        menuId: [
-          { required: true, message: '上级菜单不能为空', trigger: 'blur' }
-        ],
-        method: [
-          { required: true, message: '请求方法不能为空', trigger: 'blur' }
-        ],
-        uri: [
-          { required: true, message: '资源路径不能为空', trigger: 'blur' }
-        ],
-        permission: [
-          { required: true, message: '授权标识不能为空', trigger: 'blur' }
-        ]
-      },
-      menuList: [],
-      selectedMenu: [],
-      menuListTreeProps: {
-        value: 'id',
-        label: 'name'
-      }
-    }
-  },
 
-  methods: {
-    init (menuPermissionId) {
-      this.dataForm.menuPermissionId = menuPermissionId || 0
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        menuApi.menuList({ ...this.searchParam }).then(data => {
-          this.menuList = treeDataTranslate(data)
-          this.pageLoading = false
-        })
-        if (this.dataForm.menuPermissionId) {
-          api.get(menuPermissionId).then(data => {
-            this.dataForm = data
-            this.selectedMenu = idList(this.menuList, data.menuId).reverse()
-          })
-        } else {
-          this.selectedMenu = []
-        }
-      })
-    },
-    handleSelectMenuChange (val) {
-      this.dataForm.menuId = val[val.length - 1]
-    },
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (valid) {
-          const params = {
-            menuPermissionId: this.dataForm.menuPermissionId || undefined,
-            menuId: this.dataForm.menuId || undefined,
-            name: this.dataForm.name,
-            permission: this.dataForm.permission,
-            uri: this.dataForm.uri,
-            method: this.dataForm.method
-          }
-
-          const request = this.dataForm.menuPermissionId ? api.update(params) : api.save(params)
-          request.then(data => {
-            this.$message({
-              message: this.$t('table.actionSuccess'),
-              type: 'success',
-              duration: 1500,
-              onClose: () => {
-                this.visible = false
-                this.$emit('refreshDataList')
-                this.$refs.dataForm.resetFields()
-              }
-            })
-          })
-        }
-      })
-    }
-  }
+var visible = ref(false)
+var dataForm = reactive({
+  menuPermissionId: 0,
+  menuId: null,
+  permission: null,
+  name: '',
+  uri: '',
+  method: 1
+})
+var dataRule = reactive({
+  name: [
+    { required: true, message: '资源名称不能为空', trigger: 'blur' }
+  ],
+  menuId: [
+    { required: true, message: '上级菜单不能为空', trigger: 'blur' }
+  ],
+  method: [
+    { required: true, message: '请求方法不能为空', trigger: 'blur' }
+  ],
+  uri: [
+    { required: true, message: '资源路径不能为空', trigger: 'blur' }
+  ],
+  permission: [
+    { required: true, message: '授权标识不能为空', trigger: 'blur' }
+  ]
+})
+var menuList = ref([])
+var selectedMenu = ref([])
+var menuListTreeProps = {
+  value: 'id',
+  label: 'name'
 }
+
+
+const init  = (menuPermissionId) => {
+  dataForm.menuPermissionId = menuPermissionId || 0
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    menuApi.menuList({ ...searchParam }).then(data => {
+      menuList = treeDataTranslate(data)
+      pageLoading = false
+    })
+    if (dataForm.menuPermissionId) {
+      api.get(menuPermissionId).then(data => {
+        dataForm = data
+        selectedMenu = idList(menuList, data.menuId).reverse()
+      })
+    } else {
+      selectedMenu = []
+    }
+  })
+}
+const handleSelectMenuChange  = (val) => {
+  dataForm.menuId = val[val.length - 1]
+}
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (valid) {
+      const params = {
+        menuPermissionId: dataForm.menuPermissionId || undefined,
+        menuId: dataForm.menuId || undefined,
+        name: dataForm.name,
+        permission: dataForm.permission,
+        uri: dataForm.uri,
+        method: dataForm.method
+      }
+
+      const request = dataForm.menuPermissionId ? api.update(params) : api.save(params)
+      request.then(data => {
+        ElMessage({
+          message: $t('table.actionSuccess'),
+          type: 'success',
+          duration: 1500,
+          onClose: () => {
+            visible = false
+            emit('refreshDataList')
+            dataFormRef.value?.resetFields()
+          }
+        })
+      })
+    }
+  })
+}
+
 </script>

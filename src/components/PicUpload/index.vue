@@ -21,77 +21,72 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { ossInfo } from '@/api/biz/oss'
 import { getUUID } from '@/utils/index'
-export default {
 
-  props: {
-    value: {
-      default: '',
-      type: String
-    }
-  },
+const props = defineProps({
+  value: {
+    default: '',
+    type: String
+  }
+})
   emits: ['input'],
 
-  data () {
-    return {
-      dataForm: {
-        policy: '',
-        signature: '',
-        key: '',
-        ossaccessKeyId: '',
-        dir: '',
-        host: ''
-      },
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL
-    }
-  },
+
+var dataForm = reactive({
+  policy: '',
+  signature: '',
+  key: '',
+  ossaccessKeyId: '',
+  dir: '',
+  host: ''
+})
+var resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
 
   computed: {
     getImgSrc () {
-      if (!this.value) {
+      if (!value) {
         return ''
       }
-      if (this.value.indexOf('http://') === 0 || this.value.indexOf('https://') === 0) {
-        return this.value
+      if (value.indexOf('http://') === 0 || value.indexOf('https://') === 0) {
+        return value
       }
-      return this.resourcesUrl + this.value
+      return resourcesUrl + value
     }
   },
 
-  methods: {
-    // 图片上传
-    handleUploadSuccess (response, file, fileList) {
-      this.dataForm.key
-      this.$emit('input', '/' + this.dataForm.key)
-    },
-    // 限制图片上传大小
-    beforeUpload (file) {
-      const isLt2M = file.size / 1024 / 1024 < 2
-      if (!isLt2M) {
-        this.$message.error('上传图片大小不能超过 2MB!')
-        return false
-      }
 
-      const _self = this
-      return new Promise((resolve, reject) => {
-        ossInfo().then(response => {
-          _self.dataForm.policy = response.policy
-          _self.dataForm.signature = response.signature
-          _self.dataForm.ossaccessKeyId = response.accessid
-          _self.dataForm.key = response.dir + getUUID()
-          _self.dataForm.dir = response.dir
-          _self.dataForm.host = response.host
-          resolve(true)
-        }).catch(err => {
-          console.log(err)
-          reject(false)
-        })
-      })
-    }
-  }
+// 图片上传
+const handleUploadSuccess  = (response, file, fileList) => {
+  dataForm.key
+  emit('update:modelValue', '/' + dataForm.key)
 }
+// 限制图片上传大小
+const beforeUpload  = (file) => {
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    ElMessage.error('上传图片大小不能超过 2MB!')
+    return false
+  }
+
+  const _self = this
+  return new Promise((resolve, reject) => {
+    ossInfo().then(response => {
+      _self.dataForm.policy = response.policy
+      _self.dataForm.signature = response.signature
+      _self.dataForm.ossaccessKeyId = response.accessid
+      _self.dataForm.key = response.dir + getUUID()
+      _self.dataForm.dir = response.dir
+      _self.dataForm.host = response.host
+      resolve(true)
+    }).catch(err => {
+      console.log(err)
+      reject(false)
+    })
+  })
+}
+
 </script>
 
 <style lang="scss">

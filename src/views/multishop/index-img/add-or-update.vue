@@ -10,7 +10,7 @@
       @close="closeDialog"
     >
       <el-form
-        ref="dataForm"
+        ref="dataFormRef"
         :rules="rules"
         :model="dataForm"
         label-position="left"
@@ -117,7 +117,7 @@
           </div>
           <prods-select
             v-if="prodSelectVisible"
-            ref="prodSelect"
+            ref="prodSelectRef"
             :is-single="true"
             @refresh-select-prods="getSelectedProd"
           />
@@ -130,7 +130,7 @@
           </el-button>
           <el-button
             type="primary"
-            @click="dataFormSubmit()"
+            @click="onSubmit()"
           >
             {{ $t('table.confirm') }}
           </el-button>
@@ -140,149 +140,141 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/multishop/index-img'
 import ImgUpload from '@/components/ImgUpload'
 import ProdsSelect from '@/components/ProdsSelect'
-export default {
 
-  components: {
-    ImgUpload,
-    ProdsSelect
-  },
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        imgId: 0,
-        imgUrl: null,
-        seq: 0,
-        imgType: 0,
-        status: 1,
-        spuId: null,
-        spu: {} // 商品列表
-      },
-      relatedSpu: 0,
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      // 关联数据
-      card: {
-        id: 0,
-        pic: '',
-        name: '',
-        realData: {
-          prod: [],
-          shop: [],
-          activity: []
-        }
-      },
-      prodSelectVisible: false,
-      prods: {},
-      rules: {
-        imgUrl: [
-          { required: true, message: '请选择轮播图图片', trigger: 'blur' }
-        ]
-      }
+
+var visible = ref(false)
+var dataForm = reactive({
+  imgId: 0,
+  imgUrl: null,
+  seq: 0,
+  imgType: 0,
+  status: 1,
+  spuId: null,
+  spu: {} // 商品列表
+})
+var relatedSpu = ref(0)
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+// 关联数据
+var card = reactive({
+  id: 0,
+  pic: '',
+  name: '',
+  realData: {
+    prod: [],
+    shop: [],
+    activity: []
+  }
+})
+var prodSelectVisible = ref(false)
+var prods = reactive({})
+var rules = {
+  imgUrl: [
+    { required: true, message: '请选择轮播图图片', trigger: 'blur' }
+  ]
+}
+
+
+const init  = (imgId) => {
+  visible = true
+  dataForm.imgId = imgId || 0
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.imgId) {
+      return
     }
-  },
+    api.get(imgId).then(data => {
+      dataForm = data
+      dataForm.spu.spuName = dataForm.spu.name
+      spus = data.spus || []
+      relatedSpu = data.spuId ? 1 : 0
+    })
+  })
+}
 
-  methods: {
-    init (imgId) {
-      this.visible = true
-      this.dataForm.imgId = imgId || 0
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.imgId) {
-          return
-        }
-        api.get(imgId).then(data => {
-          this.dataForm = data
-          this.dataForm.spu.spuName = this.dataForm.spu.name
-          this.spus = data.spus || []
-          this.relatedSpu = data.spuId ? 1 : 0
-        })
-      })
-    },
+const selectProds  = () => {
+  prodSelectVisible = true
+  nextTick(() => {
+    prodSelectRef.value?.init()
+  })
+}
 
-    selectProds () {
-      this.prodSelectVisible = true
-      this.$nextTick(() => {
-        this.$refs.prodSelect.init()
-      })
-    },
+const getSelectedProd  = (prods) => {
+  console.log(prods)
+  dataForm.spu = prods[0]
+  dataForm.spuId = prods[0].spuId
+  dataForm.spuName = prods[0].spuName
+}
 
-    getSelectedProd (prods) {
-      console.log(prods)
-      this.dataForm.spu = prods[0]
-      this.dataForm.spuId = prods[0].spuId
-      this.dataForm.spuName = prods[0].spuName
-    },
+const deleteCurrentProd  = () => {
+  dataForm.spu = {}
+  dataForm.spuId = ''
+}
 
-    deleteCurrentProd () {
-      this.dataForm.spu = {}
-      this.dataForm.spuId = ''
-    },
-
-    closeDialog () {
-      this.dataForm = {
-        imgId: 0,
-        imgUrl: null,
-        seq: 0,
-        imgType: 0,
-        status: 1,
-        spuId: null,
-        spu: {}
-      }
-    },
-
-    /**
-     * 表单提交
-     */
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        if (!this.dataForm.imgUrl) {
-          this.$message({
-            message: '请选择轮播图片',
-            type: 'warning',
-            duration: 1500
-          })
-          return
-        }
-        if (this.relatedSpu === 1 && !this.dataForm.spuId) {
-          this.$message({
-            message: '请选择商品',
-            type: 'warning',
-            duration: 1500
-          })
-          return
-        }
-        if (this.relatedSpu === 0) {
-          this.dataForm.spuId = ''
-        }
-        const dataForm = JSON.parse(JSON.stringify(this.dataForm))
-        dataForm.spu = undefined
-        const request = this.dataForm.imgId ? api.update(dataForm) : api.save(dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
-      })
-    }
-
+const closeDialog  = () => {
+  dataForm = {
+    imgId: 0,
+    imgUrl: null,
+    seq: 0,
+    imgType: 0,
+    status: 1,
+    spuId: null,
+    spu: {}
   }
 }
+
+/**
+ * 表单提交
+ */
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    if (!dataForm.imgUrl) {
+      ElMessage({
+        message: '请选择轮播图片',
+        type: 'warning',
+        duration: 1500
+      })
+      return
+    }
+    if (relatedSpu === 1 && !dataForm.spuId) {
+      ElMessage({
+        message: '请选择商品',
+        type: 'warning',
+        duration: 1500
+      })
+      return
+    }
+    if (relatedSpu === 0) {
+      dataForm.spuId = ''
+    }
+    const dataForm = JSON.parse(JSON.stringify(dataForm))
+    dataForm.spu = undefined
+    const request = dataForm.imgId ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
+
 </script>
 
 <style lang="scss" scoped>

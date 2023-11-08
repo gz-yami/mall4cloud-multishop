@@ -184,14 +184,14 @@
         </div>
       </div>
       <div
-        ref="closepopover"
+        ref="closepopoverRef"
         class="table"
       >
         <el-table
-          ref="prodInfTable"
+          ref="prodInfTableRef"
           :data="pageVO.list"
           :header-cell-style="{background:'#f9f9f9',color:'#606266'}"
-          @selection-change="handleSelectionChange"
+          @selection-change="onSelectSome"
           @cell-mouse-enter="enterTableRow"
           @cell-mouse-leave="leaveTableRow"
           @sort-change="conditionSort"
@@ -547,27 +547,27 @@
             <template #default="{row}">
               <el-tag
                 v-if="row.spuStatus === 0"
-                size="small"
+                
                 type="danger"
               >
                 下架
               </el-tag>
               <el-tag
                 v-if="row.spuStatus === 1"
-                size="small"
+                
               >
                 上架
               </el-tag>
               <el-tag
                 v-if="row.spuStatus === 2"
-                size="small"
+                
                 type="danger"
               >
                 违规下架
               </el-tag>
               <el-tag
                 v-if="row.spuStatus === 3"
-                size="small"
+                
                 type="warning"
               >
                 等待审核
@@ -688,590 +688,583 @@
     <!-- 下架管理 -->
     <offline-manage
       v-if="operateDialogVisible"
-      ref="offlineData"
+      ref="offlineDataRef"
       @rereapply-data-submit="rereapplyDataSubmit"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/product/list'
 import * as categoryApi from '@/api/product/category'
 import offlineManage from '@/components/OfflineManage'
 import { treeDataTranslate } from '@/utils'
 import Big from 'big.js'
 
-export default {
-  components: {
-    offlineManage
-  },
-  data () {
-    return {
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      dataForm: {},
-      selectedMenu: [],
-      categoryList: [],
-      categoryListTreeProps: {
-        value: 'categoryId',
-        label: 'name'
-      },
-      prodStatusRadio: 0,
-      // 是否为组合商品下拉框
-      preSaleStatusOptions: [{
-        value: 1,
-        label: '是'
-      },
-      {
-        value: 0,
-        label: '否'
-      }],
-      // 商品分类下拉框
-      prodClassifyOptions: [{
-        value: 1,
-        label: '服装'
-      },
-      {
-        value: 2,
-        label: '电器'
-      }],
-      // 商品表格数据
-      tableData: [],
-      currentMoveSpuId: '', // 移入项的spuId
-      currentClickSpuId: '', // 点击项的spuId
-      currentShowPopover: '', // 当前展示的弹窗
-      // 多选
-      checkAll: false,
-      isIndeterminate: false,
-      checkedCount: 0,
-      selectedProdList: [], // 被选中的商品列表
-      // 查询的参数
-      searchParam: {
-      },
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1
-      },
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      // loading
-      pageLoading: true,
-      currentModifyProdDetail: {}, // 当前准备修改的商品详情
-      currentModifyProdSkuList: [], // 当前准备修改的商品的规格列表
 
-      currentSpuId: null, // 商品id
-      operateDialogVisible: false // 操作对话框
-    }
-  },
-  mounted () {
-    this.getDataList()
-    this.getProdCategoryList()
-  },
-  methods: {
-    // 条件搜索
-    conditionSearch () {
-      this.pageQuery.pageNum = 1
-      const minPrice = this.dataForm.currentPriceBeginInp ? this.dataForm.currentPriceBeginInp * 100 : undefined
-      const maxPrice = this.dataForm.currentPriceEndInp ? this.dataForm.currentPriceEndInp * 100 : undefined
-      this.searchParam = {
-        spuId: this.dataForm.prodId || undefined,
-        partyCode: this.dataForm.prodCode || undefined,
-        keyword: this.dataForm.prodName || undefined,
-        shopPrimaryCategoryId: this.dataForm.shopPrimaryCategoryId || undefined, // 商家一级分类id
-        shopSecondaryCategoryId: this.dataForm.shopSecondaryCategoryId || undefined, // 商家二级分类id
-        minSaleNum: this.dataForm.saleBeginInp || undefined,
-        maxSaleNum: this.dataForm.saleEndInp || undefined,
-        minPrice,
-        maxPrice,
-        isCompose: this.dataForm.currentyuPreSaleStatus === '' ? undefined : this.dataForm.currentyuPreSaleStatus,
-        dataType: parseInt(this.prodStatusRadio)
-      }
-      this.getDataList()
-    },
-    // 获取商品列表
-    getDataList () {
-      this.pageLoading = true
-      api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
-        this.pageVO = pageVO
-        this.pageVO.list.forEach(item => {
-          item.exhibitionProdName = item.name
-          item.exhibitionSeq = item.seq
-          item.priceFee = this.accuracyCount(item.priceFee, 100, 3)
-          item.marketPriceFee = this.accuracyCount(item.marketPriceFee, 100, 3)
-        })
-        this.pageLoading = false
-      })
-    },
-    // 获取商品目录
-    getProdCategoryList () {
-      this.pageLoading = true
-      categoryApi.shopCategoryPage({}).then(pageVO => {
-        this.categoryList = treeDataTranslate(pageVO, 'categoryId', 'parentId')
-        this.pageLoading = false
-      })
-    },
-    // 监听分类选择的变化
-    handleSelectCategoryChange (val) {
-      if (val.length === 1) {
-        this.dataForm.shopPrimaryCategoryId = val[0]
-        this.dataForm.shopSecondaryCategoryId = undefined
-      } else if (val.length === 2) {
-        this.dataForm.shopPrimaryCategoryId = undefined
-        this.dataForm.shopSecondaryCategoryId = val[1]
-      }
-    },
-    // 切换不同状态的商品展示
-    // 0：代表全部商品
-    // 1：在售中的商品
-    // 2：已售完的商品
-    // 3：已下架的商品
-    switchProdList () {
-      const dataType = parseInt(this.prodStatusRadio)
-      this.pageQuery.pageNum = 1
-      this.searchParam = {
-        dataType
-      }
-      this.getDataList()
-    },
-    // 跳转发布商品页
-    toReleaseProdPage (spuId) {
-      if (spuId === -1) {
-        this.$router.push('/product/prod_info')
-      } else {
-        this.$router.push('/product/prod_info?spuId=' + spuId)
-      }
-    },
-    // 监听表格选中
-    handleSelectionChange (value) {
-      const checkedCount = value.length
-      this.checkedCount = checkedCount
-      this.checkAll = checkedCount === this.pageVO.list.length
-      this.isIndeterminate = checkedCount > 0 && checkedCount < this.pageVO.list.length
-      // 提取出商品id列表
-      const selectedProdList = []
-      if (value.length > 0) {
-        value.forEach(item => {
-          selectedProdList.push(item.spuId)
-        })
-      }
-      this.selectedProdList = selectedProdList
-    },
-    // 表格全选/全不选
-    handleCheckAllChange () {
-      this.$refs.prodInfTable.toggleAllSelection()
-      this.isIndeterminate = false
-    },
-    // 条件排序
-    // priceFee:当前价
-    // marketPriceFee:市场价
-    // saleNum:累计销量
-    // totalStock:库存
-    // seq:序号
-    // createTime:创建时间
-    conditionSort (column) {
-      this.closePopover()
-      this.pageQuery.pageNum = 1
-      const orderMode = column.order === 'ascending' ? 1 : column.order === 'descending' ? 0 : undefined
-      if (column.prop === 'priceFee') {
-        this.searchParam = {
-          priceFeeSort: orderMode
-        }
-      } else if (column.prop === 'marketPriceFee') {
-        this.searchParam = {
-          marketPriceFeeSort: orderMode
-        }
-      } else if (column.prop === 'saleNum') {
-        this.searchParam = {
-          saleNumSort: orderMode
-        }
-      } else if (column.prop === 'totalStock') {
-        this.searchParam = {
-          stockSort: orderMode
-        }
-      } else if (column.prop === 'seq') {
-        this.searchParam = {
-          seqSort: orderMode
-        }
-      } else if (column.prop === 'createTime') {
-        this.searchParam = {
-          createTimeSort: orderMode
-        }
-      }
-      this.getDataList()
-    },
-    // 改变商品状态
-    // onTheShelf:上架
-    // offTheShelf:下架
-    changeProdStatus (status) {
-      // 如果没选商品，提示选择商品
-      if (this.selectedProdList.length <= 0) {
-        this.$message({
-          message: '请选择商品',
-          type: 'warning'
-        })
-        return
-      }
 
-      if (status === 'onTheShelf') {
-        this.prodSale(this.selectedProdList)
-      } else if (status === 'offTheShelf') {
-        this.prodNotSale(this.selectedProdList)
-      }
-    },
-    // 商品上架
-    prodSale (spuIdOrSpuIds) {
-      let param = {}
-      if (typeof (spuIdOrSpuIds) === 'number') {
-        param = {
-          status: 1,
-          spuId: spuIdOrSpuIds
-        }
-      } else if (spuIdOrSpuIds.length > 1) {
-        param = {
-          status: 1,
-          spuIds: spuIdOrSpuIds
-        }
-      } else {
-        param = {
-          status: 1,
-          spuId: spuIdOrSpuIds[0]
-        }
-      }
-      api.updateProdStatus(param).then(() => {
-        this.$message({
-          message: '商品上架成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getDataList()
-        })
-      })
-    },
-    // 商品下架
-    prodNotSale (spuIdOrSpuIds) {
-      let param = {}
-      if (typeof (spuIdOrSpuIds) === 'number') {
-        param = {
-          status: 0,
-          spuId: spuIdOrSpuIds
-        }
-      } else if (spuIdOrSpuIds.length > 1) {
-        param = {
-          status: 0,
-          spuIds: spuIdOrSpuIds
-        }
-      } else {
-        param = {
-          status: 0,
-          spuId: spuIdOrSpuIds[0]
-        }
-      }
-      api.updateProdStatus(param).then(() => {
-        this.$message({
-          message: '商品下架成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getDataList()
-        })
-      })
-    },
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var dataForm = reactive({})
+var selectedMenu = ref([])
+var categoryList = ref([])
+var categoryListTreeProps = reactive({
+  value: 'categoryId',
+  label: 'name'
+})
+var prodStatusRadio = ref(0)
+// 是否为组合商品下拉框
+var preSaleStatusOptions = [{
+  value: 1,
+  label: '是'
+}
+{
+  value: 0,
+  label: '否'
+}]
+// 商品分类下拉框
+var prodClassifyOptions = [{
+  value: 1,
+  label: '服装'
+}
+{
+  value: 2,
+  label: '电器'
+}]
+// 商品表格数据
+var tableData = ref([])
+var currentMoveSpuId = ref('') // 移入项的spuId
+var currentClickSpuId = ref('') // 点击项的spuId
+var currentShowPopover = ref('') // 当前展示的弹窗
+// 多选
+var checkAll = ref(false)
+var isIndeterminate = ref(false)
+var checkedCount = ref(0)
+var selectedProdList = ref([]) // 被选中的商品列表
+// 查询的参数
+var searchParam = {
+}
+var pageQuery = reactive({
+  pageSize: 10,
+  pageNum: 1
+})
+// 返回参数
+var pageVO = reactive({
+  list: [], // 返回的列表
+  total: 0, // 一共多少条数据
+  pages: 0 // 一共多少页
+})
+// loading
+var pageLoading = ref(true)
+var currentModifyProdDetail = reactive({}) // 当前准备修改的商品详情
+var currentModifyProdSkuList = ref([]) // 当前准备修改的商品的规格列表
 
-    /**
-     * 商品违规下架操作
-     */
-    offlineManageHandle (row) {
-      this.operateDialogVisible = true
-      this.currentSpuId = row.spuId
-      this.getOfflineDetailByProdId(row.spuId)
-    },
+let currentSpuId = null // 商品id
+var operateDialogVisible = ref(false) // 操作对话框
+onMounted(() => {
+  getDataList()
+  getProdCategoryList()
+})
 
-    /**
-     * 获取最新下线商品的事件
-     */
-    getOfflineDetailByProdId (spuId) {
-      api.getOfflineDetailById(spuId).then((data) => {
-        this.offlineDetail = data
-        this.$nextTick(() => {
-          this.$refs.offlineData.init(data)
-        })
-      })
-    },
-
-    /**
-     * 提交上架申请
-     */
-    rereapplyDataSubmit (data) {
-      const param = {
-        handleId: this.currentSpuId,
-        eventId: data.eventId,
-        reapplyReason: data.reapplyReason // 申请理由
-      }
-      api.rereapplyOnlineById(param).then(() => {
-        this.operateDialogVisible = false
-        this.$message({
-          message: '提交成功',
-          type: 'success',
-          duration: 1000,
-          onClose: () => this.getDataList()
-        })
-      })
-    },
-
-    // 商品删除
-    prodDelete (spuId) {
-      api.deleteById(spuId).then(() => {
-        this.$message({
-          message: '商品删除成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getDataList()
-        })
-      })
-    },
-    // 移入表格行
-    enterTableRow (row) {
-      this.currentMoveSpuId = row.spuId
-    },
-    // 移出表格行
-    leaveTableRow () {
-      this.currentMoveSpuId = ''
-    },
-    // 获取弹出弹窗项信息
-    getCurrentSpuId (spuId, currentShowPopover) {
-      this.currentClickSpuId = spuId
-      this.currentShowPopover = currentShowPopover
-    },
-    // 清空选中项弹窗信息
-    clearShowPopoverInf () {
-      this.currentClickSpuId = ''
-      this.currentShowPopover = ''
-    },
-    // 获取商品详情
-    getProdDetail (spuId, currentShowPopover) {
-      api.get(spuId).then(data => {
-        this.currentModifyProdSkuList = data.skus
-        this.currentModifyProdSkuList.forEach(item => {
-          item.originalStock = item.stock
-          item.priceFee = this.accuracyCount(item.priceFee, 100, 3)
-          item.oldPriceFee = item.priceFee
-          item.marketPriceFee = this.accuracyCount(item.marketPriceFee, 100, 3)
-        })
-      })
-    },
-    // 关闭弹窗后,初始化数据
-    initProdInf (row) {
-      row.name = row.exhibitionProdName
-      row.seq = row.exhibitionSeq
-      this.clearShowPopoverInf()
-    },
-    // 关闭popover弹窗
-    closePopover () {
-      this.$refs.closepopover.click()
-    },
-    // 修改商品名称
-    modifyProdName (row) {
-      if (row.name.trim() === '') {
-        this.$message({
-          message: '请输入商品名称',
-          type: 'warning'
-        })
-        return
-      } else if (row.name === row.exhibitionProdName) {
-        this.closePopover()
-        return
-      }
-      const param = {
-        spuId: row.spuId,
-        name: row.name
-      }
-      api.updatePartProdStatus({ ...param }).then(() => {
-        this.$message({
-          message: '修改成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => {
-            this.getDataList()
-            this.closePopover()
-          }
-        })
-      })
-    },
-    // 修改商品价格
-    modifyProdPrice (spuId, skus) {
-      const skuList = []
-      let isChangePriceFee = false
-      let minPriceFee = 0
-      // 判断是否价格有变动,没有变动不更新价格,关闭弹窗即可
-      for (let i = 0; i < skus.length; i++) {
-        if (skus[i].oldPriceFee !== skus[i].priceFee) {
-          isChangePriceFee = true
-          break
-        }
-      }
-      if (isChangePriceFee === false) {
-        this.closePopover()
-        return
-      }
-      // 把需要传递的参数,单独取出来
-      for (let i = 0; i < skus.length; i++) {
-        if (skus[i].priceFee === '') {
-          this.$message({
-            message: '请输入商品价格',
-            type: 'warning'
-          })
-          return
-        } else if (parseFloat(skus[i].priceFee) < 0.01) {
-          this.$message({
-            message: '商品价格不能小于0.01',
-            type: 'warning'
-          })
-          return
-        } else {
-          skuList.push({
-            priceFee: this.accuracyCount(skus[i].priceFee, 100, 2),
-            skuId: skus[i].skuId
-          })
-        }
-      }
-      // 获取多种规格下的最小价格
-      minPriceFee = skuList[0].priceFee
-      for (let i = 1; i < skuList.length; i++) {
-        if (minPriceFee > skuList[i].priceFee) {
-          minPriceFee = skuList[i].priceFee
-        }
-      }
-      const param = {
-        spuId,
-        priceFee: minPriceFee,
-        skuList
-      }
-      api.updatePartProdStatus({ ...param }).then(() => {
-        this.$message({
-          message: '修改成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => {
-            this.getDataList()
-            this.closePopover()
-          }
-        })
-      })
-    },
-    // 修改商品库存
-    modifyProdStock (spuId, skus) {
-      const skuList = []
-      let totalChangeStock = 0
-      for (let i = 0; i < skus.length; i++) {
-        let changeStock = 0
-        if (skus[i].stock === '') {
-          this.$message({
-            message: '请输入商品库存',
-            type: 'warning'
-          })
-          return
-        } else if (skus[i].stock < skus[i].originalStock) {
-          this.$message({
-            message: '请输入大于或等于原本的库存',
-            type: 'warning'
-          })
-          return
-        } else {
-          changeStock = parseInt(skus[i].stock - skus[i].originalStock)
-          totalChangeStock += changeStock
-          skuList.push({
-            changeStock,
-            skuId: skus[i].skuId
-          })
-        }
-      }
-      // 如果总库存改变为0,就不更新库存,只关闭弹窗
-      if (totalChangeStock === 0) {
-        this.closePopover()
-        return
-      }
-      const param = {
-        spuId,
-        changeStock: totalChangeStock,
-        skuList
-      }
-      api.updatePartProdStatus({ ...param }).then(() => {
-        this.$message({
-          message: '修改成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => {
-            this.getDataList()
-            this.closePopover()
-          }
-        })
-      })
-    },
-    // 取消修改商品名
-    cancelModifyProdNameBtn (scope) {
-      scope._self.$refs[`popover-${scope.$index}`].doClose()
-    },
-    // 修改序号
-    modifySeq (scope) {
-      if (scope.row.seq === '') {
-        this.$message({
-          message: '请输入序号',
-          type: 'warning'
-        })
-        return
-      } else if (scope.row.exhibitionSeq === scope.row.seq) {
-        this.closePopover()
-        return
-      }
-      const param = {
-        spuId: scope.row.spuId,
-        seq: scope.row.seq
-      }
-      api.updatePartProdStatus({ ...param }).then(() => {
-        this.$message({
-          message: '修改成功',
-          type: 'success',
-          duration: 1500,
-          onClose: () => {
-            this.getDataList()
-            this.closePopover()
-          }
-        })
-      })
-    },
-    // 精度运算
-    // a:第一个计算数(例如:被除数/被减数)
-    // b:第二个计算数(例如:除数/减数)
-    // countMode:计算方式(0:加 1:减 2:乘 3:除)
-    accuracyCount (a, b, countMode) {
-      let finalResult = 0
-      if (countMode === 0) {
-        finalResult = new Big(a).plus(b).valueOf()
-      } else if (countMode === 1) {
-        finalResult = new Big(a).minus(b).valueOf()
-      } else if (countMode === 2) {
-        finalResult = new Big(a).times(b).valueOf()
-      } else if (countMode === 3) {
-        finalResult = new Big(a).div(b).valueOf()
-      } else {
-        return
-      }
-      return finalResult
-    },
-    // 每页数
-    sizeChangeHandle (val) {
-      this.pageQuery.pageSize = val
-      this.pageQuery.pageNum = 1
-      this.getDataList()
-    },
-    // 当前页
-    currentChangeHandle (val) {
-      this.pageQuery.pageNum = val
-      this.getDataList()
-    }
+// 条件搜索
+const conditionSearch  = () => {
+  pageQuery.pageNum = 1
+  const minPrice = dataForm.currentPriceBeginInp ? dataForm.currentPriceBeginInp * 100 : undefined
+  const maxPrice = dataForm.currentPriceEndInp ? dataForm.currentPriceEndInp * 100 : undefined
+  searchParam = {
+    spuId: dataForm.prodId || undefined,
+    partyCode: dataForm.prodCode || undefined,
+    keyword: dataForm.prodName || undefined,
+    shopPrimaryCategoryId: dataForm.shopPrimaryCategoryId || undefined, // 商家一级分类id
+    shopSecondaryCategoryId: dataForm.shopSecondaryCategoryId || undefined, // 商家二级分类id
+    minSaleNum: dataForm.saleBeginInp || undefined,
+    maxSaleNum: dataForm.saleEndInp || undefined,
+    minPrice,
+    maxPrice,
+    isCompose: dataForm.currentyuPreSaleStatus === '' ? undefined : dataForm.currentyuPreSaleStatus,
+    dataType: parseInt(prodStatusRadio)
+  }
+  getDataList()
+}
+// 获取商品列表
+const getDataList  = () => {
+  pageLoading = true
+  api.page({ ...pageQuery, ...searchParam }).then(pageVO => {
+    pageVO = pageVO
+    pageVO.list.forEach(item => {
+      item.exhibitionProdName = item.name
+      item.exhibitionSeq = item.seq
+      item.priceFee = accuracyCount(item.priceFee, 100, 3)
+      item.marketPriceFee = accuracyCount(item.marketPriceFee, 100, 3)
+    })
+    pageLoading = false
+  })
+}
+// 获取商品目录
+const getProdCategoryList  = () => {
+  pageLoading = true
+  categoryApi.shopCategoryPage({}).then(pageVO => {
+    categoryList = treeDataTranslate(pageVO, 'categoryId', 'parentId')
+    pageLoading = false
+  })
+}
+// 监听分类选择的变化
+const handleSelectCategoryChange  = (val) => {
+  if (val.length === 1) {
+    dataForm.shopPrimaryCategoryId = val[0]
+    dataForm.shopSecondaryCategoryId = undefined
+  } else if (val.length === 2) {
+    dataForm.shopPrimaryCategoryId = undefined
+    dataForm.shopSecondaryCategoryId = val[1]
   }
 }
+// 切换不同状态的商品展示
+// 0：代表全部商品
+// 1：在售中的商品
+// 2：已售完的商品
+// 3：已下架的商品
+const switchProdList  = () => {
+  const dataType = parseInt(prodStatusRadio)
+  pageQuery.pageNum = 1
+  searchParam = {
+    dataType
+  }
+  getDataList()
+}
+// 跳转发布商品页
+const toReleaseProdPage  = (spuId) => {
+  if (spuId === -1) {
+    useRouter().push('/product/prod_info')
+  } else {
+    useRouter().push('/product/prod_info?spuId=' + spuId)
+  }
+}
+// 监听表格选中
+const onSelectSome  = (value) => {
+  const checkedCount = value.length
+  checkedCount = checkedCount
+  checkAll = checkedCount === pageVO.list.length
+  isIndeterminate = checkedCount > 0 && checkedCount < pageVO.list.length
+  // 提取出商品id列表
+  const selectedProdList = []
+  if (value.length > 0) {
+    value.forEach(item => {
+      selectedProdList.push(item.spuId)
+    })
+  }
+  selectedProdList = selectedProdList
+}
+// 表格全选/全不选
+const handleCheckAllChange  = () => {
+  prodInfTableRef.value?.toggleAllSelection()
+  isIndeterminate = false
+}
+// 条件排序
+// priceFee:当前价
+// marketPriceFee:市场价
+// saleNum:累计销量
+// totalStock:库存
+// seq:序号
+// createTime:创建时间
+const conditionSort  = (column) => {
+  closePopover()
+  pageQuery.pageNum = 1
+  const orderMode = column.order === 'ascending' ? 1 : column.order === 'descending' ? 0 : undefined
+  if (column.prop === 'priceFee') {
+    searchParam = {
+      priceFeeSort: orderMode
+    }
+  } else if (column.prop === 'marketPriceFee') {
+    searchParam = {
+      marketPriceFeeSort: orderMode
+    }
+  } else if (column.prop === 'saleNum') {
+    searchParam = {
+      saleNumSort: orderMode
+    }
+  } else if (column.prop === 'totalStock') {
+    searchParam = {
+      stockSort: orderMode
+    }
+  } else if (column.prop === 'seq') {
+    searchParam = {
+      seqSort: orderMode
+    }
+  } else if (column.prop === 'createTime') {
+    searchParam = {
+      createTimeSort: orderMode
+    }
+  }
+  getDataList()
+}
+// 改变商品状态
+// onTheShelf:上架
+// offTheShelf:下架
+const changeProdStatus  = (status) => {
+  // 如果没选商品，提示选择商品
+  if (selectedProdList.length <= 0) {
+    ElMessage({
+      message: '请选择商品',
+      type: 'warning'
+    })
+    return
+  }
+
+  if (status === 'onTheShelf') {
+    prodSale(selectedProdList)
+  } else if (status === 'offTheShelf') {
+    prodNotSale(selectedProdList)
+  }
+}
+// 商品上架
+const prodSale  = (spuIdOrSpuIds) => {
+  let param = {}
+  if (typeof (spuIdOrSpuIds) === 'number') {
+    param = {
+      status: 1,
+      spuId: spuIdOrSpuIds
+    }
+  } else if (spuIdOrSpuIds.length > 1) {
+    param = {
+      status: 1,
+      spuIds: spuIdOrSpuIds
+    }
+  } else {
+    param = {
+      status: 1,
+      spuId: spuIdOrSpuIds[0]
+    }
+  }
+  api.updateProdStatus(param).then(() => {
+    ElMessage({
+      message: '商品上架成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => getDataList()
+    })
+  })
+}
+// 商品下架
+const prodNotSale  = (spuIdOrSpuIds) => {
+  let param = {}
+  if (typeof (spuIdOrSpuIds) === 'number') {
+    param = {
+      status: 0,
+      spuId: spuIdOrSpuIds
+    }
+  } else if (spuIdOrSpuIds.length > 1) {
+    param = {
+      status: 0,
+      spuIds: spuIdOrSpuIds
+    }
+  } else {
+    param = {
+      status: 0,
+      spuId: spuIdOrSpuIds[0]
+    }
+  }
+  api.updateProdStatus(param).then(() => {
+    ElMessage({
+      message: '商品下架成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => getDataList()
+    })
+  })
+}
+
+/**
+ * 商品违规下架操作
+ */
+const offlineManageHandle  = (row) => {
+  operateDialogVisible = true
+  currentSpuId = row.spuId
+  getOfflineDetailByProdId(row.spuId)
+}
+
+/**
+ * 获取最新下线商品的事件
+ */
+const getOfflineDetailByProdId  = (spuId) => {
+  api.getOfflineDetailById(spuId).then((data) => {
+    offlineDetail = data
+    nextTick(() => {
+      offlineDataRef.value?.init(data)
+    })
+  })
+}
+
+/**
+ * 提交上架申请
+ */
+const rereapplyDataSubmit  = (data) => {
+  const param = {
+    handleId: currentSpuId,
+    eventId: data.eventId,
+    reapplyReason: data.reapplyReason // 申请理由
+  }
+  api.rereapplyOnlineById(param).then(() => {
+    operateDialogVisible = false
+    ElMessage({
+      message: '提交成功',
+      type: 'success',
+      duration: 1000,
+      onClose: () => getDataList()
+    })
+  })
+}
+
+// 商品删除
+const prodDelete  = (spuId) => {
+  api.deleteById(spuId).then(() => {
+    ElMessage({
+      message: '商品删除成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => getDataList()
+    })
+  })
+}
+// 移入表格行
+const enterTableRow  = (row) => {
+  currentMoveSpuId = row.spuId
+}
+// 移出表格行
+const leaveTableRow  = () => {
+  currentMoveSpuId = ''
+}
+// 获取弹出弹窗项信息
+const getCurrentSpuId  = (spuId, currentShowPopover) => {
+  currentClickSpuId = spuId
+  currentShowPopover = currentShowPopover
+}
+// 清空选中项弹窗信息
+const clearShowPopoverInf  = () => {
+  currentClickSpuId = ''
+  currentShowPopover = ''
+}
+// 获取商品详情
+const getProdDetail  = (spuId, currentShowPopover) => {
+  api.get(spuId).then(data => {
+    currentModifyProdSkuList = data.skus
+    currentModifyProdSkuList.forEach(item => {
+      item.originalStock = item.stock
+      item.priceFee = accuracyCount(item.priceFee, 100, 3)
+      item.oldPriceFee = item.priceFee
+      item.marketPriceFee = accuracyCount(item.marketPriceFee, 100, 3)
+    })
+  })
+}
+// 关闭弹窗后,初始化数据
+const initProdInf  = (row) => {
+  row.name = row.exhibitionProdName
+  row.seq = row.exhibitionSeq
+  clearShowPopoverInf()
+}
+// 关闭popover弹窗
+const closePopover  = () => {
+  closepopoverRef.value?.click()
+}
+// 修改商品名称
+const modifyProdName  = (row) => {
+  if (row.name.trim() === '') {
+    ElMessage({
+      message: '请输入商品名称',
+      type: 'warning'
+    })
+    return
+  } else if (row.name === row.exhibitionProdName) {
+    closePopover()
+    return
+  }
+  const param = {
+    spuId: row.spuId,
+    name: row.name
+  }
+  api.updatePartProdStatus({ ...param }).then(() => {
+    ElMessage({
+      message: '修改成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => {
+        getDataList()
+        closePopover()
+      }
+    })
+  })
+}
+// 修改商品价格
+const modifyProdPrice  = (spuId, skus) => {
+  const skuList = []
+  let isChangePriceFee = false
+  let minPriceFee = 0
+  // 判断是否价格有变动,没有变动不更新价格,关闭弹窗即可
+  for (let i = 0; i < skus.length; i++) {
+    if (skus[i].oldPriceFee !== skus[i].priceFee) {
+      isChangePriceFee = true
+      break
+    }
+  }
+  if (isChangePriceFee === false) {
+    closePopover()
+    return
+  }
+  // 把需要传递的参数,单独取出来
+  for (let i = 0; i < skus.length; i++) {
+    if (skus[i].priceFee === '') {
+      ElMessage({
+        message: '请输入商品价格',
+        type: 'warning'
+      })
+      return
+    } else if (parseFloat(skus[i].priceFee) < 0.01) {
+      ElMessage({
+        message: '商品价格不能小于0.01',
+        type: 'warning'
+      })
+      return
+    } else {
+      skuList.push({
+        priceFee: accuracyCount(skus[i].priceFee, 100, 2),
+        skuId: skus[i].skuId
+      })
+    }
+  }
+  // 获取多种规格下的最小价格
+  minPriceFee = skuList[0].priceFee
+  for (let i = 1; i < skuList.length; i++) {
+    if (minPriceFee > skuList[i].priceFee) {
+      minPriceFee = skuList[i].priceFee
+    }
+  }
+  const param = {
+    spuId,
+    priceFee: minPriceFee,
+    skuList
+  }
+  api.updatePartProdStatus({ ...param }).then(() => {
+    ElMessage({
+      message: '修改成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => {
+        getDataList()
+        closePopover()
+      }
+    })
+  })
+}
+// 修改商品库存
+const modifyProdStock  = (spuId, skus) => {
+  const skuList = []
+  let totalChangeStock = 0
+  for (let i = 0; i < skus.length; i++) {
+    let changeStock = 0
+    if (skus[i].stock === '') {
+      ElMessage({
+        message: '请输入商品库存',
+        type: 'warning'
+      })
+      return
+    } else if (skus[i].stock < skus[i].originalStock) {
+      ElMessage({
+        message: '请输入大于或等于原本的库存',
+        type: 'warning'
+      })
+      return
+    } else {
+      changeStock = parseInt(skus[i].stock - skus[i].originalStock)
+      totalChangeStock += changeStock
+      skuList.push({
+        changeStock,
+        skuId: skus[i].skuId
+      })
+    }
+  }
+  // 如果总库存改变为0,就不更新库存,只关闭弹窗
+  if (totalChangeStock === 0) {
+    closePopover()
+    return
+  }
+  const param = {
+    spuId,
+    changeStock: totalChangeStock,
+    skuList
+  }
+  api.updatePartProdStatus({ ...param }).then(() => {
+    ElMessage({
+      message: '修改成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => {
+        getDataList()
+        closePopover()
+      }
+    })
+  })
+}
+// 取消修改商品名
+const cancelModifyProdNameBtn  = (scope) => {
+  scope._self.$refs[`popover-${scope.$index}`].doClose()
+}
+// 修改序号
+const modifySeq  = (scope) => {
+  if (scope.row.seq === '') {
+    ElMessage({
+      message: '请输入序号',
+      type: 'warning'
+    })
+    return
+  } else if (scope.row.exhibitionSeq === scope.row.seq) {
+    closePopover()
+    return
+  }
+  const param = {
+    spuId: scope.row.spuId,
+    seq: scope.row.seq
+  }
+  api.updatePartProdStatus({ ...param }).then(() => {
+    ElMessage({
+      message: '修改成功',
+      type: 'success',
+      duration: 1500,
+      onClose: () => {
+        getDataList()
+        closePopover()
+      }
+    })
+  })
+}
+// 精度运算
+// a:第一个计算数(例如:被除数/被减数)
+// b:第二个计算数(例如:除数/减数)
+// countMode:计算方式(0:加 1:减 2:乘 3:除)
+const accuracyCount  = (a, b, countMode) => {
+  let finalResult = 0
+  if (countMode === 0) {
+    finalResult = new Big(a).plus(b).valueOf()
+  } else if (countMode === 1) {
+    finalResult = new Big(a).minus(b).valueOf()
+  } else if (countMode === 2) {
+    finalResult = new Big(a).times(b).valueOf()
+  } else if (countMode === 3) {
+    finalResult = new Big(a).div(b).valueOf()
+  } else {
+    return
+  }
+  return finalResult
+}
+// 每页数
+const sizeChangeHandle  = (val) => {
+  pageQuery.pageSize = val
+  pageQuery.pageNum = 1
+  getDataList()
+}
+// 当前页
+const currentChangeHandle  = (val) => {
+  pageQuery.pageNum = val
+  getDataList()
+}
+
 </script>
 
 <style lang="scss">

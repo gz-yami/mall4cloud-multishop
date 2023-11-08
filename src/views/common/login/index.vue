@@ -86,7 +86,7 @@
     </div>
     <Verify
       v-if="initVerify"
-      ref="verify"
+      ref="verifyRef"
       :captcha-type="'blockPuzzle'"
       :img-size="{width:'400px',height:'200px'}"
       @success="login"
@@ -94,32 +94,28 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { validUsername } from '@/utils/validate'
 import Verify from '@/components/Verifition/Verify'
 
-export default {
-  name: 'Login',
-  components: { Verify },
-  data () {
-    return {
-      selectItem: '', // '':未选中；'username':用户名；'password':密码
-      usernameErrTips: false,
-      passwordErrTips: false,
-      loginInfo: {
-        username: '', // 用户名
-        password: '', // 密码
-        captcha: '' // 验证码
-      },
-      loading: false,
-      initVerify: false,
-      redirect: undefined,
-      otherQuery: {}
-    }
-  },
+
+
+
+var selectItem = ref('', // '':未选中；'username':用户名；'password'):密码
+var usernameErrTips = ref(false)
+var passwordErrTips = ref(false)
+var loginInfo = reactive({
+  username: '', // 用户名
+  password: '', // 密码
+  captcha: '' // 验证码
+})
+var loading = ref(false)
+var initVerify = ref(false)
+var redirect = reactive(undefined)
+var otherQuery = reactive({})
   computed: {
     language () {
-      return this.$store.getters.language
+      return $store.getters.language
     }
   },
   watch: {
@@ -127,110 +123,109 @@ export default {
       handler: function (route) {
         const query = route.query
         if (query) {
-          this.redirect = query.redirect
-          this.otherQuery = this.getOtherQuery(query)
+          redirect = query.redirect
+          otherQuery = getOtherQuery(query)
         }
       },
       immediate: true
     }
   },
-  methods: {
-    // 切换语言
-    handleSetLanguage (lang) {
-      this.$i18n.locale = lang
-      this.$store.dispatch('app/setLanguage', lang)
-      this.$message({
-        message: 'Switch Language Success',
-        type: 'success'
-      })
-    },
-    // 输入框聚焦监听
-    inputFocus (item) {
-      this.lightOutline(item)
-      if (item === 'username') {
-        this.usernameErrTips = false
-      } else if (item === 'password') {
-        this.passwordErrTips = false
-      }
-    },
-    // 输入框失焦监听
-    inputDefocus (item) {
-      this.lightDisappear()
-      this.judgeMonitorInput(item)
-    },
-    // 底边框换颜色
-    lightOutline (item) {
-      this.selectItem = item
-    },
-    // 底边框恢复成灰色
-    lightDisappear () {
-      this.selectItem = ''
-    },
-    // 判断监听的是哪个输入框
-    judgeMonitorInput (item) {
-      // if (item === 'username') {
-      //   this.userNameVerification()
-      // } else if (item === 'password') {
-      //   this.passwordVerification()
-      // }
-    },
-    // 用户名输入框验证
-    userNameVerification () {
-      const username = this.loginInfo.username
-      if (!validUsername(username)) {
-        this.usernameErrTips = true
-      } else {
-        this.usernameErrTips = false
-      }
-    },
-    // 密码输入框验证
-    passwordVerification () {
-      const password = this.loginInfo.password
-      if (password.length < 6) {
-        this.passwordErrTips = true
-      } else {
-        this.passwordErrTips = false
-      }
-    },
-    handleLogin () {
-      // 验证用户名和密码是否符合规则
-      // this.userNameVerification()
-      // this.passwordVerification()
-      if (this.usernameErrTips === true) {
-        return
-      }
-      if (this.passwordErrTips === true) {
-        return
-      }
-      this.initVerify = true
-      this.$nextTick(() => {
-        this.$refs.verify.show()
-      })
-    },
-    login (verifyResult) {
-      console.log(verifyResult.captchaVerification)
-      this.loading = true
-      this.loginInfo.captcha = verifyResult.captchaVerification
-      this.$store.dispatch('user/login', this.loginInfo)
-        .then(() => {
-          this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
-          this.loading = false
-        })
-        .catch((e) => {
-          console.log(e)
-          this.loading = false
-        })
-    },
-    getOtherQuery (query) {
-      return Object.keys(query).reduce((acc, cur) => {
-        if (cur !== 'redirect') {
-          acc[cur] = query[cur]
-        }
-        return acc
-      }, {})
-    }
+
+// 切换语言
+const handleSetLanguage  = (lang) => {
+  $i18n.locale = lang
+  $store.dispatch('app/setLanguage', lang)
+  ElMessage({
+    message: 'Switch Language Success',
+    type: 'success'
+  })
+}
+// 输入框聚焦监听
+const inputFocus  = (item) => {
+  lightOutline(item)
+  if (item === 'username') {
+    usernameErrTips = false
+  } else if (item === 'password') {
+    passwordErrTips = false
   }
 }
+// 输入框失焦监听
+const inputDefocus  = (item) => {
+  lightDisappear()
+  judgeMonitorInput(item)
+}
+// 底边框换颜色
+const lightOutline  = (item) => {
+  selectItem = item
+}
+// 底边框恢复成灰色
+const lightDisappear  = () => {
+  selectItem = ''
+}
+// 判断监听的是哪个输入框
+const judgeMonitorInput  = (item) => {
+  // if (item === 'username') {
+  //   userNameVerification()
+  // } else if (item === 'password') {
+  //   passwordVerification()
+  // }
+}
+// 用户名输入框验证
+const userNameVerification  = () => {
+  const username = loginInfo.username
+  if (!validUsername(username)) {
+    usernameErrTips = true
+  } else {
+    usernameErrTips = false
+  }
+}
+// 密码输入框验证
+const passwordVerification  = () => {
+  const password = loginInfo.password
+  if (password.length < 6) {
+    passwordErrTips = true
+  } else {
+    passwordErrTips = false
+  }
+}
+const handleLogin  = () => {
+  // 验证用户名和密码是否符合规则
+  // userNameVerification()
+  // passwordVerification()
+  if (usernameErrTips === true) {
+    return
+  }
+  if (passwordErrTips === true) {
+    return
+  }
+  initVerify = true
+  nextTick(() => {
+    verifyRef.value?.show()
+  })
+}
+const login  = (verifyResult) => {
+  console.log(verifyResult.captchaVerification)
+  loading = true
+  loginInfo.captcha = verifyResult.captchaVerification
+  $store.dispatch('user/login', loginInfo)
+    .then(() => {
+      useRouter().push({ path: redirect || '/', query: otherQuery })
+      loading = false
+    })
+    .catch((e) => {
+      console.log(e)
+      loading = false
+    })
+}
+const getOtherQuery  = (query) => {
+  return Object.keys(query).reduce((acc, cur) => {
+    if (cur !== 'redirect') {
+      acc[cur] = query[cur]
+    }
+    return acc
+  }, {})
+}
+
 </script>
 
 <style lang="scss">

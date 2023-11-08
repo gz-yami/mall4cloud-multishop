@@ -41,32 +41,27 @@
   </div>
 </template>
 
-<script>
-export default {
+<script setup>
 
-  props: {
-    attrsList: {
-      type: Array,
-      default () {
-        return []
-      }
-    }
-  },
-  emits: ['getValueOfBasicAttrs'],
-
-  data () {
-    return {
-
-    }
-  },
-
-  methods: {
-    // 获取数据
-    getValueOfBasicAttrs (attrs, st) {
-      this.$emit('getValueOfBasicAttrs', this.attrsList, attrs, st)
+const props = defineProps({
+  attrsList: {
+    type: Array,
+    default () {
+      return []
     }
   }
+})
+  emits: ['getValueOfBasicAttrs'],
+
+
+
+
+
+// 获取数据
+const getValueOfBasicAttrs  = (attrs, st) => {
+  emit('getValueOfBasicAttrs', attrsList, attrs, st)
 }
+
 </script>
 
 <style lang="scss">

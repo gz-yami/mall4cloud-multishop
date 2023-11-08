@@ -12,77 +12,68 @@
     <!-- 弹窗, 新增图片 -->
     <elx-imgbox
       v-if="elxImgboxVisible"
-      ref="elxImgbox"
+      ref="elxImgboxRef"
       @refresh-pic="refreshPic"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 // import { getToken } from 'api/qiniu'
 import ImgsUpload from '@/components/ImgsUpload'
 import ElxImgbox from '@/components/imgbox'
-export default {
-  name: 'EditorSlideUpload',
 
-  components: {
-    ImgsUpload,
-    ElxImgbox
-  },
 
-  props: {
-    color: {
-      type: String,
-      default: '#1890ff'
-    }
-  },
+
+const props = defineProps({
+  color: {
+    type: String,
+    default: '#1890ff'
+  }
+})
   emits: ['successCBK'],
 
-  data () {
-    return {
-      elxImgboxVisible: false,
-      maxNum: 15, // 可选择的最大图片数量
-      imgUrls: [],
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL
-    }
-  },
 
-  methods: {
-    /**
-     * 打开图片选择窗
-     */
-    clickUpload () {
-      this.imgUrls = ''
-      this.elxImgboxVisible = true
-      this.$nextTick(() => {
-        this.$refs.elxImgbox.init(0, this.maxNum)
-      })
-    },
-    /**
-     * 接收回调的图片数据
-     */
-    refreshPic (imagePath) {
-      const imageArray = imagePath.split(',')
-      const data = []
-      imageArray.forEach(img => {
-        data.push(this.resourcesUrl + img)
-      })
-      this.imgUrls = ''
-      this.dialogVisible = false
-      this.$emit('successCBK', data)
-    }
-    // handleSubmit() {
-    //   let imageArray = this.imgUrls.split(',')
-    //   var data = []
-    //   imageArray.forEach(img => {
-    //     data.push(this.resourcesUrl + img)
-    //   })
-    //   this.imgUrls = ''
-    //   this.dialogVisible = false
-    //   this.$emit('successCBK', data)
-    // }
-  }
+var elxImgboxVisible = ref(false)
+var maxNum = ref(15) // 可选择的最大图片数量
+var imgUrls = ref([])
+var resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+
+
+/**
+ * 打开图片选择窗
+ */
+const clickUpload  = () => {
+  imgUrls = ''
+  elxImgboxVisible = true
+  nextTick(() => {
+    elxImgbox.init(0, thisRef.value?.maxNum)
+  })
 }
+/**
+ * 接收回调的图片数据
+ */
+const refreshPic  = (imagePath) => {
+  const imageArray = imagePath.split(',')
+  const data = []
+  imageArray.forEach(img => {
+    data.push(resourcesUrl + img)
+  })
+  imgUrls = ''
+  dialogVisible = false
+  emit('successCBK', data)
+}
+// handleSubmit() {
+//   let imageArray = imgUrls.split(',')
+//   var data = []
+//   imageArray.forEach(img => {
+//     data.push(resourcesUrl + img)
+//   })
+//   imgUrls = ''
+//   dialogVisible = false
+//   emit('successCBK', data)
+// }
+
 </script>
 
 <style lang="scss" scoped>

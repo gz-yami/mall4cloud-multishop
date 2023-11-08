@@ -4,7 +4,7 @@
     :title="dataForm.hasAccount? $t('table.edit'): $t('table.create')"
   >
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       :rules="rules"
       :model="dataForm"
       label-position="left"
@@ -50,7 +50,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -59,75 +59,71 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/multishop/shop-user-account'
 import { USER_NAME_REGEXP } from '@/utils/validate'
 
-export default {
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        hasAccount: 0,
-        userId: 0,
-        email: null,
-        phone: null,
-        username: null,
-        password: null,
-        status: 1
-      },
-      rules: {
-        username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' },
-          { pattern: USER_NAME_REGEXP, message: '用户名不能为纯数字且由数字字母下划线 4-16位组成' }
-        ],
-        password: [
-          { pattern: /^(?!\d+$)([a-zA-Z0-9_]{4,16})$/, message: '密码不能为纯数字且由数字字母下划线 4-16位组成' }
-        ]
-      }
-    }
-  },
 
-  methods: {
-    init (userId, hasAccount) {
-      this.dataForm.userId = userId
-      this.dataForm.hasAccount = hasAccount
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.hasAccount) {
-          return
-        }
-        api.get(userId).then(data => {
-          this.dataForm = data
-          this.dataForm.hasAccount = hasAccount
-        })
-      })
-    },
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        console.log(this.dataForm)
-        const request = this.dataForm.hasAccount ? api.update(this.dataForm) : api.save(this.dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
-      })
-    }
-  }
+var visible = ref(false)
+var dataForm = reactive({
+  hasAccount: 0,
+  userId: 0,
+  email: null,
+  phone: null,
+  username: null,
+  password: null,
+  status: 1
+})
+var rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { pattern: USER_NAME_REGEXP, message: '用户名不能为纯数字且由数字字母下划线 4-16位组成' }
+  ],
+  password: [
+    { pattern: /^(?!\d+$)([a-zA-Z0-9_]{4,16})$/, message: '密码不能为纯数字且由数字字母下划线 4-16位组成' }
+  ]
 }
+
+
+const init  = (userId, hasAccount) => {
+  dataForm.userId = userId
+  dataForm.hasAccount = hasAccount
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.hasAccount) {
+      return
+    }
+    api.get(userId).then(data => {
+      dataForm = data
+      dataForm.hasAccount = hasAccount
+    })
+  })
+}
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    console.log(dataForm)
+    const request = dataForm.hasAccount ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
 </script>

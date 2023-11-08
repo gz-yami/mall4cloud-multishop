@@ -84,49 +84,44 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import ImgUpload from '@/components/ImgUpload'
 const noop = res => res
-export default {
 
-  components: { ImgUpload },
+
   inject: [
     'ease'
   ],
-
-  props: {
-    sku: {
-      type: Object,
-      default () {
-        return {}
-      }
-    },
-    hasSkuImage: {
-      type: Boolean,
-      default: false
-    },
-    onSkuLeafChange: {
-      type: Function,
-      default: noop
+const props = defineProps({
+  sku: {
+    type: Object,
+    default () {
+      return {}
     }
   },
-
-  data () {
-    return {
-      visiable: false,
-      leafValue: [],
-      skuOptions: [],
-      id: 0
-    }
+  hasSkuImage: {
+    type: Boolean,
+    default: false
   },
+  onSkuLeafChange: {
+    type: Function,
+    default: noop
+  }
+})
+
+
+var visiable = ref(false)
+var leafValue = ref([])
+var skuOptions = ref([])
+var id = ref(0)
 
   computed: {
     optionValue () {
-      return this.ease.optionValue
+      return ease.optionValue
     },
 
     optionText () {
-      return this.ease.optionText
+      return ease.optionText
     }
   },
 
@@ -135,161 +130,160 @@ export default {
       deep: true,
       immediate: true,
       handler (sku) {
-        this.fetchLeafById(sku[this.optionValue])
+        fetchLeafById(sku[optionValue])
       }
     }
   },
 
-  created () {
-    const { sku, optionValue } = this
-    sku[optionValue] && this.fetchLeafById(sku[optionValue])
-  },
+onMounted(() => {
+  const { sku, optionValue } = this
+  sku[optionValue] && fetchLeafById(sku[optionValue])
+})
 
-  methods: {
-    handleHideVisiable () {
-      this.visiable = false
-    },
 
-    handleResetLeafValue () {
-      this.leafValue = []
-    },
+const handleHideVisiable  = () => {
+  visiable = false
+}
 
-    fetchLeafById (id) {
-      if (!id) return
-      this.ease.onFetchSku(id).then(skuOptions => {
-        this.id = id
-        this.skuOptions = skuOptions
-        const skuList = []
-        // 筛选未选择的属性
-        this.skuOptions.forEach(skuItem => {
-          if (!this.sku.leaf.find(item => item.id === skuItem.id)) {
-            skuList.push(skuItem)
-          }
-        })
-        this.skuOptions = skuList
-      })
-    },
+const handleResetLeafValue  = () => {
+  leafValue = []
+}
 
-    handleRemoveSkuLeaf (index) {
-      const { sku } = this
-      sku.leaf.splice(index, 1)
-
-      this.onSkuLeafChange(sku.leaf)
-    },
-
-    handleRemoveImage (id) {
-      const { sku, optionValue } = this
-      sku?.leaf?.forEach(item => {
-        if (item[optionValue] === id) {
-          item.imgUrl = ''
-        }
-      })
-
-      this.onSkuLeafChange(sku.leaf)
-    },
-
-    filterSkuOptions (data) {
-      const oldSellData = []
-      const addSelData = []
-      const skuOptions = this.skuOptions
-      data.forEach(item => {
-        if (skuOptions.find(skuItem => skuItem.id === item)) {
-          oldSellData.push(item)
-        } else {
-          addSelData.push(item)
-        }
-      })
-      return {
-        oldSellData, addSelData
+const fetchLeafById  = (id) => {
+  if (!id) return
+  ease.onFetchSku(id).then(skuOptions => {
+    id = id
+    skuOptions = skuOptions
+    const skuList = []
+    // 筛选未选择的属性
+    skuOptions.forEach(skuItem => {
+      if (!sku.leaf.find(item => item.id === skuItem.id)) {
+        skuList.push(skuItem)
       }
-    },
+    })
+    skuOptions = skuList
+  })
+}
 
-    createSkuLeaf (selVal) {
-      const { sku, optionValue, skuOptions } = this
-      // 过滤需要新增的规格值
-      // data = data.filter(item => typeof (item) === 'string')
-      const { addSelData, oldSellData } = this.filterSkuOptions(selVal)
-      if (!addSelData.length) return
-      this.ease.onCreateSku({
-        data: addSelData,
-        id: sku[optionValue]
-      }).then((processedNewOptions) => {
-        if (processedNewOptions[0].text.length > 20) {
-          this.$message({
-            message: '属性名长度不可超过20个字符',
-            duration: 1500
-          })
-          processedNewOptions = []
-        }
-        skuOptions.push(...processedNewOptions)
-        this.$nextTick(() => {
-          const values = processedNewOptions.map(item => item.id).concat(oldSellData)
-          this.leafValue = values
+const handleRemoveSkuLeaf  = (index) => {
+  const { sku } = this
+  sku.leaf.splice(index, 1)
 
-          // const values = processedNewOptions.map(item => item.id)
-          // this.leafValue = this.leafValue.filter(item => typeof (item) === 'number')
-          // this.leafValue.push(...values)
-        })
-      })
-    },
+  onSkuLeafChange(sku.leaf)
+}
 
-    handleSelectSku (data) {
-      const { sku, hasSkuImage, optionValue, optionText, skuOptions, leafValue } = this
-      const skuLeaf = skuOptions.filter(item => leafValue.indexOf(item[optionValue]) >= 0)
-      skuLeaf.map(item => {
-        item.is_show = hasSkuImage
-      })
-
-      const skuLeafIds = sku.leaf.map(item => item[optionValue])
-
-      skuLeaf.forEach(item => {
-        if (skuLeafIds.indexOf(item[optionValue]) < 0) {
-          sku.leaf.push(item)
-        }
-      })
-
-      // 过滤同名规格值
-      for (let i = 0; i < sku.leaf.length; i++) {
-        for (let j = i + 1; j < sku.leaf.length; j++) {
-          if (sku.leaf[i][optionText] === sku.leaf[j][optionText]) {
-            sku.leaf.splice(i, 1)
-            j--
-          }
-        }
-      }
-
-      this.handleResetLeafValue()
-      this.handleHideVisiable()
-      this.onSkuLeafChange(sku.leaf)
-    },
-
-    handleUploadSuccess (item, urls) {
-      this.onSkuLeafChange(this.sku.leaf)
-    },
-    // handleUploadSuccess2(response, file, fileList, id) {
-    //   let { sku, optionValue } = this
-
-    //   sku.leaf.forEach(item => {
-    //     if (item[optionValue] === id) {
-    //       item.imgUrl = response.imgUrl
-    //     }
-    //   })
-
-    //   this.onSkuLeafChange(sku.leaf)
-    // },
-
-    // 图片预览
-    picturePreview (imgUrl) {
-      this.ease.onPreviewImg(imgUrl)
-    },
-
-    created () {
-      const { sku, optionValue } = this
-      sku[optionValue] && this.fetchLeafById(sku[optionValue])
+const handleRemoveImage  = (id) => {
+  const { sku, optionValue } = this
+  sku?.leaf?.forEach(item => {
+    if (item[optionValue] === id) {
+      item.imgUrl = ''
     }
+  })
 
+  onSkuLeafChange(sku.leaf)
+}
+
+const filterSkuOptions  = (data) => {
+  const oldSellData = []
+  const addSelData = []
+  const skuOptions = skuOptions
+  data.forEach(item => {
+    if (skuOptions.find(skuItem => skuItem.id === item)) {
+      oldSellData.push(item)
+    } else {
+      addSelData.push(item)
+    }
+  })
+  return {
+    oldSellData, addSelData
   }
 }
+
+const createSkuLeaf  = (selVal) => {
+  const { sku, optionValue, skuOptions } = this
+  // 过滤需要新增的规格值
+  // data = data.filter(item => typeof (item) === 'string')
+  const { addSelData, oldSellData } = filterSkuOptions(selVal)
+  if (!addSelData.length) return
+  ease.onCreateSku({
+    data: addSelData,
+    id: sku[optionValue]
+  }).then((processedNewOptions) => {
+    if (processedNewOptions[0].text.length > 20) {
+      ElMessage({
+        message: '属性名长度不可超过20个字符',
+        duration: 1500
+      })
+      processedNewOptions = []
+    }
+    skuOptions.push(...processedNewOptions)
+    nextTick(() => {
+      const values = processedNewOptions.map(item => item.id).concat(oldSellData)
+      leafValue = values
+
+      // const values = processedNewOptions.map(item => item.id)
+      // leafValue = leafValue.filter(item => typeof (item) === 'number')
+      // leafValue.push(...values)
+    })
+  })
+}
+
+const handleSelectSku  = (data) => {
+  const { sku, hasSkuImage, optionValue, optionText, skuOptions, leafValue } = this
+  const skuLeaf = skuOptions.filter(item => leafValue.indexOf(item[optionValue]) >= 0)
+  skuLeaf.map(item => {
+    item.is_show = hasSkuImage
+  })
+
+  const skuLeafIds = sku.leaf.map(item => item[optionValue])
+
+  skuLeaf.forEach(item => {
+    if (skuLeafIds.indexOf(item[optionValue]) < 0) {
+      sku.leaf.push(item)
+    }
+  })
+
+  // 过滤同名规格值
+  for (let i = 0; i < sku.leaf.length; i++) {
+    for (let j = i + 1; j < sku.leaf.length; j++) {
+      if (sku.leaf[i][optionText] === sku.leaf[j][optionText]) {
+        sku.leaf.splice(i, 1)
+        j--
+      }
+    }
+  }
+
+  handleResetLeafValue()
+  handleHideVisiable()
+  onSkuLeafChange(sku.leaf)
+}
+
+const handleUploadSuccess  = (item, urls) => {
+  onSkuLeafChange(sku.leaf)
+}
+// handleUploadSuccess2(response, file, fileList, id) {
+//   let { sku, optionValue } = this
+
+//   sku.leaf.forEach(item => {
+//     if (item[optionValue] === id) {
+//       item.imgUrl = response.imgUrl
+//     }
+//   })
+
+//   onSkuLeafChange(sku.leaf)
+// },
+
+// 图片预览
+const picturePreview  = (imgUrl) => {
+  ease.onPreviewImg(imgUrl)
+}
+
+const created  = () => {
+  const { sku, optionValue } = this
+  sku[optionValue] && fetchLeafById(sku[optionValue])
+}
+
+
 </script>
 
 <style lang="scss">

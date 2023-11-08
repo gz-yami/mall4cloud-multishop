@@ -3,7 +3,7 @@
     <el-tabs type="card">
       <el-form-item label="产品详情">
         <tiny-mce
-          ref="content"
+          ref="contentRef"
           v-model="dataForm.detail"
           :width="850"
         />
@@ -34,7 +34,7 @@
 
         <el-form-item label="产品详情" prop="contentCn">
           <tiny-mce
-            ref="content"
+            ref="contentRef"
             v-model="dataForm.contentCn"
             style="width: 1000px"
           />
@@ -64,7 +64,7 @@
         </el-form-item>
         <el-form-item label="product details" prop="contentEn">
           <tiny-mce
-            ref="content"
+            ref="contentRef"
             v-model="dataForm.contentEn"
             style="width: 1000px"
           />
@@ -74,27 +74,23 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import TinyMce from '@/components/Tinymce'
-export default {
-  components: {
-    TinyMce
-  },
-  props: {
-    dataForm: {
-      type: Object,
-      default () {
-        return {}
-      }
+const props = defineProps({
+  dataForm: {
+    type: Object,
+    default () {
+      return {}
     }
-  },
+  }
+})
 
   data () {
     return {
 
     }
   }
-}
+
 </script>
 
 <style lang="scss">

@@ -6,11 +6,11 @@
     <!-- 目录和菜单框 -->
     <!-- native modifier has been removed, please confirm whether the function has been affected  -->
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       :model="dataForm"
       :rules="dataRule"
       label-width="80px"
-      @keyup.enter="dataFormSubmit()"
+      @keyup.enter="onSubmit()"
     >
       <!-- 类型选择 0：目录 1：菜单 -->
       <el-form-item
@@ -93,7 +93,7 @@
           :readonly="true"
         />
         <el-popover
-          ref="iconListPopover"
+          ref="iconListPopoverRef"
           placement="bottom"
           trigger="click"
           popper-class="mod-menu-home__icon-popover"
@@ -109,7 +109,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -118,180 +118,153 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/rbac/menu'
 import { treeDataTranslate, idList } from '@/utils'
 import IconsSelect from '@/components/IconsSelect'
 
-export default {
-  components: { IconsSelect },
+
   emits: ['refreshDataList'],
 
-  data () {
-    // 必填输入框验证 validateName：验证名称/validateUrl：验证菜单/validateComponent：验证组件路径
-    const validateName = (rule, value, callback) => {
-      if (!value) {
-        callback(new Error('菜单名称不能为空'))
-      } else {
-        callback()
-      }
-    }
-    const validateUrl = (rule, value, callback) => {
-      if (!/\S/.test(value)) {
-        callback(new Error('菜单URL不能为空'))
-      } else {
-        callback()
-      }
-    }
-    const validateComponent = (rule, value, callback) => {
-      if (this.dataForm.type === 1 && !/\S/.test(value)) {
-        callback(new Error('组件路径不能为空'))
-      } else {
-        callback()
-      }
-    }
-    return {
-      visible: false,
-      dataForm: {
-        menuId: 0,
-        type: 1,
-        typeList: ['目录', '菜单'],
-        name: '',
-        parentId: 0,
-        url: '',
-        componentUrl: '',
-        seq: 0,
-        icon: '',
-        iconList: []
-      },
-      dataRule: {
-        name: [
-          { required: true, validator: validateName, trigger: 'blur' }
-        ],
-        url: [
-          { required: true, validator: validateUrl, trigger: 'blur' }
-        ],
-        componentUrl: [
-          { required: true, validator: validateComponent, trigger: 'blur' }
-        ]
-      },
-      menuList: [],
-      selectedMenu: [],
-      menuListTreeProps: {
-        value: 'id',
-        label: 'name'
-      },
-      iconPopoverVisible: []
-    }
-  },
+
+var visible = ref(false)
+var dataForm = reactive({
+  menuId: 0,
+  type: 1,
+  typeList: ['目录', '菜单'],
+  name: '',
+  parentId: 0,
+  url: '',
+  componentUrl: '',
+  seq: 0,
+  icon: '',
+  iconList: []
+})
+var dataRule = reactive({
+  name: [
+    { required: true, validator: validateName, trigger: 'blur' }
+  ],
+  url: [
+    { required: true, validator: validateUrl, trigger: 'blur' }
+  ],
+  componentUrl: [
+    { required: true, validator: validateComponent, trigger: 'blur' }
+  ]
+})
+var menuList = ref([])
+var selectedMenu = ref([])
+var menuListTreeProps = reactive({
+  value: 'id',
+  label: 'name'
+})
+var iconPopoverVisible = ref([])
 
   watch: {
     // 如果弹窗关闭，dataForm里的值初始化
     visible (val) {
       if (val === false) {
-        this.initFrameCon()
+        initFrameCon()
       }
     }
   },
 
-  methods: {
-    init (menuId) {
-      this.dataForm.menuId = menuId || 0
-      this.visible = true
-      this.$nextTick(() => {
-        // this.$refs['dataForm'].resetFields()
-        api.menuList({ ...this.searchParam }).then(data => {
-          this.menuList = treeDataTranslate(data)
-          this.pageLoading = false
-        })
-        if (this.dataForm.menuId) {
-          api.get(menuId).then(data => {
-            // 不是目录，才显示组件路径（data.component返回Layout就为目录）
-            if (data.component !== 'Layout') {
-              this.dataForm.type = 1
-              this.dataForm.componentUrl = data.component
-            } else {
-              this.dataForm.type = 0
-              this.dataForm.componentUrl = ''
-            }
-            this.dataForm.menuId = data.menuId
-            this.dataForm.name = data.title
-            this.dataForm.parentId = data.parentId
-            this.dataForm.url = data.path
-            this.dataForm.seq = data.seq
-            this.dataForm.icon = data.icon
-            this.selectedMenu = idList(this.menuList, data.parentId).reverse()
-          })
+
+const init  = (menuId) => {
+  dataForm.menuId = menuId || 0
+  visible = true
+  nextTick(() => {
+    // $refs['dataForm'].resetFields()
+    api.menuList({ ...searchParam }).then(data => {
+      menuList = treeDataTranslate(data)
+      pageLoading = false
+    })
+    if (dataForm.menuId) {
+      api.get(menuId).then(data => {
+        // 不是目录，才显示组件路径（data.component返回Layout就为目录）
+        if (data.component !== 'Layout') {
+          dataForm.type = 1
+          dataForm.componentUrl = data.component
         } else {
-          this.selectedMenu = []
+          dataForm.type = 0
+          dataForm.componentUrl = ''
         }
+        dataForm.menuId = data.menuId
+        dataForm.name = data.title
+        dataForm.parentId = data.parentId
+        dataForm.url = data.path
+        dataForm.seq = data.seq
+        dataForm.icon = data.icon
+        selectedMenu = idList(menuList, data.parentId).reverse()
       })
-    },
-    // 弹框内容初始化
-    initFrameCon () {
-      this.dataForm = {
-        menuId: 0,
-        type: 1,
-        typeList: ['目录', '菜单'],
-        name: '',
-        parentId: 0,
-        url: '',
-        componentUrl: '',
-        seq: 0,
-        icon: '',
-        iconList: []
-      }
-    },
-    // 监听上级菜单的改动
-    handleSelectMenuChange (val) {
-      this.dataForm.parentId = val[val.length - 1]
-      if (this.dataForm.parentId === undefined) {
-        this.dataForm.parentId = 0
-      }
-    },
-    // 选择图标
-    selectIcon (iconName) {
-      this.dataForm.icon = iconName
-    },
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (valid) {
-          // 提交为目录，component为Layout
-          let component = ''
-          if (parseInt(this.dataForm.type) === 0) {
-            component = 'Layout'
-          } else {
-            component = this.dataForm.componentUrl
-          }
-          const params = {
-            menuId: this.dataForm.menuId || undefined,
-            name: this.dataForm.name,
-            title: this.dataForm.name,
-            parentId: this.dataForm.parentId,
-            component,
-            path: this.dataForm.url,
-            seq: this.dataForm.seq,
-            icon: this.dataForm.icon
-          }
-          const request = this.dataForm.menuId ? api.update(params) : api.save(params)
-          request.then(data => {
-            this.$message({
-              message: this.$t('table.actionSuccess'),
-              type: 'success',
-              duration: 1500,
-              onClose: () => {
-                this.visible = false
-                this.$emit('refreshDataList')
-                this.$refs.dataForm.resetFields()
-              }
-            })
-          })
-        }
-      })
+    } else {
+      selectedMenu = []
     }
+  })
+}
+// 弹框内容初始化
+const initFrameCon  = () => {
+  dataForm = {
+    menuId: 0,
+    type: 1,
+    typeList: ['目录', '菜单'],
+    name: '',
+    parentId: 0,
+    url: '',
+    componentUrl: '',
+    seq: 0,
+    icon: '',
+    iconList: []
   }
 }
+// 监听上级菜单的改动
+const handleSelectMenuChange  = (val) => {
+  dataForm.parentId = val[val.length - 1]
+  if (dataForm.parentId === undefined) {
+    dataForm.parentId = 0
+  }
+}
+// 选择图标
+const selectIcon  = (iconName) => {
+  dataForm.icon = iconName
+}
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (valid) {
+      // 提交为目录，component为Layout
+      let component = ''
+      if (parseInt(dataForm.type) === 0) {
+        component = 'Layout'
+      } else {
+        component = dataForm.componentUrl
+      }
+      const params = {
+        menuId: dataForm.menuId || undefined,
+        name: dataForm.name,
+        title: dataForm.name,
+        parentId: dataForm.parentId,
+        component,
+        path: dataForm.url,
+        seq: dataForm.seq,
+        icon: dataForm.icon
+      }
+      const request = dataForm.menuId ? api.update(params) : api.save(params)
+      request.then(data => {
+        ElMessage({
+          message: $t('table.actionSuccess'),
+          type: 'success',
+          duration: 1500,
+          onClose: () => {
+            visible = false
+            emit('refreshDataList')
+            dataFormRef.value?.resetFields()
+          }
+        })
+      })
+    }
+  })
+}
+
 </script>
 
 <style lang="scss">

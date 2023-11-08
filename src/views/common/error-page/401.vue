@@ -57,28 +57,24 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import errGif from '@/assets/401_images/401.gif'
 
-export default {
-  name: 'Page401',
-  data () {
-    return {
-      errGif: errGif + '?' + +new Date(),
-      ewizardClap: 'https://wpimg.wallstcn.com/007ef517-bafd-4066-aae4-6883632d9646',
-      dialogVisible: false
-    }
-  },
-  methods: {
-    back () {
-      if (this.$route.query.noGoBack) {
-        this.$router.push({ path: '/order/order' })
-      } else {
-        this.$router.go(-1)
-      }
-    }
+
+
+
+var errGif = reactive(errGif + '?' + +new Date())
+var ewizardClap = ref('https://wpimg.wallstcn.com/007ef517-bafd-4066-aae4-6883632d9646')
+var dialogVisible = ref(false)
+
+const back  = () => {
+  if (useRoute().query.noGoBack) {
+    useRouter().push({ path: '/order/order' })
+  } else {
+    useRouter().go(-1)
   }
 }
+
 </script>
 
 <style lang="scss" scoped>

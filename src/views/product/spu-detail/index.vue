@@ -15,7 +15,7 @@
         icon="el-icon-plus"
         type="primary"
         class="filter-item"
-        @click="addOrUpdateHandle()"
+        @click="onAddOrUpdate()"
       >
         {{ $t('table.create') }}
       </el-button>
@@ -69,13 +69,13 @@
         <template #default="{row}">
           <el-button
             type="text"
-            @click="addOrUpdateHandle(row.spuId)"
+            @click="onAddOrUpdate(row.spuId)"
           >
             {{ $t('table.edit') }}
           </el-button>
           <el-button
             type="text"
-            @click="deleteHandle(row.spuId)"
+            @click="onDelete(row.spuId)"
           >
             {{ $t('table.delete') }}
           </el-button>
@@ -93,75 +93,18 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getPage()"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import Pagination from '@/components/Pagination'
 import AddOrUpdate from './add-or-update.vue'
 import * as api from '@/api/product/spu-detail'
 
-export default {
+
   name: '',
-  components: { Pagination, AddOrUpdate },
-  data () {
-    return {
-      // 查询的参数
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1
-      },
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      // loading
-      pageLoading: true,
-      // 查询参数
-      searchParam: {
-      },
-      addOrUpdateVisible: false
-    }
-  },
-  mounted () {
-    this.getPage()
-  },
-  methods: {
-    getPage () {
-      this.pageLoading = true
-      api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
-        this.pageVO = pageVO
-        this.pageLoading = false
-      })
-    },
-    addOrUpdateHandle (spuId) {
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(spuId)
-      })
-    },
-    deleteHandle (spuId) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => this.deleteById(spuId))
-    },
-    deleteById (spuId) {
-      api.deleteById(spuId).then(() => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getPage()
-        })
-      })
-    }
-  }
-}
+
 </script>

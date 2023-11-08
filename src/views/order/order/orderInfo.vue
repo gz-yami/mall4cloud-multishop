@@ -4,18 +4,18 @@
       v-model:visible="visible"
       :title="
         !dataForm.orderId
-          ? $i18n.t('table.add')
-          : $i18n.t('order.order.orderDetail')
+          ? $t('table.add')
+          : $t('order.order.orderDetail')
       "
       :close-on-click-modal="false"
       width="80%"
     >
       <!-- native modifier has been removed, please confirm whether the function has been affected  -->
       <el-form
-        ref="dataForm"
+        ref="dataFormRef"
         :model="dataForm"
         label-width="80px"
-        @keyup.enter="dataFormSubmit()"
+        @keyup.enter="onSubmit()"
       >
         <div class="mod-order-orderInfo">
           <div class="content">
@@ -101,15 +101,15 @@
                     :process-status="dataForm.status == 6 ? 'error' : 'wait'"
                   >
                     <el-step
-                      :title="$i18n.t('order.order.submitOrders')"
+                      :title="$t('order.order.submitOrders')"
                       :description="dataForm.createTime"
                     />
                     <el-step
-                      :title="$i18n.t('order.order.theBuyerHasPaid')"
+                      :title="$t('order.order.theBuyerHasPaid')"
                       :description="dataForm.payTime"
                     />
                     <el-step
-                      :title="$i18n.t('order.order.buyerHasReceived')"
+                      :title="$t('order.order.buyerHasReceived')"
                       :description="dataForm.finallyTime"
                     />
                   </el-steps>
@@ -178,7 +178,7 @@
                     />
                     <div class="item-goods">
                       <div
-                        ref="carouser"
+                        ref="carouserRef"
                         class="goods-box"
                       >
                         <div
@@ -302,7 +302,7 @@
               >
                 <el-table-column
                   prop=""
-                  :label="$i18n.t('constant.product')"
+                  :label="$t('constant.product')"
                 >
                   <template #default="scope">
                     <div class="df">
@@ -319,7 +319,7 @@
                 </el-table-column>
                 <el-table-column
                   prop="price"
-                  :label="$i18n.t('order.order.unitPrice')"
+                  :label="$t('order.order.unitPrice')"
                   width="180"
                   align="center"
                 >
@@ -329,7 +329,7 @@
                 </el-table-column>
                 <el-table-column
                   prop="count"
-                  :label="$i18n.t('order.order.quantity')"
+                  :label="$t('order.order.quantity')"
                   width="180"
                   align="center"
                 >
@@ -339,7 +339,7 @@
                 </el-table-column>
                 <el-table-column
                   prop="totalPrice"
-                  :label="$i18n.t('order.order.totalPrice')"
+                  :label="$t('order.order.totalPrice')"
                   width="180"
                   align="center"
                 >
@@ -416,47 +416,44 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/order/order'
 
-export default {
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        orderId: '',
-        remarks: '',
-        shopRemarks: '',
-        total: 0,
-        deliveryExpresses: [],
-        actualTotal: 0,
-        deliveryType: '',
-        status: 1,
-        addrOrderId: 0,
-        nickName: '',
-        orderItems: [],
-        orderTime: '',
-        updateTime: '',
-        payTime: '',
-        finallyTime: '',
-        cancelTime: '',
-        orderType: '',
-        userAddrOrder: {}
-      },
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      indexs: 0,
-      orderRemarkUpdateVisible: false,
-      orderAddrUpdateVisible: false,
-      offsetCount: 0 // 偏移量
-    }
-  },
+
+
+var visible = ref(false)
+var dataForm = reactive({
+  orderId: '',
+  remarks: '',
+  shopRemarks: '',
+  total: 0,
+  deliveryExpresses: [],
+  actualTotal: 0,
+  deliveryType: '',
+  status: 1,
+  addrOrderId: 0,
+  nickName: '',
+  orderItems: [],
+  orderTime: '',
+  updateTime: '',
+  payTime: '',
+  finallyTime: '',
+  cancelTime: '',
+  orderType: '',
+  userAddrOrder: {}
+})
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var indexs = ref(0)
+var orderRemarkUpdateVisible = ref(false)
+var orderAddrUpdateVisible = ref(false)
+var offsetCount = ref(0) // 偏移量
   computed: {
     stepsStatus: function () {
-      if (this.dataForm.finallyTime) {
+      if (dataForm.finallyTime) {
         return 4
-      } else if (this.dataForm.payTime) {
+      } else if (dataForm.payTime) {
         return 2
-      } else if (this.dataForm.createTime) {
+      } else if (dataForm.createTime) {
         return 1
       } else {
         return 0
@@ -465,97 +462,96 @@ export default {
   },
   watch: {
     visible: function () {
-      if (!this.visible) {
-        this.orderRemarkUpdateVisible = false
-        this.orderAddrUpdateVisible = false
+      if (!visible) {
+        orderRemarkUpdateVisible = false
+        orderAddrUpdateVisible = false
       }
     },
     deliveryExpresse: function (newVal, oldVal) {
-      this.$nextTick(() => {
-        this.offsetCount = 0 // 初始化变量
-        if (this.deliveryExpresse) {
-          this.$refs.carouser.style.left = '0px'
+      nextTick(() => {
+        offsetCount = 0 // 初始化变量
+        if (deliveryExpresse) {
+          carouser.styleRef.value?.left = '0px'
         }
       })
     }
   },
-  methods: {
-    init (orderId) {
-      this.dataForm.orderId = orderId || 0
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-      })
-      if (this.dataForm.orderId) {
-        this.getDataList()
-      }
-    },
-    getDataList () {
-      api.orderInfo(this.dataForm.orderId).then((data) => {
-        this.dataForm = data
-        if (this.dataForm.deliveryExpresses) {
-          this.deliveryExpresse = this.dataForm.deliveryExpresses[0]
-        }
-      })
-    },
-    /**
-     * 物流事件
-     */
-    onClickListDelivery (delivery, index) {
-      this.deliveryExpresse = delivery
-      this.indexs = index
-    },
-    // 商品切换
-    prevItem () {
-      const len = this.deliveryExpresse.orderItems.length
-      if (len - 5 > 0) {
-        if (this.offsetCount > 0) {
-          this.offsetCount--
-          this.$refs.carouser.style.left = '-' + (70 * this.offsetCount) + 'px'
-        } else {
-          return false
-        }
-      } else if (len - 5 <= 0) {
-        return false
-      } else {
-        return false
-      }
-    },
 
-    nextItem () {
-      const len = this.deliveryExpresse.orderItems.length
-      if (len - 5 > 0) {
-        if (this.offsetCount < len - 5) {
-          this.offsetCount++
-          this.$refs.carouser.style.left = '-' + (70 * this.offsetCount) + 'px'
-        } else if (len - 5 <= 0) {
-          return false
-        } else {
-          return false
-        }
-      } else {
-        return false
-      }
-    },
-    // 表单提交
-    dataFormSubmit () {
-    },
-    // 修改地址
-    changeUserAddrOrder (userAddrOrder) {
-      this.orderAddrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.orderAddrUpdate.init(this.dataForm)
-      })
-    },
-    // 修改备注
-    changeRemarks () {
-      this.orderRemarkUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.orderRemarkUpdate.init(this.dataForm)
-      })
-    }
+const init  = (orderId) => {
+  dataForm.orderId = orderId || 0
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+  })
+  if (dataForm.orderId) {
+    getDataList()
   }
 }
+const getDataList  = () => {
+  api.orderInfo(dataForm.orderId).then((data) => {
+    dataForm = data
+    if (dataForm.deliveryExpresses) {
+      deliveryExpresse = dataForm.deliveryExpresses[0]
+    }
+  })
+}
+/**
+ * 物流事件
+ */
+const onClickListDelivery  = (delivery, index) => {
+  deliveryExpresse = delivery
+  indexs = index
+}
+// 商品切换
+const prevItem  = () => {
+  const len = deliveryExpresse.orderItems.length
+  if (len - 5 > 0) {
+    if (offsetCount > 0) {
+      offsetCount--
+      carouser.style.left = '-' + (70 * thisRef.value?.offsetCount) + 'px'
+    } else {
+      return false
+    }
+  } else if (len - 5 <= 0) {
+    return false
+  } else {
+    return false
+  }
+}
+
+const nextItem  = () => {
+  const len = deliveryExpresse.orderItems.length
+  if (len - 5 > 0) {
+    if (offsetCount < len - 5) {
+      offsetCount++
+      carouser.style.left = '-' + (70 * thisRef.value?.offsetCount) + 'px'
+    } else if (len - 5 <= 0) {
+      return false
+    } else {
+      return false
+    }
+  } else {
+    return false
+  }
+}
+// 表单提交
+const onSubmit  = () => {
+}
+// 修改地址
+const changeUserAddrOrder  = (userAddrOrder) => {
+  orderAddrUpdateVisible = true
+  nextTick(() => {
+    orderAddrUpdate.init(thisRef.value?.dataForm)
+  })
+}
+// 修改备注
+const changeRemarks  = () => {
+  orderRemarkUpdateVisible = true
+  nextTick(() => {
+    orderRemarkUpdate.init(thisRef.value?.dataForm)
+  })
+}
+
 </script>
 
 <style>

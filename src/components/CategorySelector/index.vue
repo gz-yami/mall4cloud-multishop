@@ -2,7 +2,7 @@
   <div class="category-selector">
     <el-dialog
       v-model:visible="visible"
-      :title="$i18n.t('components.selector.categorySelector')"
+      :title="$t('components.selector.categorySelector')"
       :append-to-body="visible"
       width="1000px"
       @close="onClose"
@@ -16,7 +16,7 @@
           >
             <el-input
               v-model="firstCategorys.name"
-              :placeholder="$i18n.t('components.selector.chooseProdCateg')"
+              :placeholder="$t('components.selector.chooseProdCateg')"
               :disabled="true"
             />
             <ul class="category-list">
@@ -38,7 +38,7 @@
           >
             <el-input
               v-model="secondCategorys.name"
-              :placeholder="$i18n.t('components.selector.chooseProdCateg')"
+              :placeholder="$t('components.selector.chooseProdCateg')"
               :disabled="true"
             />
             <ul class="category-list">
@@ -60,7 +60,7 @@
           >
             <el-input
               v-model="threeCategorys.name"
-              :placeholder="$i18n.t('components.selector.chooseProdCateg')"
+              :placeholder="$t('components.selector.chooseProdCateg')"
               :disabled="true"
             />
             <ul class="category-list">
@@ -104,167 +104,162 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/product/category'
-export default {
 
-  props: {
-    // categoryList: Array
-  },
+const props = defineProps({
+  // categoryList: Array
+})
   emits: ['getCategorySelected'],
 
-  data () {
-    return {
-      visible: false,
-      allDataList: [],
-      // 第一个分类
-      firstCategorys: {
-        id: 0,
-        name: '',
-        dataList: []
-      },
-      // 第二个分类
-      secondCategorys: {
-        id: 0,
-        name: '',
-        dataList: []
-      },
-      // 第三个分类
-      threeCategorys: {
-        id: 0,
-        name: '',
-        dataList: []
-      },
-      parentId: 0,
-      isCreateCategory: false, // 是否创建(店铺)分类选择
-      showthreeCategorys: false, // 是否显示第三级分类
-      buttonHighlight: false // 按钮高亮
-    }
-  },
 
-  methods: {
-    /**
-     * 初始化
-     */
-    init (type, key) {
-      this.visible = true
-      console.log('分类选择器key:', key)
-      if (key === 'platform') {
-        api.platformCategoryPage().then(data => {
-          this.allDataList = data
-          this.firstCategorys.dataList = this.allDataList.filter(item => item.level === 0)
-        })
-        this.showthreeCategorys = true // 平台分类，最高三级
-      } else {
-        api.shopCategoryPage().then(data => {
-          this.allDataList = data
-          this.firstCategorys.dataList = this.allDataList.filter(item => item.level === 0)
-        })
-        this.showthreeCategorys = false // 店铺分类，最高二级
-      }
+var visible = ref(false)
+var allDataList = ref([])
+// 第一个分类
+var firstCategorys = reactive({
+  id: 0,
+  name: '',
+  dataList: []
+})
+// 第二个分类
+var secondCategorys = reactive({
+  id: 0,
+  name: '',
+  dataList: []
+})
+// 第三个分类
+var threeCategorys = reactive({
+  id: 0,
+  name: '',
+  dataList: []
+})
+var parentId = ref(0)
+var isCreateCategory = ref(false) // 是否创建(店铺)分类选择
+var showthreeCategorys = ref(false) // 是否显示第三级分类
+var buttonHighlight = ref(false) // 按钮高亮
 
-      this.isCreateCategory = !!(type && type === 1)
-    },
-    show () {
-      this.visible = true
-    },
-    hide () {
-      this.visible = false
-    },
 
-    // 选中第一个分类
-    selectFirstCategorys (categoryId, index) {
-      this.secondCategorys.dataList = this.allDataList.filter(item => item.parentId === categoryId)
-      this.firstCategorys.name = this.firstCategorys.dataList[index].name
-      this.parentId = this.firstCategorys.id = categoryId
-      this.secondCategorys.id = 0
-      if (this.showthreeCategorys) this.threeCategorys.id = 0
+/**
+ * 初始化
+ */
+const init  = (type, key) => {
+  visible = true
+  console.log('分类选择器key:', key)
+  if (key === 'platform') {
+    api.platformCategoryPage().then(data => {
+      allDataList = data
+      firstCategorys.dataList = allDataList.filter(item => item.level === 0)
+    })
+    showthreeCategorys = true // 平台分类，最高三级
+  } else {
+    api.shopCategoryPage().then(data => {
+      allDataList = data
+      firstCategorys.dataList = allDataList.filter(item => item.level === 0)
+    })
+    showthreeCategorys = false // 店铺分类，最高二级
+  }
 
-      if (this.isCreateCategory || (!this.isCreateCategory && this.secondCategorys.dataList.length == 0)) { // 创建分类
-        this.buttonHighlight = true
-      } else {
-        this.buttonHighlight = false
-      }
-    },
-    // 选中第二个分类
-    selectSecondCategorys (categoryId, index) {
-      if (this.isCreateCategory) {
-        return
-      }
-      this.threeCategorys.dataList = this.allDataList.filter(item => item.parentId === categoryId)
-      this.parentId = this.secondCategorys.id = categoryId
-      this.secondCategorys.name = this.secondCategorys.dataList[index].name
-      if (this.showthreeCategorys) this.threeCategorys.id = 0
+  isCreateCategory = !!(type && type === 1)
+}
+const show  = () => {
+  visible = true
+}
+const hide  = () => {
+  visible = false
+}
 
-      if (!this.isCreateCategory && !this.buttonHighlight && !this.showthreeCategorys) { // 非创建分类&&店铺分类
-        this.buttonHighlight = true
-      } else {
-        this.buttonHighlight = false
-      }
-      console.log('buttonHighlight：', this.buttonHighlight)
-    },
-    // 选中第三个分类
-    selectThreeCategorys (categoryId, index) {
-      if (this.isCreateCategory) {
-        return
-      }
-      this.parentId = this.threeCategorys.id = categoryId
-      this.threeCategorys.name = this.threeCategorys.dataList[index].name
-      this.buttonHighlight = true
-    },
-    // 新增 / 修改
-    optionsConfirm () {
-      // 平台分类 & 没有第三级分类
-      if (this.showthreeCategorys && !this.threeCategorys.id) {
-        return
-      }
-      // 店铺分类 & 创建分类 & 没有第一级分类
-      if (!this.showthreeCategorys && this.isCreateCategory && !this.firstCategorys.id) {
-        return
-      }
-      // 店铺分类 & 非创建分类 & 没有第二级分类
-      if (!this.showthreeCategorys && !this.isCreateCategory && this.secondCategorys.dataList.length > 0 && !this.secondCategorys.id) {
-        return
-      }
-      // this.$store.commit('common/removeMainActiveTab')
-      const selectedCategorys = []
-      if (this.firstCategorys.id) {
-        selectedCategorys.push(this.firstCategorys.name)
-      }
-      if (!this.isCreateCategory && this.secondCategorys.id) {
-        selectedCategorys.push(this.secondCategorys.name)
-      }
-      if (this.showthreeCategorys && !this.isCreateCategory && this.threeCategorys.id) {
-        selectedCategorys.push(this.threeCategorys.name)
-      }
-      this.$emit('getCategorySelected', selectedCategorys, this.parentId)
-    },
+// 选中第一个分类
+const selectFirstCategorys  = (categoryId, index) => {
+  secondCategorys.dataList = allDataList.filter(item => item.parentId === categoryId)
+  firstCategorys.name = firstCategorys.dataList[index].name
+  parentId = firstCategorys.id = categoryId
+  secondCategorys.id = 0
+  if (showthreeCategorys) threeCategorys.id = 0
 
-    // 关闭
-    onClose () {
-      this.allDataList = []
-      // 第一个分类
-      this.firstCategorys = {
-        id: 0,
-        name: '',
-        dataList: []
-      },
-      // 第二个分类
-      this.secondCategorys = {
-        id: 0,
-        name: '',
-        dataList: []
-      },
-      // 第三个分类
-      this.threeCategorys = {
-        id: 0,
-        name: '',
-        dataList: []
-      }
-    }
-
+  if (isCreateCategory || (!isCreateCategory && secondCategorys.dataList.length == 0)) { // 创建分类
+    buttonHighlight = true
+  } else {
+    buttonHighlight = false
   }
 }
+// 选中第二个分类
+const selectSecondCategorys  = (categoryId, index) => {
+  if (isCreateCategory) {
+    return
+  }
+  threeCategorys.dataList = allDataList.filter(item => item.parentId === categoryId)
+  parentId = secondCategorys.id = categoryId
+  secondCategorys.name = secondCategorys.dataList[index].name
+  if (showthreeCategorys) threeCategorys.id = 0
+
+  if (!isCreateCategory && !buttonHighlight && !showthreeCategorys) { // 非创建分类&&店铺分类
+    buttonHighlight = true
+  } else {
+    buttonHighlight = false
+  }
+  console.log('buttonHighlight：', buttonHighlight)
+}
+// 选中第三个分类
+const selectThreeCategorys  = (categoryId, index) => {
+  if (isCreateCategory) {
+    return
+  }
+  parentId = threeCategorys.id = categoryId
+  threeCategorys.name = threeCategorys.dataList[index].name
+  buttonHighlight = true
+}
+// 新增 / 修改
+const optionsConfirm  = () => {
+  // 平台分类 & 没有第三级分类
+  if (showthreeCategorys && !threeCategorys.id) {
+    return
+  }
+  // 店铺分类 & 创建分类 & 没有第一级分类
+  if (!showthreeCategorys && isCreateCategory && !firstCategorys.id) {
+    return
+  }
+  // 店铺分类 & 非创建分类 & 没有第二级分类
+  if (!showthreeCategorys && !isCreateCategory && secondCategorys.dataList.length > 0 && !secondCategorys.id) {
+    return
+  }
+  // $store.commit('common/removeMainActiveTab')
+  const selectedCategorys = []
+  if (firstCategorys.id) {
+    selectedCategorys.push(firstCategorys.name)
+  }
+  if (!isCreateCategory && secondCategorys.id) {
+    selectedCategorys.push(secondCategorys.name)
+  }
+  if (showthreeCategorys && !isCreateCategory && threeCategorys.id) {
+    selectedCategorys.push(threeCategorys.name)
+  }
+  emit('getCategorySelected', selectedCategorys, parentId)
+}
+
+// 关闭
+const onClose  = () => {
+  allDataList = []
+  // 第一个分类
+  firstCategorys = {
+    id: 0,
+    name: '',
+    dataList: []
+  },
+  // 第二个分类
+  secondCategorys = {
+    id: 0,
+    name: '',
+    dataList: []
+  },
+  // 第三个分类
+  threeCategorys = {
+    id: 0,
+    name: '',
+    dataList: []
+  }
+}
+
+
 </script>
 
 <style lang="scss">

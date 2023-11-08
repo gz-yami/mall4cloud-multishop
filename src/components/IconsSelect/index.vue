@@ -35,33 +35,29 @@
   </el-tabs>
 </template>
 
-<script>
+<script setup>
 import svgIcons from './svg-icons'
 import elementIcons from './element-icons'
 
-export default {
-  name: 'Icons',
+
+
   emits: ['selectIcon'],
 
-  data () {
-    return {
-      svgIcons,
-      elementIcons
-    }
-  },
 
-  methods: {
-    getIconCode (symbol) {
-      return `${symbol}`
-    },
-    getElementIconCode (symbol) {
-      return `el-icon-${symbol}`
-    },
-    selectIcon (text) {
-      this.$emit('selectIcon', text)
-    }
-  }
+svgIcons
+elementIcons
+
+
+const getIconCode  = (symbol) => {
+  return `${symbol}`
 }
+const getElementIconCode  = (symbol) => {
+  return `el-icon-${symbol}`
+}
+const selectIcon  = (text) => {
+  emit('selectIcon', text)
+}
+
 </script>
 
 <style lang="scss">

@@ -9,21 +9,21 @@
       >
         <div class="search">
           <!-- &nbsp;&nbsp;&nbsp; -->
-          <el-form-item :label="$i18n.t('order.order.number') + '：'">
+          <el-form-item :label="$t('order.order.number') + '：'">
             <el-input
               v-model="dataForm.orderId"
-              :placeholder="$i18n.t('order.order.number')"
+              :placeholder="$t('order.order.number')"
               clearable
-              size="small"
+              
             />
           </el-form-item>
-          <el-form-item :label="$i18n.t('order.order.status') + '：'">
+          <el-form-item :label="$t('order.order.status') + '：'">
             <template>
               <el-select
                 v-model="status"
                 clearable
-                :placeholder="$i18n.t('order.order.statusMsg')"
-                size="small"
+                :placeholder="$t('order.order.statusMsg')"
+                
                 @change="orderStatus"
               >
                 <el-option
@@ -38,37 +38,37 @@
         </div>
         <div class="search">
           <el-form-item
-            :label="$i18n.t('order.order.theRecipientSName') + '：'"
+            :label="$t('order.order.theRecipientSName') + '：'"
           >
             <el-input
               v-model="dataForm.consignee"
-              :placeholder="$i18n.t('order.order.pleaseEnRecipName')"
+              :placeholder="$t('order.order.pleaseEnRecipName')"
               clearable
-              size="small"
+              
             />
           </el-form-item>
-          <el-form-item :label="$i18n.t('constant.contactTel') + '：'">
+          <el-form-item :label="$t('constant.contactTel') + '：'">
             <el-input
               v-model="dataForm.mobile"
-              :placeholder="$i18n.t('order.order.pleaseEnterNumber')"
+              :placeholder="$t('order.order.pleaseEnterNumber')"
               clearable
-              size="small"
+              
             />
           </el-form-item>
         </div>
         <div class="search">
-          <el-form-item :label="$i18n.t('order.order.createTime') + '：'">
+          <el-form-item :label="$t('order.order.createTime') + '：'">
             <el-date-picker
               v-model="dateRange"
-              size="small"
+              
               type="datetimerange"
-              :range-separator="$i18n.t('date.tip')"
+              :range-separator="$t('date.tip')"
               value-format="yyyy-MM-dd HH:mm:ss"
-              :start-placeholder="$i18n.t('date.start')"
-              :end-placeholder="$i18n.t('date.end')"
+              :start-placeholder="$t('date.start')"
+              :end-placeholder="$t('date.end')"
             />
             <el-button
-              size="small"
+              
               class="ml10"
               @click="setDateRange(1)"
             >
@@ -77,7 +77,7 @@
               }}
             </el-button>
             <el-button
-              size="small"
+              
               @click="setDateRange(2)"
             >
               {{
@@ -85,7 +85,7 @@
               }}
             </el-button>
             <el-button
-              size="small"
+              
               @click="setDateRange(3)"
             >
               {{
@@ -93,7 +93,7 @@
               }}
             </el-button>
             <el-button
-              size="small"
+              
               @click="setDateRange(4)"
             >
               {{
@@ -108,20 +108,20 @@
               class="operation-btn"
               type="primary"
               icon="el-icon-search"
-              size="small"
-              @click="searchChange()"
+              
+              @click="onSearch()"
             >
               {{ $t("order.order.query") }}
             </el-button>
             <!-- <el-button @click="showConsignmentInfo()"
                       type="primary"
-            size="small">导出待发货订单</el-button>-->
+            >导出待发货订单</el-button>-->
           </el-form-item>
           <el-form-item>
             <el-button
               class="operation-btn"
               icon="el-icon-delete"
-              size="small"
+              
               @click="clear()"
             >
               {{ $t("table.clear") }}
@@ -345,31 +345,31 @@
                 style="height: 100%"
               >
                 <div class="item">
-                  <!-- <span v-if="order.refundStatus === 1" size="small" type="danger">退款申请中</span> -->
+                  <!-- <span v-if="order.refundStatus === 1"  type="danger">退款申请中</span> -->
                   <span>
                     <span
                       v-if="order.status === 1"
-                      size="small"
+                      
                       type="danger"
                     >{{ $t("order.order.pendingPayment") }}</span>
                     <span
                       v-else-if="order.status === 2"
-                      size="small"
+                      
                       type="danger"
                     >{{ $t("order.order.toBeShipped") }}</span>
                     <span
                       v-else-if="order.status === 3"
-                      size="small"
+                      
                       type="danger"
                     >{{ $t("order.order.pendingReceipt") }}</span>
                     <span
                       v-else-if="order.status === 5"
-                      size="small"
+                      
                       type="danger"
                     >{{ $t("order.order.successfulTransaction") }}</span>
                     <span
                       v-else-if="order.status === 6"
-                      size="small"
+                      
                     >{{
                       $t("order.order.transactionFailed")
                     }}</span>
@@ -385,14 +385,14 @@
                     <!-- <button onclick="">打印订单</button><br> -->
                     <el-button
                       type="text"
-                      size="small"
-                      @click="addOrUpdateHandle(order.orderId)"
+                      
+                      @click="onAddOrUpdate(order.orderId)"
                     >
                       {{ $t("order.order.seeDetails") }}
                     </el-button>
                     <el-button
                       v-if="order.status === 2 && order.deliveryType !== 2"
-                      size="small"
+                      
                       type="text"
                       @click="changeOrder(order)"
                     >
@@ -429,304 +429,295 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getDataList"
     />
     <order-delivery-update
       v-if="devyVisible"
-      ref="orderDeliveryUpdate"
+      ref="orderDeliveryUpdateRef"
       @refresh-order-delivery-update="getDataList"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import AddOrUpdate from '../order/orderInfo'
 import OrderDeliveryUpdate from './order-delivery-update'
 import moment from 'moment'
 import Pagination from '@/components/Pagination'
 import * as api from '@/api/order/order'
 
-export default {
-  components: {
-    Pagination,
-    AddOrUpdate,
-    OrderDeliveryUpdate
-  },
-  data () {
-    return {
-      showHeadScroll: false, // 修改物流相关
-      logVisible: false,
-      radio: '1',
-      logisticsInfo: [], // 包裹列表
-      logDataForm: {
-        deliveryCompanyId: '', // 当前物流公司id
-        deliveryNo: '', // 物流单号
-        names: [] // 物流公司列表
-      },
-      // logDataRule: {
-      //   deliveryNo: [
-      //     { required: true, message: this.$i18n.t('constant.noNull'), trigger: 'blur' }
-      //   ]
-      // },
-      errorNum: 0,
-      // 确认修改弹窗
-      isReviseLog: true, // 是否正在修改物流信息
-      confirmList: [], // 确认修改信息
-      dataForm: {},
-      sts: 0,
-      dateRange: [],
-      status: null,
-      options: [{
-        value: 1,
-        label: this.$i18n.t('order.order.pendingPayment')
-      },
-      {
-        value: 2,
-        label: this.$i18n.t('order.order.toBeShipped')
-      },
-      {
-        value: 3,
-        label: this.$i18n.t('order.order.pendingReceipt')
-      },
-      {
-        value: 5,
-        label: this.$i18n.t('order.order.successfulTransaction')
-      },
-      {
-        value: 6,
-        label: this.$i18n.t('order.order.transactionFailed')
-      }],
-      orderType: [{
-        value: 0,
-        label: this.$i18n.t('order.order.normalOrder')
-      }],
-      deliveryType: [
-        {
-          value: 3,
-          label: this.$i18n.t('order.order.noNeedRequired')
-        }],
-      payType: [{
-        value: 0,
-        label: this.$i18n.t('order.order.pointsPayment')
-      }, {
-        value: 1,
-        label: this.$i18n.t('admin.weChatPay')
-      }, {
-        value: 2,
-        label: this.$i18n.t('admin.aliPay')
-      }, {
-        value: 3,
-        label: this.$i18n.t('admin.balancePay')
-      }],
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      // 查询的参数
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1
-      },
-      dataListLoading: false,
-      dataListSelections: [],
-      devyVisible: false,
-      addOrUpdateVisible: false,
-      orderStationVisible: false,
-      consignmentInfoVisible: false,
-      orderAmountUpdateVisible: false
-    }
-  },
+
+
+var showHeadScroll = ref(false) // 修改物流相关
+var logVisible = ref(false)
+var radio = ref('1')
+var logisticsInfo = ref([]) // 包裹列表
+var logDataForm = reactive({
+  deliveryCompanyId: '', // 当前物流公司id
+  deliveryNo: '', // 物流单号
+  names: [] // 物流公司列表
+})
+// logDataRule: {
+//   deliveryNo: [
+//     { required: true, message: $t('constant.noNull'), trigger: 'blur' }
+//   ]
+// }
+var errorNum = ref(0)
+// 确认修改弹窗
+var isReviseLog = ref(true) // 是否正在修改物流信息
+var confirmList = ref([]) // 确认修改信息
+var dataForm = reactive({})
+var sts = ref(0)
+var dateRange = ref([])
+let status = null
+var options = [{
+  value: 1,
+  label: $t('order.order.pendingPayment')
+}
+{
+  value: 2,
+  label: $t('order.order.toBeShipped')
+}
+{
+  value: 3,
+  label: $t('order.order.pendingReceipt')
+}
+{
+  value: 5,
+  label: $t('order.order.successfulTransaction')
+}
+{
+  value: 6,
+  label: $t('order.order.transactionFailed')
+}]
+var orderType = [{
+  value: 0,
+  label: $t('order.order.normalOrder')
+}]
+var deliveryType = [
+  {
+    value: 3,
+    label: $t('order.order.noNeedRequired')
+  }],
+var payType = [{
+  value: 0,
+  label: $t('order.order.pointsPayment')
+}, {
+  value: 1,
+  label: $t('admin.weChatPay')
+}, {
+  value: 2,
+  label: $t('admin.aliPay')
+}, {
+  value: 3,
+  label: $t('admin.balancePay')
+}]
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+// 返回参数
+var pageVO = reactive({
+  list: [], // 返回的列表
+  total: 0, // 一共多少条数据
+  pages: 0 // 一共多少页
+})
+// 查询的参数
+var pageQuery = reactive({
+  pageSize: 10,
+  pageNum: 1
+})
+var dataListLoading = ref(false)
+var dataListSelections = ref([])
+var devyVisible = ref(false)
+var addOrUpdateVisible = ref(false)
+var orderStationVisible = ref(false)
+var consignmentInfoVisible = ref(false)
+var orderAmountUpdateVisible = ref(false)
   watch: {
 
   },
-  created () {
-    // 携带参数查询
-    this.getDataList(this.$route.query)
-  },
-  activated () {
-    // 携带参数查询
-    const query = this.$route.query
-    if (Object.keys(query).length > 0) {
-      this.getDataList(query)
-    }
-  },
-  mounted () {
-    // 监听页面滚动
-    window.addEventListener('scroll', this.scrollToTop)
-  },
+
+onActivated(() => {
+  // 携带参数查询
+  const query = useRoute().query
+  if (Object.keys(query).length > 0) {
+    getDataList(query)
+  }
+})
+onMounted(() => {
+  // 携带参数查询
+  getDataList(useRoute().query)
+
+  // 监听页面滚动
+  window.addEventListener('scroll', scrollToTop)
+})
   unmounted () {
     // 页面销毁时移除监听
-    window.removeEventListener('scroll', this.handleScroll)
+    window.removeEventListener('scroll', handleScroll)
   },
-  methods: {
-    /**
-     * 页面滚动事件
-     */
-    scrollToTop () {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
-      this.showHeadScroll = scrollTop > 400
-    },
 
-    /**
-     * 获取包裹物流信息
-     */
-    reviseLogistics (orderId) {
-      // console.log(orderId)
-      this.logVisible = !this.logVisible
-      this.$http({
-        url: this.$http.adornUrl('/order/delivery/getOrderDeliveries/' + orderId),
-        method: 'put'
-      }).then(({ data }) => {
-        this.logisticsInfo = data
-        this.logisticsInfo.forEach((el, index) => {
-          el.newDeliveryNo = el.deliveryNo
-          el.newDeliveryCompanyId = el.deliveryCompanyId
-          el.deliveryCompanyIdName = this.$i18n.t('order.order.package') + Number(index + 1)
-          // 修改弹窗
-          this.confirmList = [] // 清空确认列表
-        })
-      })
-      this.errorNum = 0
-      // console.log(this.logisticsInfo)
-    },
-
-    /**
-     * 获取数据列表
-     */
-    getDataList (params) {
-      this.dataListLoading = true
-
-      api.page(Object.assign({
-        ...this.pageQuery,
-        ...this.searchParam,
-        orderId: this.dataForm.orderId,
-        // 'spuName': this.dataForm.spuName,
-        orderType: this.dataForm.orderType,
-        payType: this.dataForm.payType,
-        consignee: this.dataForm.consignee,
-        mobile: this.dataForm.mobile,
-        status: this.status,
-        deliveryType: this.dataForm.deliveryType,
-        stationName: this.dataForm.stationName,
-        refundStatus: this.dataForm.refundStatus,
-        startTime: this.dateRange === null ? null : this.dateRange[0], // 开始时间
-        endTime: this.dateRange === null ? null : this.dateRange[1] // 结束时间
-      }, params)).then(pageVO => {
-        this.pageVO = pageVO
-        this.sts = !this.status ? 0 : this.status
-        this.dataListLoading = false
-      })
-    },
-
-    /**
-     * 导航选择状态
-     */
-    selectNav (e) {
-      const sts = e.currentTarget.dataset.sts
-      this.sts = parseInt(sts)
-      this.status = this.sts === 0 ? null : parseInt(sts)
-      this.getDataList()
-    },
-    // 多选
-    selectionChangeHandle (val) {
-      this.dataListSelections = val
-    },
-    orderStatus (val) {
-      this.status = val
-    },
-    /**
-     * 根据选项设置时间
-     * 1:今天 2:昨天 3: 近七天 4:近30天 5:近60天
-     */
-    setDateRange (val) {
-      let startDay = null
-      let endDay = null
-      if (val === 1) {
-        startDay = 0
-        endDay = 0
-      } else if (val === 2) {
-        startDay = -1
-        endDay = -1
-      } else if (val === 3) {
-        startDay = -7
-        endDay = -1
-      } else if (val === 4) {
-        startDay = -30
-        endDay = -1
-      } else {
-        return
-      }
-      // 开始时间
-      const startTime = moment().add(startDay, 'days').startOf('days').format('LL')
-      // 结束时间
-      const endTime = moment().add(endDay, 'days').endOf('days').format('LL')
-      this.dateRange = [startTime, endTime]
-    },
-    // 新增 / 修改
-    addOrUpdateHandle (val) {
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(val)
-      })
-    },
-    // 删除
-    deleteHandle (id) {
-      const ids = id ? [id] : this.dataListSelections.map(item => {
-        return item.orderId
-      })
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => {
-        this.$http({
-          url: this.$http.adornUrl(`/prod/spec/${ids}`),
-          method: 'delete',
-          data: this.$http.adornData(ids, false)
-        }).then(({ data }) => {
-          this.$message({
-            message: this.$i18n.t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.getDataList()
-            }
-          })
-        })
-      }).catch(() => { })
-    },
-    showConsignmentInfo () {
-      this.consignmentInfoVisible = true
-      this.$nextTick(() => {
-        this.$refs.consignmentInfo.init()
-      })
-    },
-    // 清空按钮
-    clear () {
-      this.dataForm = {}
-      this.dateRange = []
-      this.status = null
-    },
-    // 搜索查询
-    searchChange () {
-      this.pageQuery.pageNum = 1
-      this.getDataList()
-    },
-    /**
-       * 发货
-       */
-    changeOrder (order) {
-      this.devyVisible = true
-      this.$nextTick(() => {
-        this.$refs.orderDeliveryUpdate.init(order)
-      })
-    }
-  }
+/**
+ * 页面滚动事件
+ */
+const scrollToTop  = () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+  showHeadScroll = scrollTop > 400
 }
+
+/**
+ * 获取包裹物流信息
+ */
+const reviseLogistics  = (orderId) => {
+  // console.log(orderId)
+  logVisible = !logVisible
+  http({
+    url: http.adornUrl('/order/delivery/getOrderDeliveries/' + orderId),
+    method: 'put'
+  }).then(({ data }) => {
+    logisticsInfo = data
+    logisticsInfo.forEach((el, index) => {
+      el.newDeliveryNo = el.deliveryNo
+      el.newDeliveryCompanyId = el.deliveryCompanyId
+      el.deliveryCompanyIdName = $t('order.order.package') + Number(index + 1)
+      // 修改弹窗
+      confirmList = [] // 清空确认列表
+    })
+  })
+  errorNum = 0
+  // console.log(logisticsInfo)
+}
+
+/**
+ * 获取数据列表
+ */
+const getDataList  = (params) => {
+  dataListLoading = true
+
+  api.page(Object.assign({
+    ...pageQuery,
+    ...searchParam,
+    orderId: dataForm.orderId,
+    // 'spuName': dataForm.spuName,
+    orderType: dataForm.orderType,
+    payType: dataForm.payType,
+    consignee: dataForm.consignee,
+    mobile: dataForm.mobile,
+    status: status,
+    deliveryType: dataForm.deliveryType,
+    stationName: dataForm.stationName,
+    refundStatus: dataForm.refundStatus,
+    startTime: dateRange === null ? null : dateRange[0], // 开始时间
+    endTime: dateRange === null ? null : dateRange[1] // 结束时间
+  }, params)).then(pageVO => {
+    pageVO = pageVO
+    sts = !status ? 0 : status
+    dataListLoading = false
+  })
+}
+
+/**
+ * 导航选择状态
+ */
+const selectNav  = (e) => {
+  const sts = e.currentTarget.dataset.sts
+  sts = parseInt(sts)
+  status = sts === 0 ? null : parseInt(sts)
+  getDataList()
+}
+// 多选
+const selectionChangeHandle  = (val) => {
+  dataListSelections = val
+}
+const orderStatus  = (val) => {
+  status = val
+}
+/**
+ * 根据选项设置时间
+ * 1:今天 2:昨天 3: 近七天 4:近30天 5:近60天
+ */
+const setDateRange  = (val) => {
+  let startDay = null
+  let endDay = null
+  if (val === 1) {
+    startDay = 0
+    endDay = 0
+  } else if (val === 2) {
+    startDay = -1
+    endDay = -1
+  } else if (val === 3) {
+    startDay = -7
+    endDay = -1
+  } else if (val === 4) {
+    startDay = -30
+    endDay = -1
+  } else {
+    return
+  }
+  // 开始时间
+  const startTime = moment().add(startDay, 'days').startOf('days').format('LL')
+  // 结束时间
+  const endTime = moment().add(endDay, 'days').endOf('days').format('LL')
+  dateRange = [startTime, endTime]
+}
+// 新增 / 修改
+const onAddOrUpdate  = (val) => {
+  addOrUpdateVisible = true
+  nextTick(() => {
+    addOrUpdate.value?.init(val)
+  })
+}
+// 删除
+const onDelete  = (id) => {
+  const ids = id ? [id] : dataListSelections.map(item => {
+    return item.orderId
+  })
+  ElMessageBox.confirm($t('table.sureToDelete'), $t('table.tips'), {
+    confirmButtonText: $t('table.confirm'),
+    cancelButtonText: $t('table.cancel'),
+    type: 'warning'
+  }).then(() => {
+    http({
+      url: http.adornUrl(`/prod/spec/${ids}`),
+      method: 'delete',
+      data: http.adornData(ids, false)
+    }).then(({ data }) => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          getDataList()
+        }
+      })
+    })
+  }).catch(() => { })
+}
+const showConsignmentInfo  = () => {
+  consignmentInfoVisible = true
+  nextTick(() => {
+    consignmentInfoRef.value?.init()
+  })
+}
+// 清空按钮
+const clear  = () => {
+  dataForm = {}
+  dateRange = []
+  status = null
+}
+// 搜索查询
+const onSearch  = () => {
+  pageQuery.pageNum = 1
+  getDataList()
+}
+/**
+   * 发货
+   */
+const changeOrder  = (order) => {
+  devyVisible = true
+  nextTick(() => {
+    orderDeliveryUpdateRef.value?.init(order)
+  })
+}
+
 </script>
 
 <style lang="scss">

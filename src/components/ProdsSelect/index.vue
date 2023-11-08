@@ -53,7 +53,7 @@
     </el-form>
     <div class="prods-select-body">
       <el-table
-        ref="prodTable"
+        ref="prodTableRef"
         v-loading="dataListLoading"
         :data="pageVO.list"
         border
@@ -135,245 +135,239 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import { treeDataTranslate, idList } from '@/utils'
 import { page } from '@/api/product/list'
 import { shopCategoryPage } from '@/api/product/category'
 import Pagination from '@/components/Pagination'
 import Big from 'big.js'
-export default {
-  components: { Pagination },
 
-  props: {
-    isSingle: {
-      default: false,
-      type: Boolean
-    },
-    prodType: {
-      default: null,
-      type: Number
-    },
-    dataUrl: {
-      default: '/prod/prod/page',
-      type: String
-    }
+const props = defineProps({
+  isSingle: {
+    default: false,
+    type: Boolean
   },
+  prodType: {
+    default: null,
+    type: Number
+  },
+  dataUrl: {
+    default: '/prod/prod/page',
+    type: String
+  }
+})
   emits: ['refreshSelectProds'],
 
-  data () {
-    return {
-      visible: false,
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      // 查询的参数
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1,
-        spuStatus: 1
-      },
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      // 查询参数
-      searchParam: {
-      },
 
-      dataForm: {
-        name: '',
-        product: ''
-      },
-      singleSelectspuId: 0,
-      allData: [],
-      selectProds: [],
-      shopCategoryId: null,
-      pageIndex: 1,
-      pageSize: 10,
-      totalPage: 0,
-      dataListLoading: false,
-      addOrUpdateVisible: false,
-      dataListSelections: [],
-      categoryList: [],
-      selectedCategory: [],
-      categoryTreeProps: {
-        value: 'categoryId',
-        label: 'name'
-      }
-    }
-  },
-
-  activated () {
-    this.getDataList()
-  },
-
-  methods: {
-    // 获取数据列表
-    init (selectProds) {
-      this.singleSelectspuId = 0
-      this.selectProds = selectProds
-      this.visible = true
-      this.dataListLoading = true
-      this.clean()
-      if (this.selectProds) {
-        this.selectProds.forEach(row => {
-          this.dataListSelections.push(row)
-        })
-      }
-      this.getDataList()
-      this.getCategoryList()
-    },
-    getCategoryList () {
-      shopCategoryPage().then((data) => {
-        this.categoryList = treeDataTranslate(data, 'categoryId', 'parentId')
-      })
-    },
-    getDataList () {
-      page({ ...this.pageQuery, ...this.searchParam }).then((pageVO) => {
-        this.pageVO = pageVO
-        this.pageVO.list.forEach(prod => {
-          prod.priceFee = new Big(prod.priceFee).div(100).toFixed(2)
-        })
-        this.dataListLoading = false
-        if (this.selectProds) {
-          this.$nextTick(() => {
-            this.selectProds.forEach(row => {
-              const index = this.pageVO.list.findIndex((prodItem) => prodItem.spuId === row.spuId)
-              this.$refs.prodTable.toggleRowSelection(this.pageVO.list[index])
-            })
-          })
-        }
-      })
-    },
-    // 每页数
-    sizeChangeHandle (val) {
-      this.pageQuery.pageSize = val
-      this.pageQuery.pageNum = 1
-      this.getDataList()
-    },
-    // 当前页
-    currentChangeHandle (val) {
-      this.pageQuery.pageNum = val
-      this.getDataList()
-    },
-    // 单选商品事件
-    getSelectProdRow (row) {
-      this.dataListSelections = [row]
-    },
-    // 多选点击事件
-    selectChangeHandle (selection) {
-      this.pageVO.list.forEach((tableItem) => {
-        const selectedProdIndex = selection.findIndex((selectedProd) => {
-          if (!selectedProd) {
-            return false
-          }
-          return selectedProd.spuId === tableItem.spuId
-        })
-        const dataSelectedProdIndex = this.dataListSelections.findIndex((dataSelectedProd) => dataSelectedProd.spuId === tableItem.spuId)
-        if (selectedProdIndex > -1 && dataSelectedProdIndex === -1) {
-          this.dataListSelections.push(tableItem)
-        } else if (selectedProdIndex === -1 && dataSelectedProdIndex > -1) {
-          this.dataListSelections.splice(dataSelectedProdIndex, 1)
-        }
-      })
-    },
-    /**
-     * 获取分类id
-     */
-    handleChange (val) {
-      this.shopCategoryId = val[val.length - 1]
-    },
-    /**
-     * 根据条件搜索商品
-     */
-    searchProd () {
-      this.pageQuery.pageNum = 1
-      this.searchParam = {
-        name: this.dataForm.name,
-        categoryId: this.shopCategoryId
-      }
-      this.getDataList()
-    },
-    /**
-     * 清空搜索条件
-     */
-    clean () {
-      this.name = ''
-      this.shopCategoryId = null
-      this.selectedCategory = idList(this.categoryList, this.shopCategoryId, 'categoryId', 'children').reverse()
-    },
-
-    closeModule () {
-      this.name = ''
-      this.shopCategoryId = null
-    },
-
-    // 确定事件
-    submitProds () {
-      const prods = []
-      this.dataListSelections.forEach(item => {
-        const prodIndex = prods.findIndex((prod) => prod.spuId === item.spuId)
-        if (prodIndex === -1) {
-          prods.push(
-            {
-              spuId: item.spuId,
-              spuName: item.spuName,
-              mainImgUrl: item.mainImgUrl,
-              activityId: item.activityId,
-              prodType: item.prodType
-            }
-          )
-        }
-      })
-      // var msgInfo = ''
-      // // 秒杀活动选择商品的提示
-      // if (this.dataUrl.includes('canSekcillProdPage')) {
-      //   msgInfo = this.$i18n.t('components.seckillWhetherToContinue')
-      // } else if (this.dataUrl.includes('getNotGroupProdPage')) {
-      //   // 拼团活动选择商品的提示
-      //   msgInfo = this.$i18n.t('components.groupWhetherToContinue')
-      // }
-      // if (msgInfo !== '' && msgInfo !== null) {
-      //   this.prodIsSeckill(prods, msgInfo)
-      // }else {
-      this.$emit('refreshSelectProds', prods)
-      this.dataListSelections = []
-      this.visible = false
-      // }
-    }
-    /**
-     * 查询商品是否在参与秒杀活动
-     */
-    // prodIsSeckill(prods, msgInfo) {
-    //   let spuIds = []
-    //   for (let index = 0; index < prods.length; index++) {
-    //     spuIds.push(prods[index].spuId)
-    //   }
-    //   this.$http({
-    //     url: this.$http.adornUrl('/admin/discount/prodIsDiscount'),
-    //     method: 'post',
-    //     data: spuIds
-    //   }).then(({ data }) => {
-    //     var msg = data
-    //     if (msg !== undefined && msg !== null && msg !== '') {
-    //       this.$confirm(msgInfo, this.$i18n.t('text.tips'), {
-    //         confirmButtonText: this.$i18n.t('crud.filter.submitBtn'),
-    //         cancelButtonText: this.$i18n.t('crud.filter.cancelBtn'),
-    //         type: 'warning'
-    //       }).then(() => {
-    //         this.$emit('refreshSelectProds', prods)
-    //         this.dataListSelections = []
-    //         this.visible = false
-    //       }).catch(() => { })
-    //     } else {
-    //       this.$emit('refreshSelectProds', prods)
-    //       this.dataListSelections = []
-    //       this.visible = false
-    //     }
-    //   })
-    // }
-  }
+var visible = ref(false)
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+// 查询的参数
+var pageQuery = reactive({
+  pageSize: 10,
+  pageNum: 1,
+  spuStatus: 1
+})
+// 返回参数
+var pageVO = reactive({
+  list: [], // 返回的列表
+  total: 0, // 一共多少条数据
+  pages: 0 // 一共多少页
+})
+// 查询参数
+var searchParam = {
 }
+
+var dataForm = reactive({
+  name: '',
+  product: ''
+})
+var singleSelectspuId = ref(0)
+var allData = ref([])
+var selectProds = ref([])
+let shopCategoryId = null
+var pageIndex = ref(1)
+var pageSize = ref(10)
+var totalPage = ref(0)
+var dataListLoading = ref(false)
+var addOrUpdateVisible = ref(false)
+var dataListSelections = ref([])
+var categoryList = ref([])
+var selectedCategory = ref([])
+var categoryTreeProps = {
+  value: 'categoryId',
+  label: 'name'
+}
+
+onActivated(() => {
+  getDataList()
+})
+
+
+// 获取数据列表
+const init  = (selectProds) => {
+  singleSelectspuId = 0
+  selectProds = selectProds
+  visible = true
+  dataListLoading = true
+  clean()
+  if (selectProds) {
+    selectProds.forEach(row => {
+      dataListSelections.push(row)
+    })
+  }
+  getDataList()
+  getCategoryList()
+}
+const getCategoryList  = () => {
+  shopCategoryPage().then((data) => {
+    categoryList = treeDataTranslate(data, 'categoryId', 'parentId')
+  })
+}
+const getDataList  = () => {
+  page({ ...pageQuery, ...searchParam }).then((pageVO) => {
+    pageVO = pageVO
+    pageVO.list.forEach(prod => {
+      prod.priceFee = new Big(prod.priceFee).div(100).toFixed(2)
+    })
+    dataListLoading = false
+    if (selectProds) {
+      nextTick(() => {
+        selectProds.forEach(row => {
+          const index = pageVO.list.findIndex((prodItem) => prodItem.spuId === row.spuId)
+          prodTable.toggleRowSelection(pageVORef.value?.list[index])
+        })
+      })
+    }
+  })
+}
+// 每页数
+const sizeChangeHandle  = (val) => {
+  pageQuery.pageSize = val
+  pageQuery.pageNum = 1
+  getDataList()
+}
+// 当前页
+const currentChangeHandle  = (val) => {
+  pageQuery.pageNum = val
+  getDataList()
+}
+// 单选商品事件
+const getSelectProdRow  = (row) => {
+  dataListSelections = [row]
+}
+// 多选点击事件
+const selectChangeHandle  = (selection) => {
+  pageVO.list.forEach((tableItem) => {
+    const selectedProdIndex = selection.findIndex((selectedProd) => {
+      if (!selectedProd) {
+        return false
+      }
+      return selectedProd.spuId === tableItem.spuId
+    })
+    const dataSelectedProdIndex = dataListSelections.findIndex((dataSelectedProd) => dataSelectedProd.spuId === tableItem.spuId)
+    if (selectedProdIndex > -1 && dataSelectedProdIndex === -1) {
+      dataListSelections.push(tableItem)
+    } else if (selectedProdIndex === -1 && dataSelectedProdIndex > -1) {
+      dataListSelections.splice(dataSelectedProdIndex, 1)
+    }
+  })
+}
+/**
+ * 获取分类id
+ */
+const handleChange  = (val) => {
+  shopCategoryId = val[val.length - 1]
+}
+/**
+ * 根据条件搜索商品
+ */
+const searchProd  = () => {
+  pageQuery.pageNum = 1
+  searchParam = {
+    name: dataForm.name,
+    categoryId: shopCategoryId
+  }
+  getDataList()
+}
+/**
+ * 清空搜索条件
+ */
+const clean  = () => {
+  name = ''
+  shopCategoryId = null
+  selectedCategory = idList(categoryList, shopCategoryId, 'categoryId', 'children').reverse()
+}
+
+const closeModule  = () => {
+  name = ''
+  shopCategoryId = null
+}
+
+// 确定事件
+const submitProds  = () => {
+  const prods = []
+  dataListSelections.forEach(item => {
+    const prodIndex = prods.findIndex((prod) => prod.spuId === item.spuId)
+    if (prodIndex === -1) {
+      prods.push(
+        {
+          spuId: item.spuId,
+          spuName: item.spuName,
+          mainImgUrl: item.mainImgUrl,
+          activityId: item.activityId,
+          prodType: item.prodType
+        }
+      )
+    }
+  })
+  // var msgInfo = ''
+  // // 秒杀活动选择商品的提示
+  // if (dataUrl.includes('canSekcillProdPage')) {
+  //   msgInfo = $t('components.seckillWhetherToContinue')
+  // } else if (dataUrl.includes('getNotGroupProdPage')) {
+  //   // 拼团活动选择商品的提示
+  //   msgInfo = $t('components.groupWhetherToContinue')
+  // }
+  // if (msgInfo !== '' && msgInfo !== null) {
+  //   prodIsSeckill(prods, msgInfo)
+  // }else {
+  emit('refreshSelectProds', prods)
+  dataListSelections = []
+  visible = false
+  // }
+}
+/**
+ * 查询商品是否在参与秒杀活动
+ */
+// prodIsSeckill(prods, msgInfo) {
+//   let spuIds = []
+//   for (let index = 0; index < prods.length; index++) {
+//     spuIds.push(prods[index].spuId)
+//   }
+//   http({
+//     url: http.adornUrl('/admin/discount/prodIsDiscount'),
+//     method: 'post',
+//     data: spuIds
+//   }).then(({ data }) => {
+//     var msg = data
+//     if (msg !== undefined && msg !== null && msg !== '') {
+//       ElMessageBox.confirm(msgInfo, $t('text.tips'), {
+//         confirmButtonText: $t('crud.filter.submitBtn'),
+//         cancelButtonText: $t('crud.filter.cancelBtn'),
+//         type: 'warning'
+//       }).then(() => {
+//         emit('refreshSelectProds', prods)
+//         dataListSelections = []
+//         visible = false
+//       }).catch(() => { })
+//     } else {
+//       emit('refreshSelectProds', prods)
+//       dataListSelections = []
+//       visible = false
+//     }
+//   })
+// }
+
 </script>
 <style lang="scss" scope>
 .demo-form-inline {

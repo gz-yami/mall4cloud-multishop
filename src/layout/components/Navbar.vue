@@ -66,16 +66,13 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { mapGetters } from 'vuex'
 
-export default {
-  data () {
-    return {
-      isHavePlatformNotice: true, // 是否有新的平台公告
-      isHaveNewsBox: true // 是否有新消息
-    }
-  },
+
+
+var isHavePlatformNotice = ref(true) // 是否有新的平台公告
+var isHaveNewsBox = ref(true) // 是否有新消息
   computed: {
     ...mapGetters([
       'name',
@@ -83,33 +80,32 @@ export default {
       'device'
     ]),
     language () {
-      return this.$store.getters.language
+      return $store.getters.language
     }
   },
-  methods: {
-    async logout () {
-      await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
-    },
-    // 切换语言
-    handleSetLanguage (lang) {
-      this.$i18n.locale = lang
-      this.$store.dispatch('app/setLanguage', lang)
-      this.$message({
-        message: 'Switch Language Success',
-        type: 'success'
-      })
-    },
-    // 跳转到平台公告
-    toPlatformNotice () {
-      // this.$router.push('')
-    },
-    // 跳转到消息盒子
-    toNewsBox () {
-      // this.$router.push('')
-    }
-  }
+
+const async logout  = () => {
+  await $store.dispatch('user/logout')
+  useRouter().push(`/login?redirect=${useRoute().fullPath}`)
 }
+// 切换语言
+const handleSetLanguage  = (lang) => {
+  $i18n.locale = lang
+  $store.dispatch('app/setLanguage', lang)
+  ElMessage({
+    message: 'Switch Language Success',
+    type: 'success'
+  })
+}
+// 跳转到平台公告
+const toPlatformNotice  = () => {
+  // useRouter().push('')
+}
+// 跳转到消息盒子
+const toNewsBox  = () => {
+  // useRouter().push('')
+}
+
 </script>
 
 <style lang="scss" scoped>

@@ -1,18 +1,17 @@
-<script>
+<script setup>
 import { h, resolveComponent } from 'vue'
-export default {
-  name: 'MenuItem',
-  functional: true,
-  props: {
-    icon: {
-      type: String,
-      default: ''
-    },
-    title: {
-      type: String,
-      default: ''
-    }
+
+
+  functional: true,const props = defineProps({
+  icon: {
+    type: String,
+    default: ''
   },
+  title: {
+    type: String,
+    default: ''
+  }
+})
   render () {
     const { icon, title } = context.props
     const vnodes = []
@@ -30,7 +29,7 @@ export default {
     }
     return vnodes
   }
-}
+
 </script>
 
 <style scoped>

@@ -45,7 +45,7 @@
         icon="el-icon-plus"
         type="primary"
         class="filter-item"
-        @click="addOrUpdateHandle()"
+        @click="onAddOrUpdate()"
       >
         {{ $t('table.create') }}
       </el-button>
@@ -126,14 +126,14 @@
           <el-button
             v-permission="['product:attr:update']"
             type="text"
-            @click="addOrUpdateHandle(row.attrId)"
+            @click="onAddOrUpdate(row.attrId)"
           >
             {{ $t('table.edit') }}
           </el-button>
           <el-button
             v-permission="['product:attr:delete']"
             type="text"
-            @click="deleteHandle(row.attrId)"
+            @click="onDelete(row.attrId)"
           >
             {{ $t('table.delete') }}
           </el-button>
@@ -151,97 +151,19 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getPage()"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import permission from '@/directive/permission/index.js'
 import Pagination from '@/components/Pagination'
 import AddOrUpdate from './add-or-update.vue'
 import * as api from '@/api/product/attr'
 
-export default {
+
   name: '',
-  components: { Pagination, AddOrUpdate },
-  directives: { permission },
-  data () {
-    return {
-      // 查询的参数
-      pageQuery: {
-        pageSize: 10,
-        pageNum: 1,
-        name: null,
-        attrType: null
-      },
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      // loading
-      pageLoading: true,
-      // 查询参数
-      searchParam: {
-      },
-      addOrUpdateVisible: false,
-      options: [
-        { value: '销售属性', label: 0 },
-        { value: '基本属性', label: 1 }
-      ]
-    }
-  },
-  mounted () {
-    this.getPage()
-  },
-  methods: {
-    getPage () {
-      console.log('进入加载页面数据')
-      this.pageLoading = true
-      api.page({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
-        this.pageVO = pageVO
-        this.pageLoading = false
-      })
-    },
-    addOrUpdateHandle (attrId) {
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(attrId)
-      })
-    },
-    deleteHandle (attrId) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => this.deleteById(attrId))
-    },
-    deleteById (attrId) {
-      api.deleteById(attrId).then(() => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getPage()
-        })
-      })
-    },
 
-    // 清空搜索内容
-    clearSearchInfo () {
-      this.pageQuery.name = ''
-      this.pageQuery.attrType = ''
-    },
-
-    // 刷新回调用
-    refreshChange () {
-      console.log('刷新回调')
-      this.page = this.$refs.crud.$refs.tablePage.defaultPage
-      this.getPage(this.page)
-    }
-  }
-}
 </script>

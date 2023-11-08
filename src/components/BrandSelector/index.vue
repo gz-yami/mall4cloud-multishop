@@ -31,7 +31,7 @@
 
     <div class="prods-select-body">
       <el-table
-        ref="brandTable"
+        ref="brandTableRef"
         v-loading="brandListLoading"
         :data="pageVO.list"
         border
@@ -121,97 +121,91 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import { getBrandByCategoryId } from '@/api/product/brand'
 import Pagination from '@/components/Pagination'
-export default {
-  components: { Pagination },
 
-  props: {
-    isSingle: {
-      default: false,
-      type: Boolean
-    }
-  },
+const props = defineProps({
+  isSingle: {
+    default: false,
+    type: Boolean
+  }
+})
   emits: ['refreshSelectBrand'],
 
-  data () {
-    return {
-      visible: false,
-      brandName: null,
-      selectBrand: [],
-      dataForm: {
-        brand: ''
-      },
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      pageQuery: {
-        // pageSize: 5,
-        // pageNum: 1,
-        categoryId: null
-      },
-      // 返回参数
-      pageVO: {
-        list: [], // 返回的列表
-        total: 0, // 一共多少条数据
-        pages: 0 // 一共多少页
-      },
-      brandListLoading: false,
 
-      singleSelectBrandId: 0,
-      selectBrand: [],
-      brandListSelections: []
-    }
-  },
+var visible = ref(false)
+let brandName = null
+var selectBrand = ref([])
+var dataForm = reactive({
+  brand: ''
+})
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var pageQuery = reactive({
+  // pageSize: 5,
+  // pageNum: 1,
+  categoryId: null
+})
+// 返回参数
+var pageVO = reactive({
+  list: [], // 返回的列表
+  total: 0, // 一共多少条数据
+  pages: 0 // 一共多少页
+})
+var brandListLoading = ref(false)
 
-  methods: {
-    init (selectBrand, categoryId) {
-      this.selectBrand = selectBrand
-      this.pageQuery.categoryId = categoryId
-      this.visible = true
-      this.brandListLoading = true
-      if (this.selectBrand) {
-        this.selectBrand.forEach(row => {
-          this.brandListSelections.push(row)
-        })
-      }
-      this.getBrandList()
-    },
+var singleSelectBrandId = ref(0)
+var selectBrand = ref([])
+var brandListSelections = ref([])
 
-    onSearch () {
-      this.getBrandList()
-    },
 
-    getBrandList () {
-      getBrandByCategoryId({ ...this.pageQuery, ...this.searchParam }).then(pageVO => {
-        this.pageVO.list = pageVO
-        this.brandListLoading = false
-      })
-    },
-
-    // 单选
-    getSelectBrandRow (row) {
-      this.brandListSelections = [row]
-    },
-
-    // 确定事件
-    submitBrand () {
-      const brands = []
-      this.brandListSelections.forEach(item => {
-        const brandIndex = brands.findIndex((brand) => brand.brandId === item.brandId)
-        if (brandIndex === -1) {
-          brands.push({
-            brandId: item.brandId,
-            brandName: item.name,
-            brandImgUrl: (item.imgUrl).indexOf('http') === -1 ? this.resourcesUrl + item.imgUrl : item.imgUrl
-          })
-        }
-      })
-      this.$emit('refreshSelectBrand', brands)
-      this.brandListSelections = []
-      this.visible = false
-    }
+const init  = (selectBrand, categoryId) => {
+  selectBrand = selectBrand
+  pageQuery.categoryId = categoryId
+  visible = true
+  brandListLoading = true
+  if (selectBrand) {
+    selectBrand.forEach(row => {
+      brandListSelections.push(row)
+    })
   }
+  getBrandList()
 }
+
+const onSearch  = () => {
+  getBrandList()
+}
+
+const getBrandList  = () => {
+  getBrandByCategoryId({ ...pageQuery, ...searchParam }).then(pageVO => {
+    pageVO.list = pageVO
+    brandListLoading = false
+  })
+}
+
+// 单选
+const getSelectBrandRow  = (row) => {
+  brandListSelections = [row]
+}
+
+// 确定事件
+const submitBrand  = () => {
+  const brands = []
+  brandListSelections.forEach(item => {
+    const brandIndex = brands.findIndex((brand) => brand.brandId === item.brandId)
+    if (brandIndex === -1) {
+      brands.push({
+        brandId: item.brandId,
+        brandName: item.name,
+        brandImgUrl: (item.imgUrl).indexOf('http') === -1 ? resourcesUrl + item.imgUrl : item.imgUrl
+      })
+    }
+  })
+  emit('refreshSelectBrand', brands)
+  brandListSelections = []
+  visible = false
+}
+
 </script>
 
 <style lang="scss">

@@ -4,7 +4,7 @@
     :title="dataForm.shopUserId? $t('table.edit'): $t('table.create')"
   >
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       :rules="dataRule"
       :model="dataForm"
       label-position="right"
@@ -67,7 +67,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -76,81 +76,73 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/multishop/shop-user'
 // import PicUpload from '@/components/PicUpload'
 import * as roleApi from '@/api/rbac/role'
 import ImgUpload from '@/components/ImgUpload'
 
-export default {
 
-  components: {
-    // PicUpload,
-    ImgUpload
-  },
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        shopUserId: 0,
-        shopId: null,
-        nickName: null,
-        avatar: null,
-        code: null,
-        phoneNum: null,
-        hasAccount: null,
-        roleIds: []
-      },
-      roleOpts: [],
-      dataRule: {
-        nickName: [
-          { required: true, message: '昵称不能为空', trigger: 'blur' }
-        ],
-        avatar: [
-          { required: true, message: '头像不能为空', trigger: 'blur' }
-        ]
-      }
-    }
-  },
 
-  methods: {
-    init (shopUserId) {
-      this.dataForm.shopUserId = shopUserId || 0
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        roleApi.list().then(data => {
-          this.roleOpts = data
-        })
-        if (this.dataForm.shopUserId) {
-          api.get(shopUserId).then(data => {
-            this.dataForm = data
-          })
-        }
-      })
-    },
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (valid) {
-          const request = this.dataForm.shopUserId ? api.update(this.dataForm) : api.save(this.dataForm)
-          request.then(data => {
-            this.$message({
-              message: this.$t('table.actionSuccess'),
-              type: 'success',
-              duration: 1500,
-              onClose: () => {
-                this.visible = false
-                this.$emit('refreshDataList')
-                this.$refs.dataForm.resetFields()
-              }
-            })
-          })
-        }
+var visible = ref(false)
+var dataForm = reactive({
+  shopUserId: 0,
+  shopId: null,
+  nickName: null,
+  avatar: null,
+  code: null,
+  phoneNum: null,
+  hasAccount: null,
+  roleIds: []
+})
+var roleOpts = ref([])
+var dataRule = {
+  nickName: [
+    { required: true, message: '昵称不能为空', trigger: 'blur' }
+  ],
+  avatar: [
+    { required: true, message: '头像不能为空', trigger: 'blur' }
+  ]
+}
+
+
+const init  = (shopUserId) => {
+  dataForm.shopUserId = shopUserId || 0
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    roleApi.list().then(data => {
+      roleOpts = data
+    })
+    if (dataForm.shopUserId) {
+      api.get(shopUserId).then(data => {
+        dataForm = data
       })
     }
-  }
+  })
 }
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (valid) {
+      const request = dataForm.shopUserId ? api.update(dataForm) : api.save(dataForm)
+      request.then(data => {
+        ElMessage({
+          message: $t('table.actionSuccess'),
+          type: 'success',
+          duration: 1500,
+          onClose: () => {
+            visible = false
+            emit('refreshDataList')
+            dataFormRef.value?.resetFields()
+          }
+        })
+      })
+    }
+  })
+}
+
 </script>

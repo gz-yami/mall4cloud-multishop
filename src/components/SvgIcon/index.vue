@@ -9,48 +9,47 @@
     :class="svgClass"
     aria-hidden="true"
   >
-    <use :xlink:href="iconName" />
+    <use :xlink:href="iconNameRef" />
   </svg>
 </template>
 
-<script>
+<script setup>
 // doc: https://panjiachen.github.io/vue-element-admin-site/feature/component/svg-icon.html#usage
 import { isExternal } from '@/utils/validate'
 
-export default {
-  name: 'SvgIcon',
-  props: {
-    iconClass: {
-      type: String,
-      required: true
-    },
-    className: {
-      type: String,
-      default: ''
-    }
+
+const props = defineProps({
+  iconClass: {
+    type: String,
+    required: true
   },
+  className: {
+    type: String,
+    default: ''
+  }
+})
   computed: {
     isExternal () {
-      return isExternal(this.iconClass)
+      return isExternal(iconClass)
     },
     iconName () {
-      return `#icon-${this.iconClass}`
+      return `#icon-${iconClass}`
     },
     svgClass () {
-      if (this.className) {
-        return 'svg-icon ' + this.className
+      if (className) {
+        return 'svg-icon ' + className
       } else {
         return 'svg-icon'
       }
     },
     styleExternalIcon () {
       return {
-        mask: `url(${this.iconClass}) no-repeat 50% 50%`,
-        '-webkit-mask': `url(${this.iconClass}) no-repeat 50% 50%`
+        mask: `url(${iconClass}) no-repeat 50% 50%`,
+        '-webkit-mask': `url(${iconClass}) no-repeat 50% 50%`
       }
     }
   }
-}
+
 </script>
 
 <style scoped>

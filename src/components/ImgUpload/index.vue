@@ -20,7 +20,7 @@
     <!-- 弹窗, 新增图片 -->
     <elx-imgbox
       v-if="elxImgboxVisible"
-      ref="elxImgbox"
+      ref="elxImgboxRef"
       @refresh-pic="refreshPic"
     />
     <el-dialog
@@ -36,67 +36,59 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import ElxImgbox from '@/components/imgbox'
-export default {
 
-  components: {
-    ElxImgbox
-  },
 
-  props: {
-    value: {
-      default: '',
-      type: String
-    },
-    disabled: {
-      default: false,
-      type: Boolean
-    }
+const props = defineProps({
+  value: {
+    default: '',
+    type: String
   },
+  disabled: {
+    default: false,
+    type: Boolean
+  }
+})
   emits: ['input'],
 
-  data () {
-    return {
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      elxImgboxVisible: false,
-      visible: false
-    }
-  },
 
-  methods: {
-    // 打开图片选择窗
-    elxImgboxHandle () {
-      if (this.disabled) {
-        this.openImg()
-        return false
-      }
-      this.elxImgboxVisible = true
-      this.$nextTick(() => {
-        this.$refs.elxImgbox.init(1)
-      })
-    },
-    /**
-     * 获取图片路径
-     */
-    getImgSrc () {
-      if (!this.value) {
-        return ''
-      }
-      if (this.value.indexOf('http://') === 0 || this.value.indexOf('https://') === 0) {
-        return this.value
-      }
-      return this.resourcesUrl + this.value
-    },
-    openImg () {
-      this.visible = true
-    },
-    refreshPic (imagePath) {
-      console.log('imagePath', imagePath)
-      this.$emit('input', imagePath)
-    }
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var elxImgboxVisible = ref(false)
+var visible = ref(false)
+
+
+// 打开图片选择窗
+const elxImgboxHandle  = () => {
+  if (disabled) {
+    openImg()
+    return false
   }
+  elxImgboxVisible = true
+  nextTick(() => {
+    elxImgboxRef.value?.init(1)
+  })
 }
+/**
+ * 获取图片路径
+ */
+const getImgSrc  = () => {
+  if (!value) {
+    return ''
+  }
+  if (value.indexOf('http://') === 0 || value.indexOf('https://') === 0) {
+    return value
+  }
+  return resourcesUrl + value
+}
+const openImg  = () => {
+  visible = true
+}
+const refreshPic  = (imagePath) => {
+  console.log('imagePath', imagePath)
+  emit('update:modelValue', imagePath)
+}
+
 </script>
 
 <style lang="scss">

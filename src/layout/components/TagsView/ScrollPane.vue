@@ -1,7 +1,7 @@
 <template>
   <!-- native modifier has been removed, please confirm whether the function has been affected  -->
   <el-scrollbar
-    ref="scrollContainer"
+    ref="scrollContainerRef"
     :vertical="false"
     class="scroll-container"
     @wheel.prevent="handleScroll"
@@ -10,82 +10,78 @@
   </el-scrollbar>
 </template>
 
-<script>
+<script setup>
 const tagAndTagSpacing = 4 // tagAndTagSpacing
 
-export default {
-  name: 'ScrollPane',
+
+
   emits: ['scroll'],
 
-  data () {
-    return {
-      left: 0
-    }
-  },
+
+var left = ref(0)
 
   computed: {
     scrollWrapper () {
-      return this.$refs.scrollContainer.$refs.wrap
+      return scrollContainer.$refsRef.value?.wrap
     }
   },
 
-  mounted () {
-    this.scrollWrapper.addEventListener('scroll', this.emitScroll, true)
-  },
+onMounted(() => {
+  scrollWrapper.addEventListener('scroll', emitScroll, true)
+})
 
   beforeUnmount () {
-    this.scrollWrapper.removeEventListener('scroll', this.emitScroll)
+    scrollWrapper.removeEventListener('scroll', emitScroll)
   },
 
-  methods: {
-    handleScroll (e) {
-      const eventDelta = e.wheelDelta || -e.deltaY * 40
-      const $scrollWrapper = this.scrollWrapper
-      $scrollWrapper.scrollLeft = $scrollWrapper.scrollLeft + eventDelta / 4
-    },
-    emitScroll () {
-      this.$emit('scroll')
-    },
-    moveToTarget (currentTag) {
-      const $container = this.$refs.scrollContainer.$el
-      const $containerWidth = $container.offsetWidth
-      const $scrollWrapper = this.scrollWrapper
-      const tagList = this.$parent.$refs.tag
 
-      let firstTag = null
-      let lastTag = null
+const handleScroll  = (e) => {
+  const eventDelta = e.wheelDelta || -e.deltaY * 40
+  const $scrollWrapper = scrollWrapper
+  $scrollWrapper.scrollLeft = $scrollWrapper.scrollLeft + eventDelta / 4
+}
+const emitScroll  = () => {
+  emit('scroll')
+}
+const moveToTarget  = (currentTag) => {
+  const $container = scrollContainerRef.value?.$el
+  const $containerWidth = $container.offsetWidth
+  const $scrollWrapper = scrollWrapper
+  const tagList = $parent.$refs.tag
 
-      // find first tag and last tag
-      if (tagList.length > 0) {
-        firstTag = tagList[0]
-        lastTag = tagList[tagList.length - 1]
-      }
+  let firstTag = null
+  let lastTag = null
 
-      if (firstTag === currentTag) {
-        $scrollWrapper.scrollLeft = 0
-      } else if (lastTag === currentTag) {
-        $scrollWrapper.scrollLeft = $scrollWrapper.scrollWidth - $containerWidth
-      } else {
-        // find preTag and nextTag
-        const currentIndex = tagList.findIndex(item => item === currentTag)
-        const prevTag = tagList[currentIndex - 1]
-        const nextTag = tagList[currentIndex + 1]
+  // find first tag and last tag
+  if (tagList.length > 0) {
+    firstTag = tagList[0]
+    lastTag = tagList[tagList.length - 1]
+  }
 
-        // the tag's offsetLeft after of nextTag
-        const afterNextTagOffsetLeft = nextTag.$el.offsetLeft + nextTag.$el.offsetWidth + tagAndTagSpacing
+  if (firstTag === currentTag) {
+    $scrollWrapper.scrollLeft = 0
+  } else if (lastTag === currentTag) {
+    $scrollWrapper.scrollLeft = $scrollWrapper.scrollWidth - $containerWidth
+  } else {
+    // find preTag and nextTag
+    const currentIndex = tagList.findIndex(item => item === currentTag)
+    const prevTag = tagList[currentIndex - 1]
+    const nextTag = tagList[currentIndex + 1]
 
-        // the tag's offsetLeft before of prevTag
-        const beforePrevTagOffsetLeft = prevTag.$el.offsetLeft - tagAndTagSpacing
+    // the tag's offsetLeft after of nextTag
+    const afterNextTagOffsetLeft = nextTag.$el.offsetLeft + nextTag.$el.offsetWidth + tagAndTagSpacing
 
-        if (afterNextTagOffsetLeft > $scrollWrapper.scrollLeft + $containerWidth) {
-          $scrollWrapper.scrollLeft = afterNextTagOffsetLeft - $containerWidth
-        } else if (beforePrevTagOffsetLeft < $scrollWrapper.scrollLeft) {
-          $scrollWrapper.scrollLeft = beforePrevTagOffsetLeft
-        }
-      }
+    // the tag's offsetLeft before of prevTag
+    const beforePrevTagOffsetLeft = prevTag.$el.offsetLeft - tagAndTagSpacing
+
+    if (afterNextTagOffsetLeft > $scrollWrapper.scrollLeft + $containerWidth) {
+      $scrollWrapper.scrollLeft = afterNextTagOffsetLeft - $containerWidth
+    } else if (beforePrevTagOffsetLeft < $scrollWrapper.scrollLeft) {
+      $scrollWrapper.scrollLeft = beforePrevTagOffsetLeft
     }
   }
 }
+
 </script>
 
 <style lang="scss" scoped>

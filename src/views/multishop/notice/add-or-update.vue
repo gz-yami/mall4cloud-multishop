@@ -7,7 +7,7 @@
     class="natice-dialog"
   >
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       :rules="rules"
       :model="dataForm"
       label-position="left"
@@ -71,7 +71,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -80,71 +80,64 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/multishop/notice'
 import TinyMce from '@/components/Tinymce'
-export default {
 
-  components: {
-    TinyMce
-  },
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        // id: 1, // 公告id
-        // shopId: 1, // 店铺id
-        title: '', // 公告标题
-        content: '', // 公告内容
-        status: 1, // 状态(1:公布 0:撤回)
-        isTop: 0, // 是否置顶
-        type: 2 // 类型(1:平台公告 2:商城公告)
-        // publishTime: '' // 发布时间
-      },
-      rules: {
-      }
-    }
-  },
 
-  methods: {
-    init (id) {
-      this.dataForm.id = id || 0
-      this.visible = true
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.id) {
-          return
-        }
-        api.get(id).then(data => {
-          this.dataForm = data
-        })
-      })
-    },
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        const request = this.dataForm.id ? api.update(this.dataForm) : api.save(this.dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
-      })
-    }
-  }
+var visible = ref(false)
+var dataForm = reactive({
+  // id: 1, // 公告id
+  // shopId: 1, // 店铺id
+  title: '', // 公告标题
+  content: '', // 公告内容
+  status: 1, // 状态(1:公布 0:撤回)
+  isTop: 0, // 是否置顶
+  type: 2 // 类型(1:平台公告 2:商城公告)
+  // publishTime: '' // 发布时间
+})
+var rules = {
 }
+
+
+const init  = (id) => {
+  dataForm.id = id || 0
+  visible = true
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.id) {
+      return
+    }
+    api.get(id).then(data => {
+      dataForm = data
+    })
+  })
+}
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    const request = dataForm.id ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
 </script>
 
 <style lang="scss">

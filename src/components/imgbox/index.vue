@@ -206,7 +206,7 @@
                 {{ $t("biz.imgbox.selectLocalPic") }}
               </div>
               <el-upload
-                ref="upload"
+                ref="uploadRef"
                 class="upload-img-preview"
                 list-type="picture-card"
                 accept="image/*"
@@ -267,7 +267,7 @@
           :append-to-body="showGroupVisible"
         >
           <el-form
-            ref="groupForm"
+            ref="groupFormRef"
             :model="groupForm"
             label-width="90px"
             style="width:400px"
@@ -326,7 +326,7 @@
       >
         <el-form
           v-if="changeNameVisible"
-          ref="imgDataForm"
+          ref="imgDataFormRef"
           :model="imageObject"
           label-width="80px"
         >
@@ -370,612 +370,608 @@
 import { ossInfo, pageFileGroup, saveFileGroup, updateFileGroup, deleteFileGroup, aliImgUpdate, minIoImgUpdate } from '@/api/biz/oss'
 import { save, page, updateFileName, deleteFile } from '@/api/biz/attach-file'
 import { getUUID } from '@/utils/index'
-export default {
-  name: 'ElxImgbox',
+
+
   emits: ['refreshPic', 'refreshPic'],
 
-  data () {
-    return {
-      images: [], // 已选图片
-      dataForm: {
-        policy: '',
-        signature: '',
-        key: '',
-        ossaccessKeyId: '',
-        dir: '',
-        host: '',
-        attachFileGroupId: 0
-      },
-      groupList: [], // 分组列表
-      attachFiles: [],
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      resourcesActionType: process.env.VUE_APP_RESOURCES_TYPE,
-      showGroupVisible: false, // 选择/创建分组弹窗
-      selectGroup: false, // 选择分组
-      createGroup: false, // 创建分组
-      groupForm: {
-        attachFileGroupId: '', // 选择分组的值
-        name: '' // 分组名称
-      },
-      groupId: null,
-      oriImgName: null, // 图片原名称
-      rules: {
-        name: [
-          { required: true, message: '分组名称不能为空', trigger: 'blur' },
-          { min: 0, max: 6, message: '长度在1-6个字符', trigger: 'blur' }
-        ],
-        attachFileGroupId: [
-          { required: true, message: '请选择分组', trigger: 'change' }
-        ]
-      },
-      options: {
-        multiple: true, // 是否支持选取多个图片
-        limit: 20, // 最多可选择图片数量
-        maxSize: 2, // 最大尺寸（M）
-        activeTab: 'pick',
-        enableUpload: false, // 是否启用图片上传
-        callback: null
-      },
-      newImgName: '',
-      ossList: null,
-      isTrue: true,
-      imageObject: null,
-      changeNameVisible: false,
-      type: 2,
-      fileName: '',
-      listType: 'picture',
-      isLoading: true,
-      visible: false,
-      disabled: false,
-      notImg: false,
-      uploadSuccessCount: 0,
-      imgRes: [],
-      page: {
-        current: 1,
-        size: 15,
-        total: 0
-      }
-    }
-  },
+
+var images = ref([]) // 已选图片
+var dataForm = reactive({
+  policy: '',
+  signature: '',
+  key: '',
+  ossaccessKeyId: '',
+  dir: '',
+  host: '',
+  attachFileGroupId: 0
+})
+var groupList = ref([]) // 分组列表
+var attachFiles = ref([])
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var resourcesActionType = reactive(process.env.VUE_APP_RESOURCES_TYPE)
+var showGroupVisible = ref(false) // 选择/创建分组弹窗
+var selectGroup = ref(false) // 选择分组
+var createGroup = ref(false) // 创建分组
+var groupForm = reactive({
+  attachFileGroupId: '', // 选择分组的值
+  name: '' // 分组名称
+})
+let groupId = null
+let oriImgName = null // 图片原名称
+var rules = reactive({
+  name: [
+    { required: true, message: '分组名称不能为空', trigger: 'blur' },
+    { min: 0, max: 6, message: '长度在1-6个字符', trigger: 'blur' }
+  ],
+  attachFileGroupId: [
+    { required: true, message: '请选择分组', trigger: 'change' }
+  ]
+})
+var options = reactive({
+  multiple: true, // 是否支持选取多个图片
+  limit: 20, // 最多可选择图片数量
+  maxSize: 2, // 最大尺寸（M）
+  activeTab: 'pick',
+  enableUpload: false, // 是否启用图片上传
+  callback: null
+})
+var newImgName = ref('')
+let ossList = null
+var isTrue = ref(true)
+let imageObject = null
+var changeNameVisible = ref(false)
+var type = ref(2)
+var fileName = ref('')
+var listType = ref('picture')
+var isLoading = ref(true)
+var visible = ref(false)
+var disabled = ref(false)
+var notImg = ref(false)
+var uploadSuccessCount = ref(0)
+var imgRes = ref([])
+var page = {
+  current: 1,
+  size: 15,
+  total: 0
+}
 
   // mounted() {
-  //   this.loadListImage()
+  //   loadListImage()
   // },
 
   computed: {
 
   },
 
-  methods: {
-    /**
-     * 初始化
-     * type 1：单图  2：多图
-     */
-    init (type, limit) {
-      this.visible = true
-      this.isLoading = false
-      this.images = []
-      this.type = type
-      if (type === 1) {
-        this.type = true
-        this.disabled = true
-      } else {
-        this.type = false
-        this.limit = limit
-      }
-      if (this.$refs.upload) {
-        this.$refs.upload.uploadFiles = []
-      }
-      // 获取产品数据 - 第一页的数据
-      this.page.current = 1
-      this.loadImageGroup() // 分组
-      this.loadListImage() // 图片列表
-    },
-    show () {
-      this.visible = true
-    },
 
-    hide () {
-      this.visible = false
-    },
+/**
+ * 初始化
+ * type 1：单图  2：多图
+ */
+const init  = (type, limit) => {
+  visible = true
+  isLoading = false
+  images = []
+  type = type
+  if (type === 1) {
+    type = true
+    disabled = true
+  } else {
+    type = false
+    limit = limit
+  }
+  if ($refs.upload) {
+    uploadRef.value?.uploadFiles = []
+  }
+  // 获取产品数据 - 第一页的数据
+  page.current = 1
+  loadImageGroup() // 分组
+  loadListImage() // 图片列表
+}
+const show  = () => {
+  visible = true
+}
 
-    /**
-     * 加载图片分组列表
-     */
-    loadImageGroup () {
-      pageFileGroup().then((data) => {
-        this.groupList = data
-      })
-    },
-    /**
-     * 点击图片分组item
-     */
-    clickOneGroup (id) {
-      this.dataForm.attachFileGroupId = id
-      this.options.activeTab = 'pick'
-      this.loadListImage()
-    },
-    /**
-     * 打开选择/新建分组
-     */
-    selectOrCreateGroup (st, groupId, gIdx) {
-      if (!groupId) {
-        this.groupForm.attachFileGroupId = null
-        this.groupForm.name = null
-      }
-      if (st === 0) { // 选择分组
-        if (!this.groupList.length) {
-          this.$message({
-            message: '当前暂无分组可选择，请先创建分组',
-            duration: 1500
-          })
-          this.showGroupVisible = false
-          return
-        } else {
-          this.selectGroup = true
-          this.createGroup = false
-        }
-      } else if (st === 1) { // 编辑/创建分组
-        this.createGroup = true
-        this.selectGroup = false
-        if (groupId) {
-          this.groupForm.name = this.groupList[gIdx].name
-          this.groupForm.attachFileGroupId = groupId
-          this.groupId = groupId
-        }
-      }
-      this.showGroupVisible = true
-    },
-    /**
-     * 提交选择/创建/修改分组
-     */
-    groupFormSubmit () {
-      this.$refs.groupForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        if (this.selectGroup) {
-          if (!this.groupForm.attachFileGroupId) {
-            this.$message({
-              message: '请选择分组',
-              type: 'warning',
-              duration: 1000
-            })
-            return
-          }
-          this.groupList.forEach(el => {
-            if (this.groupForm.attachFileGroupId == el.attachFileGroupId) {
-              this.groupForm.name = el.name
-            }
-          })
-          this.showGroupVisible = false
-          return
-        }
-        if (this.createGroup) {
-          if (!this.groupForm.name) {
-            this.$message({
-              message: '分组名称不能为空',
-              type: 'warning',
-              duration: 1000
-            })
-          }
-          const param = {
-            attachFileGroupId: this.groupForm.attachFileGroupId,
-            name: this.groupForm.name
-          }
-          const request = this.groupId ? updateFileGroup(param) : saveFileGroup(param)
-          request.then(data => {
-            this.$message({
-              message: this.$t('table.actionSuccess'),
-              type: 'success',
-              duration: 1500,
-              onClose: () => {
-                this.showGroupVisible = false
-                this.loadImageGroup()
-              }
-            })
-          })
-        }
-      })
-    },
-    /**
-     * 删除分组
-     */
-    deleteFileGroup (groupId) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => {
-        const data = {
-          attachFileGroupId: groupId
-        }
-        deleteFileGroup(data).then((delData) => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.loadImageGroup()
-              this.searchImg()
-            }
-          })
-        })
-      })
-    },
+const hide  = () => {
+  visible = false
+}
 
-    /**
-     * 加载图片列表数据
-     * @param page
-     */
-    loadListImage () {
-      this.isLoading = true
-      const param = {
-        pageNum: this.page.current ? this.page.current : 1,
-        pageSize: this.page.size,
-        fileName: this.fileName ? this.fileName : null,
-        fileGroupId: this.dataForm.attachFileGroupId || 0
-      }
-      page(param).then(response => {
-        this.imgRes = response.list
-        this.page.pages = response.pages
-        this.page.total = response.total
-        this.isLoading = false
-      })
-    },
-
-    onConfirm () {
-      if (this.type) {
-        this.$emit('refreshPic', this.images[0].filePath)
-      } else {
-        const imgPaths = this.images.map(file => {
-          return file.filePath
-        }).join(',')
-        this.$emit('refreshPic', imgPaths)
-      }
-      this.visible = false
-    },
-    /**
-     * 修改图片名称
-     */
-    changeName (img) {
-      this.newImgName = ''
-      this.imageObject = img
-      this.isTrue = true
-      this.changeNameVisible = true
-      this.oriImgName = img.fileName
-      this.groupList.forEach(el => {
-        if (img.attachFileGroupId == el.attachFileGroupId) {
-          this.groupForm.name = el.name
-          this.groupForm.attachFileGroupId = el.attachFileGroupId
-        } else {
-          this.groupForm.name = null
-          this.groupForm.attachFileGroupId = null
-        }
-      })
-    },
-    /**
-     * 提交修改后的图片名称
-     */
-    submitImgName () {
-      if (!this.isTrue) {
-        return false
-      }
-      this.isTrue = false
-      const data = {
-        fileId: this.imageObject.fileId,
-        fileName: this.newImgName ? this.newImgName : this.oriImgName,
-        attachFileGroupId: this.groupForm.attachFileGroupId
-      }
-      updateFileName(data).then(({ data }) => {
-        this.newImgName = ''
-        this.isTrue = true
-        this.changeNameVisible = false
-        this.loadListImage()
-      }).catch(({ e }) => {
-        this.isTrue = true
-      })
-    },
-    /**
-     * 删除图片
-     */
-    delectImg (fileId) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => {
-        // this.$http({
-        //   url: this.$http.adornUrl('/admin/file/deleteFile/' + fileId),
-        //   method: 'delete'
-        // }).then(({ data }) => {
-        //   this.images = []
-        //   this.loadListImage()
-        // })
-        const data = {
-          fileId
-        }
-        deleteFile(data).then((data) => {
-          this.images = []
-          this.searchImg()
-        })
-      })
-    },
-
-    /**
-     * 点击上传图片按钮
-     */
-    uploadFileBtn () {
-      this.options.activeTab = 'upload'
-      this.dataForm.attachFileGroupId = null
-    },
-
-    /**
-     * 点击图片时选中或取消选中图片
-     * @param img object
-     */
-    onClickListImage (img) {
-      console.log(img)
-      if (this.type) {
-        this.clearListSelected()
-        this.images = []
-        this.disabled = false
-      } else {
-        const imgIndex = this.selectedImageIndex(img)
-        // 取消图片已选状态
-        img.selected = false
-        this.images.splice(imgIndex, 1)
-      }
-      if (!this.type && this.images.length >= this.limit) {
-        this.message(this.$t('biz.imgbox.superiorLimit'))
-        return false
-      }
-      this.images.push(JSON.parse(JSON.stringify(img)))
-      img.selected = true
-      this.$forceUpdate()
-    },
-    /**
-     * 清除所有已点击图片样式
-     */
-    clearListSelected () {
-      if (this.type) {
-        const list = this.imgRes
-        list.forEach(element => {
-          element.selected = false
-        })
-      }
-    },
-    /**
-     * 按图片名称搜索图片
-     */
-    searchImg () {
-      this.page.current = 1
-      this.loadListImage()
-    },
-
-    /**
-     * 图片已选则返回下标，未选则返回-1
-     */
-    selectedImageIndex (img) {
-      for (let i = 0; i < this.images.length; i++) {
-        const selectedImg = this.images[i]
-        if (selectedImg.fileId === img.fileId) {
-          return i
-        }
-      }
-      return -1
-    },
-
-    /**
-     * 分页页面变化时刷新数据
-     * @param page
-     */
-    onPageNumChange (page) {
-      this.page.current = page
-      this.loadListImage()
-    },
-
-    /**
-     * 获取上传图片数据
-     */
-    onUploadConfirm () {
-      const fileNum = this.$refs.upload.uploadFiles.length
-      ossInfo(fileNum).then(response => {
-        console.log('选择图片response：', response)
-        if (this.resourcesActionType === '0') {
-          this.dataForm.policy = response.policy
-          this.dataForm.signature = response.signature
-          this.dataForm.ossaccessKeyId = response.accessid
-          this.dataForm.dir = response.dir
-        }
-        this.ossList = response.ossList
-        this.notImg = true
-        this.$nextTick(() => {
-          this.$refs.upload.submit()
-        })
-      })
-    },
-    /**
-     * 上传图片
-     */
-    httpRequest (event) {
-      console.log('上传图片event:', event)
-
-      const file = event.file
-      const typeArray = file.type.split('/')
-      const attachFile = Object.assign({
-        fileType: typeArray[1],
-        fileName: file.name,
-        fileSize: file.size,
-        type: 1
-      })
-
-      if (this.ossList.length <= 0) {
-        this.message('数据异常，请刷洗后重试')
-      }
-
-      // aliOss 上传
-      if (this.resourcesActionType === '0') {
-        attachFile.filePath = '/' + this.dataForm.dir + this.ossList[0].fileName
-        const formdata = new FormData()
-        formdata.append('policy', this.dataForm.policy)
-        formdata.append('signature', this.dataForm.signature)
-        formdata.append('ossaccessKeyId', this.dataForm.ossaccessKeyId)
-        formdata.append('dir', this.dataForm.dir)
-        formdata.append('host', this.resourcesUrl)
-        formdata.append('key', this.ossList[0].dir + this.ossList[0].fileName)
-        formdata.append('file', file)
-        aliImgUpdate(this.resourcesUrl, formdata).then(data => {
-        }).catch(error => {
-          if (!error) {
-            event.onError()
-          }
-        })
-      }
-      // mioIo 上传
-      else {
-        attachFile.filePath = '/' + this.ossList[0].dir + this.ossList[0].fileName
-        console.log('mioIo 上传 file:', file)
-        minIoImgUpdate(this.ossList[0].actionUrl, file).then(data => {
-        })
-      }
-      this.attachFiles.push(attachFile)
-      this.ossList.splice(0, 1)
-      if (this.ossList <= 0) {
-        event.onSuccess()
-      }
-    },
-
-    /**
-     * 上传图片前检查合法性
-     * @param file
-     * @returns {boolean}
-     */
-    beforeUpload (file) {
-      const typeArray = file.type.split('/')
-      if (typeArray[0] !== 'image') {
-        if (this.notImg) {
-          this.message(this.$t('biz.imgbox.onlyPictures'), true)
-          this.notImg = false
-        }
-        return false
-      }
-      const isSize = file.size / (1024 * 1024) < 2
-      if (!isSize) {
-        this.message(this.uploadSizeTip())
-        return false
-      }
-      // this.dataForm.key = this.dataForm.dir + getUUID()
-      // const attachFile = Object.assign({
-      //   filePath: '/' + this.dataForm.key,
-      //   fileType: typeArray[1],
-      //   fileName: file.name,
-      //   fileSize: file.size,
-      //   type: 1,
-      // })
-      // this.attachFiles.push(attachFile)
-      return true
-    },
-
-    uploadNumberLimit () {
-      if (!this.options.multiple) {
-        return 1
-      }
-
-      return this.options.limit - this.images.length
-    },
-
-    uploadTypeTip () {
-      return this.$t('biz.imgbox.onlySupported') + ' jpg/png/gif ' + this.$t('biz.imgbox.pic')
-    },
-
-    uploadSizeTip () {
-      return this.$t('biz.imgbox.notExceed') + '2M'
-    },
-
-    uploadTips () {
-      const tips = [this.uploadTypeTip(), this.uploadSizeTip()]
-
-      if (!this.options.multiple) {
-        return tips.join('，')
-      }
-
-      if (this.images.length > 0) {
-        tips.push(this.$t('biz.imgbox.alreadyExist') + this.images.length + this.$t('biz.imgbox.unit'))
-      }
-
-      const uploadFileNum = this.$refs.upload ? this.$refs.upload.uploadFiles.length : 0
-      if (uploadFileNum > 0) {
-        tips.push(this.$t('biz.imgbox.soonUpload') + uploadFileNum + this.$t('biz.imgbox.unit'))
-      }
-
-      tips.push(this.$t('biz.imgbox.remainder') + (this.options.limit - this.images.length - uploadFileNum) + this.$t('biz.imgbox.unit') + this.$t('biz.imgbox.upload'))
-
-      return tips.join('，')
-    },
-
-    /**
-     * 上传错误处理
-     * @param err
-     * @param file
-     * @param fileList
-     */
-    onUploadError (err, file, fileList) {
-      this.message(this.$t('biz.imgbox.requestError'), true)
-      throw err
-    },
-
-    /**
-     * 上传成功处理，并提交图片数据
-     * @param response
-     * @param file
-     * @param fileList
-     * @returns {boolean}
-     */
-    onUploadSuccess (response, file, fileList) {
-      const filesNames = []
-      fileList.forEach(file => {
-        filesNames.push(file.name)
-      })
-      const uploadFile = []
-      this.attachFiles.forEach(file => {
-        if (filesNames.indexOf(file.fileName) !== -1) {
-          file.attachFileGroupId = this.groupForm.attachFileGroupId
-          uploadFile.push(file)
-        }
-      })
-      console.log('上传成功处理attachFiles：', this.attachFiles)
-      console.log('上传成功处理uploadFile：', uploadFile)
-      save(uploadFile).then(response => {
-        this.attachFiles = []
-        this.options.activeTab = 'pick'
-        this.dataForm.attachFileGroupId = 0
-        this.loadListImage()
-      })
-      this.disabled = true
-      this.$refs.upload.uploadFiles = []
-      this.page.current = 1
-    },
-
-    /**
-     * 选择上传文件超过限制文件个数提示
-     */
-    onUploadExceedTip () {
-      this.message(this.$t('biz.imgbox.maxSelect') + this.uploadNumberLimit() + this.$t('biz.imgbox.unit') + this.$t('biz.imgbox.upload'))
-    },
-    message (msg, isInfo) {
-      let type = 'error'
-      if (isInfo) {
-        type = 'info'
-      }
-      this.$message({
-        message: msg,
-        type,
+/**
+ * 加载图片分组列表
+ */
+const loadImageGroup  = () => {
+  pageFileGroup().then((data) => {
+    groupList = data
+  })
+}
+/**
+ * 点击图片分组item
+ */
+const clickOneGroup  = (id) => {
+  dataForm.attachFileGroupId = id
+  options.activeTab = 'pick'
+  loadListImage()
+}
+/**
+ * 打开选择/新建分组
+ */
+const selectOrCreateGroup  = (st, groupId, gIdx) => {
+  if (!groupId) {
+    groupForm.attachFileGroupId = null
+    groupForm.name = null
+  }
+  if (st === 0) { // 选择分组
+    if (!groupList.length) {
+      ElMessage({
+        message: '当前暂无分组可选择，请先创建分组',
         duration: 1500
       })
+      showGroupVisible = false
+      return
+    } else {
+      selectGroup = true
+      createGroup = false
+    }
+  } else if (st === 1) { // 编辑/创建分组
+    createGroup = true
+    selectGroup = false
+    if (groupId) {
+      groupForm.name = groupList[gIdx].name
+      groupForm.attachFileGroupId = groupId
+      groupId = groupId
     }
   }
+  showGroupVisible = true
 }
+/**
+ * 提交选择/创建/修改分组
+ */
+const groupFormSubmit  = () => {
+  groupFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    if (selectGroup) {
+      if (!groupForm.attachFileGroupId) {
+        ElMessage({
+          message: '请选择分组',
+          type: 'warning',
+          duration: 1000
+        })
+        return
+      }
+      groupList.forEach(el => {
+        if (groupForm.attachFileGroupId == el.attachFileGroupId) {
+          groupForm.name = el.name
+        }
+      })
+      showGroupVisible = false
+      return
+    }
+    if (createGroup) {
+      if (!groupForm.name) {
+        ElMessage({
+          message: '分组名称不能为空',
+          type: 'warning',
+          duration: 1000
+        })
+      }
+      const param = {
+        attachFileGroupId: groupForm.attachFileGroupId,
+        name: groupForm.name
+      }
+      const request = groupId ? updateFileGroup(param) : saveFileGroup(param)
+      request.then(data => {
+        ElMessage({
+          message: $t('table.actionSuccess'),
+          type: 'success',
+          duration: 1500,
+          onClose: () => {
+            showGroupVisible = false
+            loadImageGroup()
+          }
+        })
+      })
+    }
+  })
+}
+/**
+ * 删除分组
+ */
+const deleteFileGroup  = (groupId) => {
+  ElMessageBox.confirm($t('table.sureToDelete'), $t('table.tips'), {
+    confirmButtonText: $t('table.confirm'),
+    cancelButtonText: $t('table.cancel'),
+    type: 'warning'
+  }).then(() => {
+    const data = {
+      attachFileGroupId: groupId
+    }
+    deleteFileGroup(data).then((delData) => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          loadImageGroup()
+          searchImg()
+        }
+      })
+    })
+  })
+}
+
+/**
+ * 加载图片列表数据
+ * @param page
+ */
+const loadListImage  = () => {
+  isLoading = true
+  const param = {
+    pageNum: page.current ? page.current : 1,
+    pageSize: page.size,
+    fileName: fileName ? fileName : null,
+    fileGroupId: dataForm.attachFileGroupId || 0
+  }
+  page(param).then(response => {
+    imgRes = response.list
+    page.pages = response.pages
+    page.total = response.total
+    isLoading = false
+  })
+}
+
+const onConfirm  = () => {
+  if (type) {
+    emit('refreshPic', images[0].filePath)
+  } else {
+    const imgPaths = images.map(file => {
+      return file.filePath
+    }).join(',')
+    emit('refreshPic', imgPaths)
+  }
+  visible = false
+}
+/**
+ * 修改图片名称
+ */
+const changeName  = (img) => {
+  newImgName = ''
+  imageObject = img
+  isTrue = true
+  changeNameVisible = true
+  oriImgName = img.fileName
+  groupList.forEach(el => {
+    if (img.attachFileGroupId == el.attachFileGroupId) {
+      groupForm.name = el.name
+      groupForm.attachFileGroupId = el.attachFileGroupId
+    } else {
+      groupForm.name = null
+      groupForm.attachFileGroupId = null
+    }
+  })
+}
+/**
+ * 提交修改后的图片名称
+ */
+const submitImgName  = () => {
+  if (!isTrue) {
+    return false
+  }
+  isTrue = false
+  const data = {
+    fileId: imageObject.fileId,
+    fileName: newImgName ? newImgName : oriImgName,
+    attachFileGroupId: groupForm.attachFileGroupId
+  }
+  updateFileName(data).then(({ data }) => {
+    newImgName = ''
+    isTrue = true
+    changeNameVisible = false
+    loadListImage()
+  }).catch(({ e }) => {
+    isTrue = true
+  })
+}
+/**
+ * 删除图片
+ */
+const delectImg  = (fileId) => {
+  ElMessageBox.confirm($t('table.sureToDelete'), $t('table.tips'), {
+    confirmButtonText: $t('table.confirm'),
+    cancelButtonText: $t('table.cancel'),
+    type: 'warning'
+  }).then(() => {
+    // http({
+    //   url: http.adornUrl('/admin/file/deleteFile/' + fileId),
+    //   method: 'delete'
+    // }).then(({ data }) => {
+    //   images = []
+    //   loadListImage()
+    // })
+    const data = {
+      fileId
+    }
+    deleteFile(data).then((data) => {
+      images = []
+      searchImg()
+    })
+  })
+}
+
+/**
+ * 点击上传图片按钮
+ */
+const uploadFileBtn  = () => {
+  options.activeTab = 'upload'
+  dataForm.attachFileGroupId = null
+}
+
+/**
+ * 点击图片时选中或取消选中图片
+ * @param img object
+ */
+const onClickListImage  = (img) => {
+  console.log(img)
+  if (type) {
+    clearListSelected()
+    images = []
+    disabled = false
+  } else {
+    const imgIndex = selectedImageIndex(img)
+    // 取消图片已选状态
+    img.selected = false
+    images.splice(imgIndex, 1)
+  }
+  if (!type && images.length >= limit) {
+    message($t('biz.imgbox.superiorLimit'))
+    return false
+  }
+  images.push(JSON.parse(JSON.stringify(img)))
+  img.selected = true
+  $forceUpdate()
+}
+/**
+ * 清除所有已点击图片样式
+ */
+const clearListSelected  = () => {
+  if (type) {
+    const list = imgRes
+    list.forEach(element => {
+      element.selected = false
+    })
+  }
+}
+/**
+ * 按图片名称搜索图片
+ */
+const searchImg  = () => {
+  page.current = 1
+  loadListImage()
+}
+
+/**
+ * 图片已选则返回下标，未选则返回-1
+ */
+const selectedImageIndex  = (img) => {
+  for (let i = 0; i < images.length; i++) {
+    const selectedImg = images[i]
+    if (selectedImg.fileId === img.fileId) {
+      return i
+    }
+  }
+  return -1
+}
+
+/**
+ * 分页页面变化时刷新数据
+ * @param page
+ */
+const onPageNumChange  = (page) => {
+  page.current = page
+  loadListImage()
+}
+
+/**
+ * 获取上传图片数据
+ */
+const onUploadConfirm  = () => {
+  const fileNum = upload.uploadFilesRef.value?.length
+  ossInfo(fileNum).then(response => {
+    console.log('选择图片response：', response)
+    if (resourcesActionType === '0') {
+      dataForm.policy = response.policy
+      dataForm.signature = response.signature
+      dataForm.ossaccessKeyId = response.accessid
+      dataForm.dir = response.dir
+    }
+    ossList = response.ossList
+    notImg = true
+    nextTick(() => {
+      uploadRef.value?.submit()
+    })
+  })
+}
+/**
+ * 上传图片
+ */
+const httpRequest  = (event) => {
+  console.log('上传图片event:', event)
+
+  const file = event.file
+  const typeArray = file.type.split('/')
+  const attachFile = Object.assign({
+    fileType: typeArray[1],
+    fileName: file.name,
+    fileSize: file.size,
+    type: 1
+  })
+
+  if (ossList.length <= 0) {
+    message('数据异常，请刷洗后重试')
+  }
+
+  // aliOss 上传
+  if (resourcesActionType === '0') {
+    attachFile.filePath = '/' + dataForm.dir + ossList[0].fileName
+    const formdata = new FormData()
+    formdata.append('policy', dataForm.policy)
+    formdata.append('signature', dataForm.signature)
+    formdata.append('ossaccessKeyId', dataForm.ossaccessKeyId)
+    formdata.append('dir', dataForm.dir)
+    formdata.append('host', resourcesUrl)
+    formdata.append('key', ossList[0].dir + ossList[0].fileName)
+    formdata.append('file', file)
+    aliImgUpdate(resourcesUrl, formdata).then(data => {
+    }).catch(error => {
+      if (!error) {
+        event.onError()
+      }
+    })
+  }
+  // mioIo 上传
+  else {
+    attachFile.filePath = '/' + ossList[0].dir + ossList[0].fileName
+    console.log('mioIo 上传 file:', file)
+    minIoImgUpdate(ossList[0].actionUrl, file).then(data => {
+    })
+  }
+  attachFiles.push(attachFile)
+  ossList.splice(0, 1)
+  if (ossList <= 0) {
+    event.onSuccess()
+  }
+}
+
+/**
+ * 上传图片前检查合法性
+ * @param file
+ * @returns {boolean}
+ */
+const beforeUpload  = (file) => {
+  const typeArray = file.type.split('/')
+  if (typeArray[0] !== 'image') {
+    if (notImg) {
+      message($t('biz.imgbox.onlyPictures'), true)
+      notImg = false
+    }
+    return false
+  }
+  const isSize = file.size / (1024 * 1024) < 2
+  if (!isSize) {
+    message(uploadSizeTip())
+    return false
+  }
+  // dataForm.key = dataForm.dir + getUUID()
+  // const attachFile = Object.assign({
+  //   filePath: '/' + dataForm.key,
+  //   fileType: typeArray[1],
+  //   fileName: file.name,
+  //   fileSize: file.size,
+  //   type: 1,
+  // })
+  // attachFiles.push(attachFile)
+  return true
+}
+
+const uploadNumberLimit  = () => {
+  if (!options.multiple) {
+    return 1
+  }
+
+  return options.limit - images.length
+}
+
+const uploadTypeTip  = () => {
+  return $t('biz.imgbox.onlySupported') + ' jpg/png/gif ' + $t('biz.imgbox.pic')
+}
+
+const uploadSizeTip  = () => {
+  return $t('biz.imgbox.notExceed') + '2M'
+}
+
+const uploadTips  = () => {
+  const tips = [uploadTypeTip(), uploadSizeTip()]
+
+  if (!options.multiple) {
+    return tips.join('，')
+  }
+
+  if (images.length > 0) {
+    tips.push($t('biz.imgbox.alreadyExist') + images.length + $t('biz.imgbox.unit'))
+  }
+
+  const uploadFileNum = upload ? $refs.upload.uploadFilesRef.value?.length : 0
+  if (uploadFileNum > 0) {
+    tips.push($t('biz.imgbox.soonUpload') + uploadFileNum + $t('biz.imgbox.unit'))
+  }
+
+  tips.push($t('biz.imgbox.remainder') + (options.limit - images.length - uploadFileNum) + $t('biz.imgbox.unit') + $t('biz.imgbox.upload'))
+
+  return tips.join('，')
+}
+
+/**
+ * 上传错误处理
+ * @param err
+ * @param file
+ * @param fileList
+ */
+const onUploadError  = (err, file, fileList) => {
+  message($t('biz.imgbox.requestError'), true)
+  throw err
+}
+
+/**
+ * 上传成功处理，并提交图片数据
+ * @param response
+ * @param file
+ * @param fileList
+ * @returns {boolean}
+ */
+const onUploadSuccess  = (response, file, fileList) => {
+  const filesNames = []
+  fileList.forEach(file => {
+    filesNames.push(file.name)
+  })
+  const uploadFile = []
+  attachFiles.forEach(file => {
+    if (filesNames.indexOf(file.fileName) !== -1) {
+      file.attachFileGroupId = groupForm.attachFileGroupId
+      uploadFile.push(file)
+    }
+  })
+  console.log('上传成功处理attachFiles：', attachFiles)
+  console.log('上传成功处理uploadFile：', uploadFile)
+  save(uploadFile).then(response => {
+    attachFiles = []
+    options.activeTab = 'pick'
+    dataForm.attachFileGroupId = 0
+    loadListImage()
+  })
+  disabled = true
+  uploadRef.value?.uploadFiles = []
+  page.current = 1
+}
+
+/**
+ * 选择上传文件超过限制文件个数提示
+ */
+const onUploadExceedTip  = () => {
+  message($t('biz.imgbox.maxSelect') + uploadNumberLimit() + $t('biz.imgbox.unit') + $t('biz.imgbox.upload'))
+}
+const message  = (msg, isInfo) => {
+  let type = 'error'
+  if (isInfo) {
+    type = 'info'
+  }
+  ElMessage({
+    message: msg,
+    type,
+    duration: 1500
+  })
+}
+
 </script>
 
 <style lang="scss">

@@ -4,8 +4,8 @@
   </div>
 </template>
 
-<script>
-export default {
+<script setup>
+
   name: 'App'
-}
+
 </script>

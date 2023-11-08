@@ -16,7 +16,7 @@
         icon="el-icon-plus"
         type="primary"
         class="filter-item"
-        @click="addOrUpdateHandle()"
+        @click="onAddOrUpdate()"
       >
         {{ $t('table.create') }}
       </el-button>
@@ -57,13 +57,13 @@
         <template #default="scope">
           <el-tag
             v-if="scope.row.component === ''"
-            size="small"
+            
           >
             {{ '目录' }}
           </el-tag>
           <el-tag
             v-else
-            size="small"
+            
             type="success"
           >
             {{ '菜单' }}
@@ -107,16 +107,16 @@
           <el-button
             v-permission="['rbac:menu:update']"
             type="text"
-            size="small"
-            @click="addOrUpdateHandle(scope.row.id)"
+            
+            @click="onAddOrUpdate(scope.row.id)"
           >
             {{ '编辑' }}
           </el-button>
           <el-button
             v-permission="['rbac:menu:delete']"
             type="text"
-            size="small"
-            @click="deleteHandle(scope.row.id)"
+            
+            @click="onDelete(scope.row.id)"
           >
             {{ '删除' }}
           </el-button>
@@ -126,72 +126,67 @@
     <!-- 弹窗, 新增 / 修改 -->
     <add-or-update
       v-if="addOrUpdateVisible"
-      ref="addOrUpdate"
+      ref="addOrUpdateRef"
       @refresh-data-list="getPage()"
     />
   </div>
 </template>
 
-<script>
+<script setup>
 import permission from '@/directive/permission/index.js'
 import * as api from '@/api/rbac/menu'
 import { treeDataTranslate } from '@/utils'
 import AddOrUpdate from './add-or-update.vue'
 
-export default {
+
   name: '',
-  components: { AddOrUpdate },
   directives: { permission },
-  data () {
-    return {
-      menulist: [],
-      // loading
-      pageLoading: true,
-      // 查询参数
-      searchParam: {
-      },
-      addOrUpdateVisible: false
-    }
-  },
-  mounted () {
-    this.getPage()
-  },
-  methods: {
-    getPage () {
-      this.pageLoading = true
-      api.menuList({ ...this.searchParam }).then(data => {
-        data.forEach(item => {
-          if (item.component === 'Layout') {
-            item.component = ''
-          }
-        })
-        this.menulist = treeDataTranslate(data)
-        this.pageLoading = false
-      })
-    },
-    addOrUpdateHandle (menuId) {
-      this.addOrUpdateVisible = true
-      this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(menuId)
-      })
-    },
-    deleteHandle (menuId) {
-      this.$confirm(this.$t('table.sureToDelete'), this.$t('table.tips'), {
-        confirmButtonText: this.$t('table.confirm'),
-        cancelButtonText: this.$t('table.cancel'),
-        type: 'warning'
-      }).then(() => this.deleteById(menuId))
-    },
-    deleteById (menuId) {
-      api.deleteById(menuId).then(() => {
-        this.$message({
-          message: this.$t('table.actionSuccess'),
-          type: 'success',
-          duration: 1500,
-          onClose: () => this.getPage()
-        })
-      })
-    }
-  }
+
+var menulist = ref([])
+// loading
+var pageLoading = ref(true)
+// 查询参数
+var searchParam = {
 }
+var addOrUpdateVisible = ref(false)
+onMounted(() => {
+  getPage()
+})
+
+const getPage  = () => {
+  pageLoading = true
+  api.menuList({ ...searchParam }).then(data => {
+    data.forEach(item => {
+      if (item.component === 'Layout') {
+        item.component = ''
+      }
+    })
+    menulist = treeDataTranslate(data)
+    pageLoading = false
+  })
+}
+const onAddOrUpdate  = (menuId) => {
+  addOrUpdateVisible = true
+  nextTick(() => {
+    addOrUpdate.value?.init(menuId)
+  })
+}
+const onDelete  = (menuId) => {
+  ElMessageBox.confirm($t('table.sureToDelete'), $t('table.tips'), {
+    confirmButtonText: $t('table.confirm'),
+    cancelButtonText: $t('table.cancel'),
+    type: 'warning'
+  }).then(() => deleteById(menuId))
+}
+const deleteById  = (menuId) => {
+  api.deleteById(menuId).then(() => {
+    ElMessage({
+      message: $t('table.actionSuccess'),
+      type: 'success',
+      duration: 1500,
+      onClose: () => getPage()
+    })
+  })
+}
+
 </script>

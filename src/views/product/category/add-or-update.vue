@@ -8,7 +8,7 @@
     @close="closeDialog"
   >
     <el-form
-      ref="dataForm"
+      ref="dataFormRef"
       :rules="rules"
       :model="dataForm"
       label-position="left"
@@ -33,7 +33,7 @@
         prop="imgUrl"
       >
         <img-upload v-model="dataForm.imgUrl" />
-        <span v-if="dataForm.parentId === 0">{{ $i18n.t('product.category.recommImgSize') + '510*80' }}</span>
+        <span v-if="dataForm.parentId === 0">{{ $t('product.category.recommImgSize') + '510*80' }}</span>
       </el-form-item>
       <!-- 分类图标 -->
       <el-form-item
@@ -46,7 +46,7 @@
       <el-form-item
         v-if="showSelectColumnOfCategory"
         class="higher-category"
-        :label="$i18n.t('product.category.categoryParent')"
+        :label="$t('product.category.categoryParent')"
       >
         <category-group
           :selected-categorys="selectedCategorys"
@@ -76,7 +76,7 @@
         </el-button>
         <el-button
           type="primary"
-          @click="dataFormSubmit()"
+          @click="onSubmit()"
         >
           {{ $t('table.confirm') }}
         </el-button>
@@ -84,148 +84,139 @@
     </template>
     <category-selector
       v-if="categorySelectorVisible"
-      ref="categorySelector"
+      ref="categorySelectorRef"
       @get-category-selected="getCategorySelected"
     />
   </el-dialog>
 </template>
 
-<script>
+<script setup>
 import * as api from '@/api/product/category'
 import ImgUpload from '@/components/ImgUpload'
 import categorySelector from '@/components/CategorySelector'
 import categoryGroup from '@/components/CategoryGroup'
-export default {
 
-  components: {
-    ImgUpload,
-    categorySelector,
-    categoryGroup
-  },
+
   emits: ['refreshDataList'],
 
-  data () {
-    return {
-      visible: false,
-      dataForm: {
-        categoryId: 0,
-        shopId: null,
-        parentId: 0,
-        name: null,
-        desc: null,
-        path: null,
-        status: '1',
-        icon: '',
-        imgUrl: '',
-        level: null,
-        seq: 1
-      },
-      showCategorySelectBtn: true,
-      categoryList: [],
-      categorySelectorVisible: false,
-      selectedCategorys: [],
-      showSelectColumnOfCategory: true, // 是否显示上级分类栏
-      rules: {
-        name: [
-          { required: true, message: this.$i18n.t('product.category.categoryNoNull'), trigger: 'blur' }
-        ],
-        imgUrl: [
-          { required: true, message: this.$i18n.t('product.category.imageNoNull'), trigger: 'blur' }
-        ]
-      }
-    }
-  },
 
-  methods: {
-    init (categoryId) {
-      this.visible = true
-      this.dataForm.categoryId = categoryId || 0
-      this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
-        if (!this.dataForm.categoryId) {
-          return
-        }
-        if (categoryId) {
-          api.get(categoryId).then(data => {
-            this.dataForm = data
-            this.selectedCategorys = data.pathNames ? data.pathNames : []
-            this.showCategorySelectBtn = false
-            data.level === 0 ? this.showSelectColumnOfCategory = false : this.showSelectColumnOfCategory = true
-          })
-        }
-      })
-    },
-
-    // 关闭dialog时
-    closeDialog () {
-      this.dataForm = {
-        categoryId: 0,
-        shopId: null,
-        parentId: 0,
-        name: null,
-        desc: null,
-        path: null,
-        status: '1',
-        icon: '',
-        imgUrl: '',
-        level: null,
-        seq: 1
-      }
-      this.selectedCategorys = []
-      this.showCategorySelectBtn = true
-      this.showSelectColumnOfCategory = true
-    },
-
-    /**
-     * 选择分类弹窗
-     */
-    selectOrReviseCategory () {
-      this.categorySelectorVisible = true
-      this.$nextTick(() => {
-        this.$refs.categorySelector.init(1) // 1代表从创建分类进入
-      })
-    },
-
-    // handleChange(val) {
-    //   this.dataForm.parentId = val[val.length - 1]
-    //   console.log('selectedCategory:', this.selectedCategory)
-    // },
-
-    /**
-     * 获取子组件返回数据
-     */
-    getCategorySelected (selectedCategorys, parentId) {
-      console.log('父组件接收子组件数据：selectedCategorys:', selectedCategorys, '；parentId:', parentId)
-      this.categorySelectorVisible = false
-      this.selectedCategorys = selectedCategorys
-      this.dataForm.parentId = parentId
-    },
-
-    // 表单提交
-    dataFormSubmit () {
-      this.$refs.dataForm.validate(valid => {
-        if (!valid) {
-          return
-        }
-        // 层级 0第一级
-        this.dataForm.level = !this.selectedCategorys.length ? 0 : this.selectedCategorys.length
-        const request = this.dataForm.categoryId ? api.update(this.dataForm) : api.save(this.dataForm)
-        request.then(data => {
-          this.$message({
-            message: this.$t('table.actionSuccess'),
-            type: 'success',
-            duration: 1500,
-            onClose: () => {
-              this.visible = false
-              this.$emit('refreshDataList')
-              this.$refs.dataForm.resetFields()
-            }
-          })
-        })
-      })
-    }
-  }
+var visible = ref(false)
+var dataForm = reactive({
+  categoryId: 0,
+  shopId: null,
+  parentId: 0,
+  name: null,
+  desc: null,
+  path: null,
+  status: '1',
+  icon: '',
+  imgUrl: '',
+  level: null,
+  seq: 1
+})
+var showCategorySelectBtn = ref(true)
+var categoryList = ref([])
+var categorySelectorVisible = ref(false)
+var selectedCategorys = ref([])
+var showSelectColumnOfCategory = ref(true) // 是否显示上级分类栏
+var rules = {
+  name: [
+    { required: true, message: $t('product.category.categoryNoNull'), trigger: 'blur' }
+  ],
+  imgUrl: [
+    { required: true, message: $t('product.category.imageNoNull'), trigger: 'blur' }
+  ]
 }
+
+
+const init  = (categoryId) => {
+  visible = true
+  dataForm.categoryId = categoryId || 0
+  nextTick(() => {
+    dataFormRef.value?.resetFields()
+    if (!dataForm.categoryId) {
+      return
+    }
+    if (categoryId) {
+      api.get(categoryId).then(data => {
+        dataForm = data
+        selectedCategorys = data.pathNames ? data.pathNames : []
+        showCategorySelectBtn = false
+        data.level === 0 ? showSelectColumnOfCategory = false : showSelectColumnOfCategory = true
+      })
+    }
+  })
+}
+
+// 关闭dialog时
+const closeDialog  = () => {
+  dataForm = {
+    categoryId: 0,
+    shopId: null,
+    parentId: 0,
+    name: null,
+    desc: null,
+    path: null,
+    status: '1',
+    icon: '',
+    imgUrl: '',
+    level: null,
+    seq: 1
+  }
+  selectedCategorys = []
+  showCategorySelectBtn = true
+  showSelectColumnOfCategory = true
+}
+
+/**
+ * 选择分类弹窗
+ */
+const selectOrReviseCategory  = () => {
+  categorySelectorVisible = true
+  nextTick(() => {
+    categorySelectorRef.value?.init(1) // 1代表从创建分类进入
+  })
+}
+
+// handleChange(val) {
+//   dataForm.parentId = val[val.length - 1]
+//   console.log('selectedCategory:', selectedCategory)
+// },
+
+/**
+ * 获取子组件返回数据
+ */
+const getCategorySelected  = (selectedCategorys, parentId) => {
+  console.log('父组件接收子组件数据：selectedCategorys:', selectedCategorys, '；parentId:', parentId)
+  categorySelectorVisible = false
+  selectedCategorys = selectedCategorys
+  dataForm.parentId = parentId
+}
+
+// 表单提交
+const onSubmit  = () => {
+  dataFormRef.value?.validate(valid => {
+    if (!valid) {
+      return
+    }
+    // 层级 0第一级
+    dataForm.level = !selectedCategorys.length ? 0 : selectedCategorys.length
+    const request = dataForm.categoryId ? api.update(dataForm) : api.save(dataForm)
+    request.then(data => {
+      ElMessage({
+        message: $t('table.actionSuccess'),
+        type: 'success',
+        duration: 1500,
+        onClose: () => {
+          visible = false
+          emit('refreshDataList')
+          dataFormRef.value?.resetFields()
+        }
+      })
+    })
+  })
+}
+
 </script>
 
 <style lang="scss">

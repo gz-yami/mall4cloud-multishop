@@ -54,7 +54,7 @@
         <!-- 弹窗, 新增图片 -->
         <elx-imgbox
           v-if="elxImgboxVisible"
-          ref="elxImgbox"
+          ref="elxImgboxRef"
           @refresh-pic="refreshPic"
         />
       </li>
@@ -74,140 +74,131 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import VueDraggable from 'vuedraggable'
 import ElxImgbox from '@/components/imgbox'
-export default {
 
-  components: {
-    VueDraggable,
-    ElxImgbox
-  },
 
-  props: {
-    value: {
-      default: '',
-      type: String
-    },
-    // 最大上传数量
-    limit: {
-      default: 9,
-      type: Number
-    },
-    // false: 能对图片进行操作  true: 不能对图片进行操作
-    disabled: {
-      default: false,
-      type: Boolean
-    },
-    modal: {
-      default: true,
-      type: Boolean
-    },
-    prompt: {
-      default: true,
-      type: Boolean
-    }
+const props = defineProps({
+  value: {
+    default: '',
+    type: String
   },
+  // 最大上传数量
+  limit: {
+    default: 9,
+    type: Number
+  },
+  // false: 能对图片进行操作  true: 不能对图片进行操作
+  disabled: {
+    default: false,
+    type: Boolean
+  },
+  modal: {
+    default: true,
+    type: Boolean
+  },
+  prompt: {
+    default: true,
+    type: Boolean
+  }
+})
   emits: ['input', 'input', 'input'],
 
-  data () {
-    return {
-      dialogImageUrl: '',
-      dialogVisible: false,
-      elxImgboxVisible: false,
-      resourcesUrl: process.env.VUE_APP_RESOURCES_URL,
-      imageList: []
-    }
-  },
+
+var dialogImageUrl = ref('')
+var dialogVisible = ref(false)
+var elxImgboxVisible = ref(false)
+const resourcesUrl = import.meta.env.VITE_APP_RESOURCES_URL
+var imageList = ref([])
 
   watch: {
     value: function (newVal, oldVal) {
       const res = []
-      if (this.value) {
-        const imageArray = this.value.split(',')
+      if (value) {
+        const imageArray = value.split(',')
         for (let i = 0; i < imageArray.length; i++) {
           if (imageArray[i]) {
-            res.push({ url: this.getImgSrc(imageArray[i]), response: imageArray[i] })
+            res.push({ url: getImgSrc(imageArray[i]), response: imageArray[i] })
           }
         }
       }
-      this.imageList = res
+      imageList = res
     },
     imageList: function (newVal, oldVal) {
-      const pics = this.imageList.map(file => {
+      const pics = imageList.map(file => {
         return file.response
       }).join(',')
-      this.$emit('input', pics)
+      emit('update:modelValue', pics)
     }
   },
 
-  methods: {
-    /**
-     * 获取图片路径
-     */
-    getImgSrc (img) {
-      if (!img) {
-        return ''
-      }
-      if (img.indexOf('http://') === 0 || img.indexOf('https://') === 0) {
-        return img
-      }
-      return this.resourcesUrl + img
-    },
-    /**
-     * 删除图片
-     */
-    handleRemove (index) {
-      this.imageList.splice(index, 1)
-      const pics = this.imageList.map(file => {
-        return file.response
-      }).join(',')
-      this.$emit('input', pics)
-    },
-    /**
-     * 放大图片
-     */
-    handlePictureCardPreview (imgUrl) {
-      this.dialogImageUrl = imgUrl
-      this.dialogVisible = true
-    },
-    onDragStart (e) {
-      e.target.classList.add('hideShadow')
-    },
-    onDragEnd (e) {
-      e.target.classList.remove('hideShadow')
-    },
-    /**
-     * 打开图片选择窗
-     */
-    elxImgboxHandle () {
-      const num = this.limit - this.imageList.length
-      if (num < 1) {
-        this.$message.error('可选择照片数量已达上限')
-        return
-      }
-      this.elxImgboxVisible = true
-      this.$nextTick(() => {
-        this.$refs.elxImgbox.init(0, num)
-      })
-    },
-    /**
-     * 接收回调的图片数据
-     */
-    refreshPic (imagePath) {
-      const imageArray = imagePath.split(',')
-      let pics = imageArray.map(img => {
-        return img
-      }).join(',')
-      if (this.value) {
-        // let picArray = imagePath.split(',')
-        // console.log(picArray.length, this.value, !this.value)
-        pics = this.value + ',' + pics
-      }
-      this.$emit('input', pics)
-    }
+
+/**
+ * 获取图片路径
+ */
+const getImgSrc  = (img) => {
+  if (!img) {
+    return ''
   }
+  if (img.indexOf('http://') === 0 || img.indexOf('https://') === 0) {
+    return img
+  }
+  return resourcesUrl + img
 }
+/**
+ * 删除图片
+ */
+const handleRemove  = (index) => {
+  imageList.splice(index, 1)
+  const pics = imageList.map(file => {
+    return file.response
+  }).join(',')
+  emit('update:modelValue', pics)
+}
+/**
+ * 放大图片
+ */
+const handlePictureCardPreview  = (imgUrl) => {
+  dialogImageUrl = imgUrl
+  dialogVisible = true
+}
+const onDragStart  = (e) => {
+  e.target.classList.add('hideShadow')
+}
+const onDragEnd  = (e) => {
+  e.target.classList.remove('hideShadow')
+}
+/**
+ * 打开图片选择窗
+ */
+const elxImgboxHandle  = () => {
+  const num = limit - imageList.length
+  if (num < 1) {
+    ElMessage.error('可选择照片数量已达上限')
+    return
+  }
+  elxImgboxVisible = true
+  nextTick(() => {
+    elxImgboxRef.value?.init(0, num)
+  })
+}
+/**
+ * 接收回调的图片数据
+ */
+const refreshPic  = (imagePath) => {
+  const imageArray = imagePath.split(',')
+  let pics = imageArray.map(img => {
+    return img
+  }).join(',')
+  if (value) {
+    // let picArray = imagePath.split(',')
+    // console.log(picArray.length, value, !value)
+    pics = value + ',' + pics
+  }
+  emit('update:modelValue', pics)
+}
+
 </script>
 
 <style lang="scss" scope>
