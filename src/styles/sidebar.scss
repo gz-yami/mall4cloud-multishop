@@ -1,22 +1,36 @@
+/*
+* Copyright (c) 2018-2999 广州市蓝海创新科技有限公司 All rights reserved.
+*
+* https://www.mall4j.com/
+*
+* 未经允许，不可做商业用途！
+*
+* 版权所有，侵权必究！
+*/
+@import './variables.scss';
 #app {
   .main-container {
     display: flex;
     position: relative;
-    width: 1260px;
+    // width:calc(100% - $sideBarWidth) ;
     min-height: 100%;
     background: #f9f9f9;
     transition: margin-left .28s;
-    margin: 0 auto;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin: 70px auto 20px $sideBarWidth !important;
     overflow: hidden;
   }
 
   .sidebar-container {
     transition: width 0.28s;
     width: $sideBarWidth !important;
-    height: 100vh;
+    background-color: $menuBg;
+    height:  100%;
+    position: fixed;
     font-size: 0;
+    top: 50px;
+    bottom: 0;
+    left: 0;
+    z-index: 1009;
     overflow: hidden;
 
     // reset element-ui css
@@ -29,7 +43,7 @@
     }
 
     .el-scrollbar__bar.is-vertical {
-      right: 0px;
+      right: 0;
     }
 
     .el-scrollbar {
@@ -59,88 +73,45 @@
     }
 
     .sub-el-icon {
-      margin-right: 12px;
-      margin-left: -2px;
+      margin-right: 10px;
+      // margin-left: -2px;
     }
 
     .el-menu {
       border: none;
       height: 100%;
       width: 100% !important;
-      .el-menu-item,
-      .el-submenu .el-submenu__title {
-        height: 45px;
-        line-height: 45px;
-      }
-      .el-submenu,
-      .submenu-title-noDropdown {
-        padding: 0 !important;
-        border-bottom: 1px solid #EEEEEE;
-        margin: 0 16px;
-      }
-      div {
-        &:last-child {
-          .el-submenu,
-          .submenu-title-noDropdown {
-            border: none;
-          }
-        }
-      }
-      .nest-menu {
-        &:last-child {
-          margin-bottom: 11px;
-        }
-      }
     }
 
     // menu hover
     .submenu-title-noDropdown,
     .el-submenu__title {
-      padding: 0 !important;
       &:hover {
-        background-color: #FFFFFF !important;
-      }
-      .el-submenu__icon-arrow {
-        right: 0;
-        transform:rotate(-90deg);
-        -ms-transform:rotate(-90deg);
-        -webkit-transform:rotate(-90deg);
-        margin-top: -6px;
+        background-color: $menuHover !important;
       }
     }
-    .is-opened>.el-submenu__title .el-submenu__icon-arrow {
-      transform:rotate(0);
-      -ms-transform:rotate(0);
-      -webkit-transform:rotate(0);
-    }
-    .is-active {
-      background-color: #FFFFFF !important;
-    }
+
     .is-active>.el-submenu__title {
       color: $subMenuActiveText !important;
     }
 
-    & .nest-menu {
-      display: inline-block;
-      width: 50% !important;
-    }
-
     & .nest-menu .el-submenu>.el-submenu__title,
     & .el-submenu .el-menu-item {
-      height: 25px !important;
-      line-height: 25px !important;
-      font-size: 12px !important;
-      color: #999999 !important;
-      padding: 0 !important;
+      // min-width: $sideBarWidth !important;
+      background-color: $subMenuBg !important;
+
       &:hover {
-        // background-color: $subMenuHover !important;
-        color: $menuActiveText !important;
-        background-color: #FFFFFF !important;
+        background-color: $subMenuHover !important;
       }
     }
-    & .el-submenu .is-active {
-      color: $menuActiveText !important;
+    & .el-submenu .menu-active{
+      background-color: $subMenuHover !important;
     }
+
+    // .is-active {
+    //   background-color: #FFFFFF !important;
+    // }
+
   }
 
   .fixed-sidebar .el-scrollbar {
@@ -150,11 +121,11 @@
 
   .hideSidebar {
     .sidebar-container {
-      width: 54px !important;
+      width: 100px !important;
     }
 
     .main-container {
-      margin-left: 54px;
+      margin-left: 100px !important;
     }
 
     .submenu-title-noDropdown {
@@ -216,7 +187,7 @@
   // mobile responsive
   .mobile {
     .main-container {
-      margin-left: 0px;
+      margin-left: 0 !important;
     }
 
     .sidebar-container {
@@ -242,7 +213,6 @@
   }
 }
 
-// when menu collapsed
 .el-menu--vertical {
   &>.el-menu {
     .svg-icon {
@@ -258,8 +228,7 @@
   .el-menu-item {
     &:hover {
       // you can use $subMenuHover
-      // background-color: $menuHover !important;
-      background-color: #FFFFFF !important;
+      background-color: $menuHover !important;
     }
   }
 
@@ -282,3 +251,4 @@
     }
   }
 }
+
