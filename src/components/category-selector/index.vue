@@ -1,15 +1,19 @@
 <template>
   <el-dialog
     v-model="visible"
-    class="component-category-selector"
     :title="$t('components.selector.categorySelector')"
     :append-to-body="visible"
+    class="component-category-selector"
     width="1000px"
+    @close="onClose"
   >
     <div class="prod-category clearfix">
       <div class="category">
         <!-- 分类 -->
-        <div class="category-box">
+        <div
+          v-if="firstCategorys.dataList.length"
+          class="category-box"
+        >
           <el-input
             v-model="firstCategorys.name"
             :placeholder="$t('components.selector.chooseProdCateg')"
@@ -29,7 +33,7 @@
         </div>
         <!-- 分类 -->
         <div
-          v-if="firstCategorys.id != 0"
+          v-if="secondCategorys.dataList.length && firstCategorys.id != 0"
           class="category-box"
         >
           <el-input
@@ -42,7 +46,7 @@
               v-for="(item, index) in secondCategorys.dataList"
               :key="item.categoryId"
               class="category-item"
-              :class="item.categoryId == secondCategorys.id ? 'active' : ''"
+              :class="isCreateCategory ? 'prohibit-sel' : item.categoryId == secondCategorys.id ? 'active' : ''"
               @click="selectSecondCategorys(item.categoryId, index)"
             >
               {{ item.name }}
@@ -51,7 +55,7 @@
         </div>
         <!-- 分类 -->
         <div
-          v-if="secondCategorys.id != 0"
+          v-if="showthreeCategorys && threeCategorys.dataList.length > 0 && secondCategorys.id != 0"
           class="category-box"
         >
           <el-input
@@ -77,19 +81,21 @@
         <span class="blod">{{ $t("components.selector.currCho") }}：</span>
         <span class="select-item">{{ firstCategorys.name }}</span>
         <span
-          v-if="secondCategorys.id"
+          v-if="!isCreateCategory && secondCategorys.id"
           class="select-item"
-        >&nbsp;>&nbsp;&nbsp;{{ secondCategorys.name }}</span>
+        >&nbsp;>&nbsp;&nbsp;{{
+          secondCategorys.name }}</span>
         <span
-          v-if="threeCategorys.id"
+          v-if="showthreeCategorys && threeCategorys.id"
           class="select-item"
-        >&nbsp;>&nbsp;&nbsp;{{ threeCategorys.name }}</span>
+        >&nbsp;>&nbsp;&nbsp;{{
+          threeCategorys.name }}</span>
       </div>
       <!-- 确认 -->
       <div class="read-rule">
         <div
           class="read-rule-txt"
-          :class="(!isCreateCategory && threeCategorys.id != 0) || (isCreateCategory && firstCategorys.id != 0) ? 'todo' : ''"
+          :class="buttonHighlight ? 'todo' : ''"
           @click="optionsConfirm"
         >
           {{ $t("components.selector.haveReadFol") }}
@@ -103,7 +109,7 @@
 import * as api from '@/api/product/category'
 import { reactive } from 'vue'
 
-const emit = defineEmits('getCategorySelected')
+const emit = defineEmits(['getCategorySelected'])
 
 const Data = reactive({
   visible: false,
@@ -127,20 +133,31 @@ const Data = reactive({
     dataList: []
   },
   parentId: 0,
-  isCreateCategory: false // 是否创建（平台）分类选择
+  isCreateCategory: false, // 是否创建(店铺)分类选择
+  showthreeCategorys: false, // 是否显示第三级分类
+  buttonHighlight: false // 按钮高亮
 })
-
-const { visible, firstCategorys, secondCategorys, threeCategorys, isCreateCategory } = toRefs(Data)
+const { visible, firstCategorys, secondCategorys, threeCategorys, isCreateCategory, showthreeCategorys, buttonHighlight } = toRefs(Data)
 
 /**
  * 初始化
  */
-const init = (type) => {
+const init = (type, key) => {
   Data.visible = true
-  api.categoryPage().then(data => {
-    Data.allDataList = data
-    Data.firstCategorys.dataList = Data.allDataList.filter(item => item.level === 0)
-  })
+  if (key === 'platform') {
+    api.platformCategoryPage().then(data => {
+      Data.allDataList = data
+      Data.firstCategorys.dataList = Data.allDataList.filter(item => item.level === 0)
+    })
+    Data.showthreeCategorys = true // 平台分类，最高三级
+  } else {
+    api.shopCategoryPage().then(data => {
+      Data.allDataList = data
+      Data.firstCategorys.dataList = Data.allDataList.filter(item => item.level === 0)
+    })
+    Data.showthreeCategorys = false // 店铺分类，最高二级
+  }
+
   Data.isCreateCategory = !!(type && type === 1)
 }
 
@@ -150,15 +167,30 @@ const selectFirstCategorys = (categoryId, index) => {
   Data.firstCategorys.name = Data.firstCategorys.dataList[index].name
   Data.parentId = Data.firstCategorys.id = categoryId
   Data.secondCategorys.id = 0
-  Data.threeCategorys.id = 0
+  if (Data.showthreeCategorys) Data.threeCategorys.id = 0
+
+  if (Data.isCreateCategory || (!Data.isCreateCategory && Data.secondCategorys.dataList.length == 0)) { // 创建分类
+    Data.buttonHighlight = true
+  } else {
+    Data.buttonHighlight = false
+  }
 }
 
 // 选中第二个分类
 const selectSecondCategorys = (categoryId, index) => {
+  if (Data.isCreateCategory) {
+    return
+  }
   Data.threeCategorys.dataList = Data.allDataList.filter(item => item.parentId === categoryId)
   Data.parentId = Data.secondCategorys.id = categoryId
   Data.secondCategorys.name = Data.secondCategorys.dataList[index].name
-  Data.threeCategorys.id = 0
+  if (Data.showthreeCategorys) Data.threeCategorys.id = 0
+
+  if (!Data.isCreateCategory && !Data.buttonHighlight && !Data.showthreeCategorys) { // 非创建分类&&店铺分类
+    Data.buttonHighlight = true
+  } else {
+    Data.buttonHighlight = false
+  }
 }
 
 // 选中第三个分类
@@ -168,27 +200,58 @@ const selectThreeCategorys = (categoryId, index) => {
   }
   Data.parentId = Data.threeCategorys.id = categoryId
   Data.threeCategorys.name = Data.threeCategorys.dataList[index].name
+  Data.buttonHighlight = true
 }
 
 // 新增 / 修改
 const optionsConfirm = () => {
-  if (!Data.isCreateCategory && !Data.threeCategorys.id) {
+  // 平台分类 & 没有第三级分类
+  if (Data.showthreeCategorys && !Data.threeCategorys.id) {
     return
   }
-  if (Data.isCreateCategory && !Data.firstCategorys.id) {
+  // 店铺分类 & 创建分类 & 没有第一级分类
+  if (!Data.showthreeCategorys && Data.isCreateCategory && !Data.firstCategorys.id) {
     return
   }
-  const selectedCategories = []
+  // 店铺分类 & 非创建分类 & 没有第二级分类
+  if (!Data.showthreeCategorys && !Data.isCreateCategory && Data.secondCategorys.dataList.length > 0 && !Data.secondCategorys.id) {
+    return
+  }
+  // Data.$store.commit('common/removeMainActiveTab')
+  const selectedCategorys = []
   if (Data.firstCategorys.id) {
-    selectedCategories.push(Data.firstCategorys.name)
+    selectedCategorys.push(Data.firstCategorys.name)
   }
-  if (Data.secondCategorys.id) {
-    selectedCategories.push(Data.secondCategorys.name)
+  if (!Data.isCreateCategory && Data.secondCategorys.id) {
+    selectedCategorys.push(Data.secondCategorys.name)
   }
-  if (!Data.isCreateCategory && Data.threeCategorys.id) {
-    selectedCategories.push(Data.threeCategorys.name)
+  if (Data.showthreeCategorys && !Data.isCreateCategory && Data.threeCategorys.id) {
+    selectedCategorys.push(Data.threeCategorys.name)
   }
-  emit('getCategorySelected', selectedCategories, Data.parentId)
+  emit('getCategorySelected', selectedCategorys, Data.parentId)
+}
+
+// 关闭
+const onClose = () => {
+  Data.allDataList = []
+  // 第一个分类
+  Data.firstCategorys = {
+    id: 0,
+    name: '',
+    dataList: []
+  }
+  // 第二个分类
+  Data.secondCategorys = {
+    id: 0,
+    name: '',
+    dataList: []
+  }
+  // 第三个分类
+  Data.threeCategorys = {
+    id: 0,
+    name: '',
+    dataList: []
+  }
 }
 
 defineExpose({
@@ -213,6 +276,7 @@ defineExpose({
     padding: 0;
     list-style: none;
   }
+
   .category-box {
     box-sizing: border-box;
     width: 32%;
@@ -223,6 +287,7 @@ defineExpose({
     background: #fff;
     box-shadow: 0px 5px 8px -4px #e2e2e2;
   }
+
   .category-list {
     margin-top: 10px;
     height: 250px;

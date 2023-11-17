@@ -8,7 +8,7 @@ export const Layout = () => import('@/layout/index.vue')
  * all roles can be accessed
  */
 export const constantRoutes = [
-  { path: '/', redirect: '/product/list' },
+  { path: '/', redirect: '/order/order' },
   {
     path: '/redirect',
     component: Layout,

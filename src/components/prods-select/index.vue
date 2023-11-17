@@ -3,6 +3,7 @@
     v-model="visible"
     title="商品选择"
     :modal="false"
+    class="component-prods-select"
     top="4vh"
     :close-on-click-modal="false"
     width="820px"
@@ -37,9 +38,7 @@
         >
           查询
         </el-button>
-        <el-button
-          @click="clean"
-        >
+        <el-button @click="clean">
           清空
         </el-button>
       </el-form-item>
@@ -60,14 +59,14 @@
           header-align="center"
           align="center"
         >
-          <template #default="{row}">
+          <template #default="{ row }">
             <div>
               <el-radio
                 v-model="singleSelectspuId"
                 :label="row.spuId"
                 @change="getSelectProdRow(row)"
               >
-&nbsp;
+                &nbsp;
               </el-radio>
             </div>
           </template>
@@ -84,7 +83,7 @@
           width="140"
           label="商品图片"
         >
-          <template #default="{row}">
+          <template #default="{ row }">
             <img
               :src="row.mainImgUrl"
               width="100"
@@ -108,7 +107,7 @@
       </el-table>
       <!-- 分页条 -->
       <pagination
-        v-show="pageVO.total>0"
+        v-show="pageVO.total > 0"
         v-model:page="pageQuery.pageNum"
         v-model:limit="pageQuery.pageSize"
         :total="pageVO.total"
@@ -130,7 +129,7 @@
 <script setup>
 import Big from 'big.js'
 import { page } from '@/api/product/list'
-import { categoryPage } from '@/api/product/category'
+import { shopCategoryPage } from '@/api/product/category'
 import { onMounted, reactive } from 'vue'
 
 const emit = defineEmits(['refreshSelectProds'])
@@ -214,7 +213,7 @@ const init = (selectProds) => {
 }
 
 const getCategoryList = () => {
-  categoryPage().then((data) => {
+  shopCategoryPage().then((data) => {
     Data.categoryList = treeDataTranslate(data, 'categoryId', 'parentId')
   })
 }
@@ -324,18 +323,21 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-.demo-form-inline {
-  margin-bottom: 22px;
+.component-prods-select {
+  .demo-form-inline {
+    margin-bottom: 22px;
 
-  :deep(.el-input){
-    width: 200px;
+    :deep(.el-input) {
+      width: 200px;
+    }
   }
-}
-.prods-select-body {
-  height: 600px;
-  overflow: auto;
-  border-top: 1px solid #eeeeee;
-  border-right: 1px solid #eeeeee;
-  border-bottom: 1px solid #eeeeee;
+
+  .prods-select-body {
+    height: 600px;
+    overflow: auto;
+    border-top: 1px solid #eeeeee;
+    border-right: 1px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
+  }
 }
 </style>
