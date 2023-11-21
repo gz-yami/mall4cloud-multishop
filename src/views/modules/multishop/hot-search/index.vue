@@ -118,14 +118,12 @@
           <!-- <span>{{ row.status }}</span> -->
           <el-tag
             v-if="row.status === 0"
-            size="small"
             type="danger"
           >
             {{ '未启用' }}
           </el-tag>
           <el-tag
             v-else
-            size="small"
           >
             {{ '启用' }}
           </el-tag>

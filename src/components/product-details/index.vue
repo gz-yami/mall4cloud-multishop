@@ -1,22 +1,23 @@
 <template>
-  <div class="prod-details">
+  <div class="component-product-details">
     <el-tabs type="card">
-      <div
-        v-rich="detail"
-        class="det"
-      />
+      <el-form-item label="产品详情">
+        <tiny-mce
+          ref="content"
+          v-model="setDataForm.detail"
+          :width="850"
+        />
+      </el-form-item>
     </el-tabs>
   </div>
 </template>
 
 <script setup>
-defineProps({
-  detail: {
-    type: String,
-    default () {
-      return ''
-    }
-  },
+import { computed } from 'vue'
+
+const emit = defineEmits(['update:dataForm'])
+
+const props = defineProps({
   dataForm: {
     type: Object,
     default () {
@@ -25,15 +26,15 @@ defineProps({
   }
 })
 
+const setDataForm = computed({
+  get () {
+    return props.dataForm
+  },
+  set (val) {
+    return emit('update:dataForm', val)
+  }
+})
 </script>
 
 <style lang="scss" scoped>
-.prod-details {
-  :deep(.el-tabs--card > .el-tabs__header) {
-    border-bottom: 0;
-  }
-  .det {
-    padding: 0 30px;
-  }
-}
 </style>

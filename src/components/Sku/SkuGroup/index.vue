@@ -9,9 +9,10 @@
             placeholder="请选择"
             allow-create
             filterable
+            default-first-option
+            :popper-append-to-body="false"
             :filter-method="filterMethod"
             style="min-width:100px"
-            disabled
             @change="handleSelectSku"
           >
             <el-option
@@ -22,23 +23,17 @@
             />
           </el-select>
         </div>
-        <div
-          v-if="index === 0 && ease.showAddSkuImage"
-          class="sel-add-img"
-        >
-          <el-checkbox
-            v-model="hasSkuImage"
-            :disabled="true"
-            @change="handleCheckedSkuImage"
-          >
-            添加属性图片
-          </el-checkbox>
-        </div>
+      </div>
+      <div
+        class="del-btn"
+        @click="onSkuRemove(sku, index)"
+      >
+        删除属性
       </div>
     </div>
     <!-- sku值 -->
     <sku-container
-      v-model:sku="setSku"
+      v-model:sku="skus"
       :has-sku-image="hasSkuImage"
       :on-sku-leaf-change="handleSkuLeafChange"
     />
@@ -46,11 +41,13 @@
 </template>
 
 <script setup>
+import { computed, reactive, watch } from 'vue'
 import skuContainer from '@/components/Sku/SkuContainer/index.vue'
-import { computed, reactive } from 'vue'
-const ease = inject('ease')
 
 const emit = defineEmits(['update:sku'])
+
+const ease = inject('ease')
+
 const props = defineProps({
   index: {
     type: Number,
@@ -83,6 +80,8 @@ const props = defineProps({
 })
 
 const Data = reactive({
+  currentValue: '',
+  currentSku: '',
   skuValue: '',
   newsSkuText: '',
   hasSkuImage: props.sku.leaf ? props.sku.leaf.some(item => item.imgUrl) : false
@@ -90,7 +89,7 @@ const Data = reactive({
 
 const { skuValue, hasSkuImage } = toRefs(Data)
 
-const setSku = computed({
+const skus = computed({
   get () {
     return props.sku
   },
@@ -98,13 +97,51 @@ const setSku = computed({
     emit('update:sku', val)
   }
 })
+
+watch(() => props.sku, (sku) => {
+  if (sku[props.optionText]) {
+    nextTick(() => {
+      Data.skuValue = sku[props.optionText]
+      Data.currentSku = sku
+    })
+  }
+}, {
+  deep: true,
+  immediate: true
+})
+
+const filterMethod = () => {
+}
+
 // 选择sku
 const handleSelectSku = (value) => {
+  if (value.length > 10) {
+    ElMessage({
+      message: '属性名长度不可超过10个字符',
+      duration: 1500
+    })
+    Data.skuValue = ''
+    return
+  }
+  // 当切换当前属性时，把当前属性重新放入可选择列表中
+  if (Data.currentSku !== '' && value !== Data.currentSku.id) {
+    ease.skuTreeData.push(Data.currentSku)
+  }
+
   if (typeof (value) === 'number') {
     const sku = ease.skuTreeData.find(item => item[props.optionValue] === value)
     sku.leaf = []
     if (props.onSkuChange(sku, props.index) === false) {
       Data.skuValue = ''
+    } else {
+      ease.skuTreeData.some((item, idx) => {
+        // 列表删除已选中属性
+        if (item[props.optionValue] === value) {
+          Data.currentSku = ease.skuTreeData[idx]
+          ease.skuTreeData.splice(idx, 1)
+        }
+        return false
+      })
     }
     return
   }
@@ -115,30 +152,23 @@ const handleSelectSku = (value) => {
 // 创建sku
 const createSku = (text) => {
   ease.onCreateGroup(text).then(data => {
-    if (data > 0) {
-      setSku.value = {
+    if (data) {
+      const sku = {
         [props.optionValue]: data,
         [props.optionText]: text,
         leaf: []
       }
 
-      props.onSkuChange(props.sku, props.index)
+      skus.value = sku
+
+      props.onSkuChange(sku, props.index)
     }
   })
 }
 
-// 添加图片复选框
-const handleCheckedSkuImage = (checked) => {
-  setSku.value.leaf = props.sku.leaf.map(item => {
-    item.is_show = checked
-    return item
-  })
-  props.onSkuChange(props.sku, props.index)
-}
-
 const handleSkuLeafChange = (leaf) => {
-  setSku.value.leaf = leaf
-  this.onSkuChange(props.sku, props.index)
+  skus.value.leaf = leaf
+  props.onSkuChange(skus.value, props.index)
 }
 </script>
 
@@ -159,8 +189,11 @@ const handleSkuLeafChange = (leaf) => {
       display: flex;
       align-items: center;
     }
-    .spec-select .sel-add-img {
-      margin-left: 20px;
+
+    .del-btn {
+      font-size: 13px;
+      color: #02a1e9;
+      cursor: pointer;
     }
   }
 }

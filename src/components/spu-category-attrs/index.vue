@@ -1,5 +1,5 @@
 <template>
-  <div class="component-spu-catagory-attrs">
+  <div class="component-spu-category-attrs">
     <div class="part-section">
       <div
         v-for="(attrs, attrIdx) in attrsList"
@@ -15,16 +15,15 @@
             <span class="name">{{ attrs.name }}</span>
           </div>
           <el-select
-            v-if="attrs.attrValues.length"
+            v-if="attrs.attrValues && attrs.attrValues.length > 0"
             v-model="attrs.attrValue"
             placeholder="请选择"
-            style="width:230px"
+            style="min-width: 150px; width:60%"
             @change="getValueOfBasicAttrs(attrs, 0)"
           >
             <el-option
               v-for="item in attrs.attrValues"
               :key="item.attrValueId"
-              disabled
               :label="item.value"
               :value="item.attrValueId"
             />
@@ -32,8 +31,8 @@
           <el-input
             v-else
             v-model="attrs.attrValue"
-            :readonly="true"
-            style="width:230px"
+            :placeholder="'请输入'+attrs.name"
+            style="min-width: 150px; width:60%"
             @blur="getValueOfBasicAttrs(attrs, 1)"
           />
         </div>
@@ -43,26 +42,26 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['getValueOfBasicAttrs'])
-defineProps({
+const props = defineProps({
   attrsList: {
     type: Array,
     default () {
       return []
     }
   }
-
 })
 
+const emit = defineEmits(['getValueOfBasicAttrs'])
+
+// 获取数据
 const getValueOfBasicAttrs = (attrs, st) => {
-  emit('getValueOfBasicAttrs', attrs, st)
+  emit('getValueOfBasicAttrs', props.attrsList, attrs, st)
 }
 
 </script>
 
 <style lang="scss" scoped>
-.component-spu-catagory-attrs {
-  width: 100%;
+.component-spu-category-attrs {
   .part-section {
     background: #f9f9f9;
     padding: 20px;

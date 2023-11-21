@@ -2,7 +2,6 @@
   <div class="page-category">
     <!-- 搜索相关区域 -->
     <div class="filter-container">
-      <!-- <el-button size="mini" icon="el-icon-search" class="filter-item" @click="getPage()">{{ $t('table.search') }}</el-button> -->
       <el-button
         v-permission="['product:category:save']"
         type="primary"
@@ -43,7 +42,6 @@
                 </el-tag>
                 <el-tag
                   v-else
-                  size="small"
                 >
                   正常
                 </el-tag>

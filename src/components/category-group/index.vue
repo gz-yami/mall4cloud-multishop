@@ -101,7 +101,6 @@ const deleteCategoryItemOfSelected = (index) => {
     .category-sel1 {
       line-height: 1em;
       padding: 3px 6px;
-      border: 1px solid #ddd;
     }
     .category-sel2 {
       display: inline-block;

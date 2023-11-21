@@ -56,14 +56,12 @@
         <template #default="{row}">
           <el-tag
             v-if="row.status === 0"
-            size="small"
             type="danger"
           >
             {{ $t("product.category.offline") }}
           </el-tag>
           <el-tag
             v-else
-            size="small"
           >
             {{ $t("product.category.normal") }}
           </el-tag>
