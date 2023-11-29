@@ -442,6 +442,9 @@ watch(() => props.flatten, () => {
       Data.lists = [baseData]
     })
   }
+}, {
+  deep: true,
+  immediate: true
 })
 
 watch(() => Data.lists, (data) => {

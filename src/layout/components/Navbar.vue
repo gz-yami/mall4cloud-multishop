@@ -13,16 +13,8 @@
       <!-- 1.左边部分 -->
       <div class="left-menu">
         <img
-          v-if="route.path!=='/supplier/shop-process' && webConfig.bsTopBarIcon && webConfig.bsTopBarIcon !== resourcesUrl"
           style="height: 18px;width:59px;margin-right: 10px"
-          :src="webConfig.bsTopBarIcon"
-          alt=""
-          @error="webConfig.bsTopBarIcon=''"
-        >
-        <img
-          v-else
-          style="height: 18px;width:59px;margin-right: 10px"
-          :src="webConfig.bsTopBarIcon"
+          src="@/assets/images/logo.png"
           alt=""
         >
         <a
