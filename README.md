@@ -109,9 +109,9 @@ pnpm run build
 
 ### 后台截图
 
-![image-20231130112350296](doc\img\readme\image-20231130112350296.png)
+![image-20231130112350296](doc/img/readme/image-20231130112350296.png)
 
-![](doc\img\readme\image-20231130112429089.png)
+![](doc/img/readme/image-20231130112429089.png)
 
 ## 提交反馈
 
