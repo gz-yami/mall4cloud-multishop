@@ -181,19 +181,6 @@ export function validNoEmptySpace (str) {
 }
 
 /**
- * 判断富文本是否为全空格
- * @param {String} str
- * @returns
- */
-export function isHtmlNull (str) {
-  const html = str.replace(/<(?!img).*?>/g, '').replace(/&nbsp;/gi, '').replace(/(\n)/g, '')
-  if (html === '') return true
-  const regu = '^[ ]+$'
-  const re = new RegExp(regu)
-  return re.test(html)
-}
-
-/**
  * 匹配两侧空格，匹配到就返回true
  * @param {String} str
  * @returns {Boolean}
