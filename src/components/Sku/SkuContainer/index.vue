@@ -1,269 +1,248 @@
 <template>
-  <div class="group-container">
+  <div class="component-sku-container">
     <div class="spec-name">
       <div
-        v-for="(item, index) in sku.leaf"
+        v-for="(item, index) in skus.leaf"
         :key="index"
-        class="spec-name-int">
-          <el-tag :type="item.type" effect="plain" closable @close="handleRemoveSkuLeaf(index)">{{ item[optionText] }}</el-tag>
-          <div v-if="item.imgUrl" class="spec-imgbox">
-            <img-upload
-              v-if="hasSkuImage"
-              v-model="item.imgUrl"
-              @input="handleUploadSuccess(item, $event)"
-              class="spec-img" />
-              <div v-if="hasSkuImage && item.imgUrl" class="preview-btn" @click="picturePreview(item.imgUrl)">预览</div>
+        class="spec-name-int"
+      >
+        <el-tag
+          :type="item.type"
+          effect="plain"
+          closable
+          @close="handleRemoveSkuLeaf(index)"
+        >
+          {{ item[ease.optionText] }}
+        </el-tag>
+        <div
+          v-if="item.imgUrl"
+          class="spec-imgbox"
+        >
+          <img-upload
+            v-if="hasSkuImage"
+            v-model="item.imgUrl"
+            class="spec-img"
+            @input="handleUploadSuccess(item, $event)"
+          />
+          <div
+            v-if="hasSkuImage && item.imgUrl"
+            class="preview-btn"
+            @click="picturePreview(item.imgUrl)"
+          >
+            预览
           </div>
+        </div>
       </div>
 
       <!-- 新增 -->
-      <div class="sku-item" v-if="sku[optionValue] && sku[optionValue] !== 0">
+      <div
+        v-if="skus[ease.optionValue] && skus[ease.optionValue] !== 0"
+        class="sku-item"
+      >
         <el-popover
+          v-model="visiable"
           placement="bottom"
           width="200"
           trigger="click"
-          v-model="visiable">
+        >
           <el-select
-            class="popover-select"
-            size="mini"
             v-model="leafValue"
+            class="popover-select"
             multiple
             filterable
             allow-create
             default-first-option
             :popper-append-to-body="false"
+            :teleported="false"
             style="width:100%"
             placeholder="属性值"
             @change="createSkuLeaf"
-            @visible-change="status => !status && this.handleSelectSku()"
-            >
+            @visible-change="status => !status && handleSelectSku()"
+          >
             <el-option
               v-for="item in skuOptions"
-              :key="item[optionValue]"
-              :label="item[optionText]"
-              :value="item[optionValue]">
-            </el-option>
+              :key="item[ease.optionValue]"
+              :label="item[ease.optionText]"
+              :value="item[ease.optionValue]"
+            />
           </el-select>
-          <!-- 新增 -->
-          <el-button slot="reference" circle  type="primary" plain size="mini" class="cursor"><i class="el-icon-plus" /></el-button>
+
+          <template #reference>
+            <!-- 新增 -->
+            <el-button
+              circle
+              type="primary"
+              plain
+              class="cursor"
+            >
+              <el-icon><Plus /></el-icon>
+            </el-button>
+          </template>
         </el-popover>
       </div>
-
     </div>
   </div>
 </template>
 
-<script>
-import ImgUpload from '@/components/ImgUpload'
-const noop = res => res
-export default {
-  inject: [
-    'ease'
-  ],
+<script setup>
+import { computed, reactive, watch } from 'vue'
 
-  components: { ImgUpload },
+const ease = inject('ease')
 
-  data() {
-    return {
-      visiable: false,
-      leafValue: [],
-      skuOptions: [],
-      id: 0
+const emit = defineEmits(['update:sku'])
+
+const props = defineProps({
+  sku: {
+    type: Object,
+    default () {
+      return {}
     }
   },
+  hasSkuImage: {
+    type: Boolean,
+    default: false
+  },
+  onSkuLeafChange: {
+    type: Function,
+    default: () => {}
+  }
+})
 
-  props: {
-    sku: {
-      type: Object,
-      default() {
-        return {}
+const Data = reactive({
+  visiable: false,
+  leafValue: [],
+  skuOptions: [],
+  id: 0
+})
+const { visiable, leafValue, skuOptions } = toRefs(Data)
+
+const skus = computed({
+  get () {
+    return props.sku
+  },
+  set (val) {
+    emit('update:sku', val)
+  }
+})
+
+const handleHideVisiable = () => {
+  Data.visiable = false
+}
+
+const handleResetLeafValue = () => {
+  Data.leafValue = []
+}
+
+const fetchLeafById = (id) => {
+  if (!id) return
+  ease.onFetchSku(id).then(skuOptions => {
+    Data.id = id
+    Data.skuOptions = skuOptions
+    const skuList = []
+    // 筛选未选择的属性
+    Data.skuOptions.forEach(skuItem => {
+      if (!skus.value.leaf.find(item => item.id === skuItem.id)) {
+        skuList.push(skuItem)
       }
-    },
-    hasSkuImage: {
-      type: Boolean,
-      default: false
-    },
-    onSkuLeafChange: {
-      type: Function,
-      default: noop
+    })
+    Data.skuOptions = skuList
+  })
+}
+
+const handleRemoveSkuLeaf = (index) => {
+  skus.value.leaf.splice(index, 1)
+
+  props.onSkuLeafChange(skus.value.leaf)
+}
+
+const filterSkuOptions = (data) => {
+  const oldSellData = []
+  const addSelData = []
+  const skuOptions = Data.skuOptions
+  data.forEach(item => {
+    if (skuOptions.find(skuItem => skuItem.id === item)) {
+      oldSellData.push(item)
+    } else {
+      addSelData.push(item)
     }
-  },
-
-  computed: {
-    optionValue() {
-      return this.ease.optionValue
-    },
-
-    optionText() {
-      return this.ease.optionText
-    }
-  },
-
-  watch: {
-    sku: {
-      deep: true,
-      immediate: true,
-      handler(sku) {
-        this.fetchLeafById(sku[this.optionValue])
-      }
-    }
-  },
-
-  methods: {
-    handleHideVisiable() {
-      this.visiable = false
-    },
-
-    handleResetLeafValue() {
-      this.leafValue = []
-    },
-
-    fetchLeafById(id) {
-      if (!id) return
-      this.ease.onFetchSku(id).then(skuOptions => {
-        this.id = id
-        this.skuOptions = skuOptions
-        let skuList = []
-        // 筛选未选择的属性
-        this.skuOptions.forEach(skuItem => {
-          if (!this.sku.leaf.find(item => item.id === skuItem.id)) {
-            skuList.push(skuItem)
-          }
-        })
-        this.skuOptions = skuList
-      })
-    },
-
-    handleRemoveSkuLeaf(index) {
-      let { sku } = this
-      sku.leaf.splice(index, 1)
-
-      this.onSkuLeafChange(sku.leaf)
-    },
-
-    handleRemoveImage(id) {
-      let { sku, optionValue } = this
-      sku?.leaf?.forEach(item => {
-        if (item[optionValue] === id) {
-          item.imgUrl = ''
-        }
-      })
-
-      this.onSkuLeafChange(sku.leaf)
-    },
-
-    filterSkuOptions(data) {
-      const oldSellData = [];
-      const addSelData = []
-      const skuOptions = this.skuOptions
-      data.forEach(item => {
-        if (skuOptions.find(skuItem => skuItem.id === item)) {
-          oldSellData.push(item)
-        } else {
-          addSelData.push(item)
-        }
-      })
-      return {
-        oldSellData, addSelData
-      }
-    },
-
-    createSkuLeaf(selVal) {
-      let { sku, optionValue, skuOptions } = this
-      // 过滤需要新增的规格值
-      // data = data.filter(item => typeof (item) === 'string')
-      const { addSelData, oldSellData } = this.filterSkuOptions(selVal)
-      if (!addSelData.length) return
-      this.ease.onCreateSku({
-        data: addSelData,
-        id: sku[optionValue]
-      }).then((processedNewOptions) => {
-        if (processedNewOptions[0].text.length > 20) {
-          this.$message({
-            message: `属性名长度不可超过20个字符`,
-            duration: 1500
-          })
-          processedNewOptions = []
-        }
-        skuOptions.push(...processedNewOptions)
-        this.$nextTick(() => {
-          const values = processedNewOptions.map(item => item.id).concat(oldSellData)
-          this.leafValue = values;
-
-          // const values = processedNewOptions.map(item => item.id)
-          // this.leafValue = this.leafValue.filter(item => typeof (item) === 'number')
-          // this.leafValue.push(...values)
-        })
-      })
-    },
-
-    handleSelectSku(data) {
-      let { sku, hasSkuImage, optionValue, optionText, skuOptions, leafValue } = this
-      let skuLeaf = skuOptions.filter(item => leafValue.indexOf(item[optionValue]) >= 0)
-      skuLeaf.map(item => {
-        item.is_show = hasSkuImage
-      })
-
-      let skuLeafIds = sku.leaf.map(item => item[optionValue])
-
-
-      skuLeaf.forEach(item => {
-        if (skuLeafIds.indexOf(item[optionValue]) < 0) {
-          sku.leaf.push(item)
-        }
-      })
-
-      // 过滤同名规格值
-      for (var i = 0; i < sku.leaf.length; i++) {
-        for (var j = i + 1; j < sku.leaf.length; j++) {
-          if (sku.leaf[i][optionText] === sku.leaf[j][optionText]) {
-            sku.leaf.splice(i, 1)
-            j--
-          }
-        }
-      }
-
-      this.handleResetLeafValue()
-      this.handleHideVisiable()
-      this.onSkuLeafChange(sku.leaf)
-    },
-
-    handleUploadSuccess(item, urls) {
-      this.onSkuLeafChange(this.sku.leaf)
-    },
-    // handleUploadSuccess2(response, file, fileList, id) {
-    //   let { sku, optionValue } = this
-
-    //   sku.leaf.forEach(item => {
-    //     if (item[optionValue] === id) {
-    //       item.imgUrl = response.imgUrl
-    //     }
-    //   })
-
-    //   this.onSkuLeafChange(sku.leaf)
-    // },
-
-    // 图片预览
-    picturePreview(imgUrl) {
-      this.ease.onPreviewImg(imgUrl)
-    },
-
-    created() {
-      let { sku, optionValue } = this
-      sku[optionValue] && this.fetchLeafById(sku[optionValue])
-    }
-
-  },
-
-  created() {
-    let { sku, optionValue } = this
-    sku[optionValue] && this.fetchLeafById(sku[optionValue])
+  })
+  return {
+    oldSellData, addSelData
   }
 }
+
+const createSkuLeaf = (selVal) => {
+  // 过滤需要新增的规格值
+  // data = data.filter(item => typeof (item) === 'string')
+  const { addSelData, oldSellData } = filterSkuOptions(selVal)
+  if (!addSelData.length) return
+  ease.onCreateSku({
+    data: addSelData,
+    id: skus.value[ease.optionValue]
+  }).then((processedNewOptions) => {
+    if (processedNewOptions[0].text.length > 20) {
+      ElMessage({
+        message: '属性名长度不可超过20个字符',
+        duration: 1500
+      })
+      processedNewOptions = []
+    }
+    Data.skuOptions.push(...processedNewOptions)
+    nextTick(() => {
+      const values = processedNewOptions.map(item => item.id).concat(oldSellData)
+      Data.leafValue = values
+    })
+  })
+}
+
+const handleSelectSku = () => {
+  const skuLeaf = Data.skuOptions.filter(item => Data.leafValue.indexOf(item[ease.optionValue]) >= 0)
+  skuLeaf.forEach(item => {
+    item.is_show = props.hasSkuImage
+  })
+
+  const skuLeafIds = skus.value.leaf.map(item => item[ease.optionValue])
+
+  skuLeaf.forEach(item => {
+    if (skuLeafIds.indexOf(item[ease.optionValue]) < 0) {
+      skus.value.leaf.push(item)
+    }
+  })
+
+  // 过滤同名规格值
+  for (let i = 0; i < skus.value.leaf.length; i++) {
+    for (let j = i + 1; j < skus.value.leaf.length; j++) {
+      if (skus.value.leaf[i][ease.optionText] === skus.value.leaf[j][ease.optionText]) {
+        skus.value.leaf.splice(i, 1)
+        j--
+      }
+    }
+  }
+
+  handleResetLeafValue()
+  handleHideVisiable()
+  props.onSkuLeafChange(skus.value.leaf)
+}
+
+const handleUploadSuccess = () => {
+  props.onSkuLeafChange(skus.value.leaf)
+}
+
+// 图片预览
+const picturePreview = (imgUrl) => {
+  ease.onPreviewImg(imgUrl)
+}
+
+watch(skus.value, () => {
+  fetchLeafById(skus.value[ease.optionValue])
+}, {
+  immediate: true
+})
+
 </script>
 
-<style lang="scss">
-.group-container {
+<style lang="scss" scoped>
+.component-sku-container {
   .spec-name {
     margin: 15px 5px;
     .spec-name-int {
@@ -294,55 +273,13 @@ export default {
           // margin-left: 25px;
           margin-top: 10px;
           // sku上传图片组件大小修改
-          .plugin-images {
-            .el-upload {
-              .pic-uploader-icon {
-                width: 60px;
-                height: 60px;
-                line-height: 60px;
-                font-size: 18px;
-              }
-              .pic {
-                height: 60px;
-              }
-            }
-          }
         }
       }
       .spec-imgbox:hover .preview-btn {
         display: block;
       }
-      .error-tips {
-        margin-left: 25px;
-        margin-top: 10px;
-        color: #e43130;
-      }
-      .el-tag--plain {
-        position: relative;
-        min-width: 100px;
-        color: #606266;
-        border-color: #dcdfe6;
-        padding-right: 22px;
-      }
-      .el-tag--plain .el-tag__close {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        right: 4px;
-        color: #606266;
-      }
-      .el-tag--plain .el-tag__close:hover {
-        background: #dcdfe6;
-      }
     }
-    .add-spec-btn {
-      display: inline-block;
-      font-size: 12px;
-      line-height: 1.5em;
-      margin-top: 10px;
-      color: #02a1e9;
-      cursor: pointer;
-    }
+
     .sku-item {
       display: inline-block;
     }

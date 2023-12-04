@@ -1,11 +1,10 @@
 <template>
   <!-- 属性组 -->
-  <div class="part-spec-section">
+  <div class="component-sku-group">
     <div class="spec-box">
       <div class="spec-select">
         <div class="sel-box">
           <el-select
-            size="mini"
             v-model="skuValue"
             placeholder="请选择"
             allow-create
@@ -14,7 +13,8 @@
             :popper-append-to-body="false"
             :filter-method="filterMethod"
             style="min-width:100px"
-            @change="handleSelectSku">
+            @change="handleSelectSku"
+          >
             <el-option
               v-for="item in ease.skuTreeData"
               :key="item[optionValue]"
@@ -23,174 +23,158 @@
             />
           </el-select>
         </div>
-<!--        <div v-if="index === 0 && ease.showAddSkuImage" class="sel-add-img">-->
-<!--          <el-checkbox v-model="hasSkuImage"  @change="handleCheckedSkuImage">添加属性图片</el-checkbox>-->
-<!--        </div>-->
       </div>
-      <div class="del-btn" @click="onSkuRemove(sku, index)">删除属性</div>
+      <div
+        class="del-btn"
+        @click="onSkuRemove(sku, index)"
+      >
+        删除属性
+      </div>
     </div>
     <!-- sku值 -->
-    <sku-container :sku="sku" :hasSkuImage="hasSkuImage" :onSkuLeafChange="handleSkuLeafChange"/>
+    <sku-container
+      v-model:sku="skus"
+      :has-sku-image="hasSkuImage"
+      :on-sku-leaf-change="handleSkuLeafChange"
+    />
   </div>
-
 </template>
 
-<script>
-// import ImgUpload from '@/components/ImgUpload'
-import skuContainer from '@/components/Sku/SkuContainer'
-const noop = res => res
+<script setup>
+import { computed, reactive, watch } from 'vue'
+import skuContainer from '@/components/Sku/SkuContainer/index.vue'
 
-export default {
-  components: { skuContainer },
-  inject: [
-    'ease'
-  ],
-  props: {
-    index: {
-      type: Number,
-      default: 0
-    },
-    sku: {
-      type: Object,
-      default() {
-        return {}
-      }
-    },
-    // 自定义sku的id key
-    optionValue: {
-      type: String,
-      default: 'id'
-    },
-    // 自定义sku的text key
-    optionText: {
-      type: String,
-      default: 'text'
-    },
-    onSkuChange: {
-      type: Function,
-      default: noop
-    },
-    onSkuRemove: {
-      type: Function,
-      default: noop
+const emit = defineEmits(['update:sku'])
+
+const ease = inject('ease')
+
+const props = defineProps({
+  index: {
+    type: Number,
+    default: 0
+  },
+  sku: {
+    type: Object,
+    default () {
+      return {}
     }
   },
-
-  data() {
-    return {
-      currentValue: '',
-      currentSku: '',
-      skuValue: '',
-      newsSkuText: '',
-      skus: this.sku,
-      hasSkuImage: this.sku.leaf
-        ? this.sku.leaf.some(item => item.imgUrl)
-        : false
-    }
+  // 自定义sku的id key
+  optionValue: {
+    type: String,
+    default: 'id'
   },
-
-  watch: {
-    sku: {
-      deep: true,
-      immediate: true,
-      handler(sku) {
-        if (sku[this.optionText]) {
-          this.$nextTick(() => {
-            this.skuValue = sku[this.optionText]
-            this.currentSku = sku
-          })
-        }
-      }
-    }
+  // 自定义sku的text key
+  optionText: {
+    type: String,
+    default: 'text'
   },
-
-  methods: {
-    filterMethod(keyword) {
-      // let { optionText } = this
-      // if (this.ease.skuTreeData.some(item => item[optionText] === keyword)) return
-
-      // this.newsSkuText = keyword
-    },
-
-    // 选择sku
-    handleSelectSku(value) {
-      if (value.length > 10) {
-        this.$message({
-          message: `属性名长度不可超过10个字符`,
-          duration: 1500
-        })
-        this.skuValue = ''
-        return
-      }
-      let { index, optionValue } = this
-      // 当切换当前属性时，把当前属性重新放入可选择列表中
-      console.log(value)
-      console.log(this.currentSku)
-      if (this.currentSku !== '' && value !== this.currentSku.id) {
-        console.log(value)
-        this.ease.skuTreeData.push(this.currentSku)
-      }
-
-      if (typeof (value) === 'number') {
-        let sku = this.ease.skuTreeData.find(item => item[optionValue] === value)
-        sku.leaf = []
-        if (this.onSkuChange(sku, index) === false) {
-          this.skuValue = ''
-        } else {
-          this.ease.skuTreeData.some((item,idx) => {
-            // 列表删除已选中属性
-            if (item[optionValue] === value) {
-              console.log(this.ease)
-              this.currentSku = this.ease.skuTreeData[idx]
-              this.ease.skuTreeData.splice(idx,1)
-            }
-            return false
-          })
-        }
-        return
-      }
-
-      this.createSku(value)
-    },
-    // 创建sku
-    createSku(text) {
-      let { sku, index, optionValue, optionText } = this
-
-      this.ease.onCreateGroup(text).then(data => {
-        if (data > 0) {
-          sku = {
-            [optionValue]: data,
-            [optionText]: text,
-            leaf: [],
-          }
-
-          this.onSkuChange(sku, index)
-        }
-      })
-    },
-
-    // 添加图片复选框
-    handleCheckedSkuImage(checked) {
-      let { sku, index } = this
-      sku.leaf = sku.leaf.map(item => {
-        item.is_show = checked
-        return item
-      })
-      this.onSkuChange(sku, index)
-    },
-
-    handleSkuLeafChange(leaf) {
-      let { sku, index } = this
-      sku.leaf = leaf
-      this.onSkuChange(sku, index)
-    }
-
+  onSkuChange: {
+    type: Function,
+    default: () => {}
+  },
+  onSkuRemove: {
+    type: Function,
+    default: () => {}
   }
+})
+
+const Data = reactive({
+  currentValue: '',
+  currentSku: '',
+  skuValue: '',
+  newsSkuText: '',
+  hasSkuImage: props.sku.leaf ? props.sku.leaf.some(item => item.imgUrl) : false
+})
+
+const { skuValue, hasSkuImage } = toRefs(Data)
+
+const skus = computed({
+  get () {
+    return props.sku
+  },
+  set (val) {
+    emit('update:sku', val)
+  }
+})
+
+watch(() => props.sku, (sku) => {
+  if (sku[props.optionText]) {
+    nextTick(() => {
+      Data.skuValue = sku[props.optionText]
+      Data.currentSku = sku
+    })
+  }
+}, {
+  deep: true,
+  immediate: true
+})
+
+const filterMethod = () => {
+}
+
+// 选择sku
+const handleSelectSku = (value) => {
+  if (value.length > 10) {
+    ElMessage({
+      message: '属性名长度不可超过10个字符',
+      duration: 1500
+    })
+    Data.skuValue = ''
+    return
+  }
+  // 当切换当前属性时，把当前属性重新放入可选择列表中
+  if (Data.currentSku !== '' && value !== Data.currentSku.id) {
+    ease.skuTreeData.push(Data.currentSku)
+  }
+
+  if (typeof (value) === 'number') {
+    const sku = ease.skuTreeData.find(item => item[props.optionValue] === value)
+    sku.leaf = []
+    if (props.onSkuChange(sku, props.index) === false) {
+      Data.skuValue = ''
+    } else {
+      ease.skuTreeData.some((item, idx) => {
+        // 列表删除已选中属性
+        if (item[props.optionValue] === value) {
+          Data.currentSku = ease.skuTreeData[idx]
+          ease.skuTreeData.splice(idx, 1)
+        }
+        return false
+      })
+    }
+    return
+  }
+
+  createSku(value)
+}
+
+// 创建sku
+const createSku = (text) => {
+  ease.onCreateGroup(text).then(data => {
+    if (data) {
+      const sku = {
+        [props.optionValue]: data,
+        [props.optionText]: text,
+        leaf: []
+      }
+
+      skus.value = sku
+
+      props.onSkuChange(sku, props.index)
+    }
+  })
+}
+
+const handleSkuLeafChange = (leaf) => {
+  skus.value.leaf = leaf
+  props.onSkuChange(skus.value, props.index)
 }
 </script>
-<style lang="scss">
+
+<style lang="scss" scoped>
 /* 商品属性 */
-.part-spec-section {
+.component-sku-group {
   margin-top: 10px;
   margin-bottom: 20px;
   .spec-box {
@@ -205,9 +189,7 @@ export default {
       display: flex;
       align-items: center;
     }
-    .spec-select .sel-add-img {
-      margin-left: 20px;
-    }
+
     .del-btn {
       font-size: 13px;
       color: #02a1e9;

@@ -1,6 +1,6 @@
 # README
 
-![image-20210705143529597](doc/img/readme/image-20210705143529597.png)
+![](doc/img/readme/image-20210705143529597.png)
 
 ## 前言
 
@@ -30,35 +30,46 @@ JAVA后台：https://gitee.com/gz-yami/mall4cloud
 
 uni-app：https://gitee.com/gz-yami/mall4cloud-uniapp
 
+## 部署教程
 
-### 1.启动
+### 1.安装nodejs
 
-- 安装node模块 （不要用cnpm，否则会出现不可预知的后果）
+[NodeJS](https://nodejs.org/) 项目要求最低 18.12.0，推荐 20.9.0
+
+如果不了解怎么安装nodejs的，可以参考 [菜鸟教程的nodejs相关](https://www.runoob.com/nodejs/nodejs-install-setup.html)
+
+### 2.启动
+
+- 项目要求使用 [pnpm](https://www.pnpm.cn/) 包管理工具
+- 使用编辑器打开项目，在根目录执行以下命令安装依赖
 
 ```
-npm install
+pnpm install
 ```
 
 - 运行
 
 ```
-npm run dev
+pnpm run dev
 ```
 
 - 部署
 
 ```
-npm run build:prod
+pnpm run build
 ```
 
+- 如果不想使用 pnpm，请删除 `package.json` 文件中 `preinstall` 脚本后再进行安装
 
-## 技术介绍
+```json
+{
+    "scripts" : {
+        "preinstall": "npx only-allow pnpm"  // 使用其他包管理工具（npm、yarn、cnpm等）请删除此命令
+    }
+}
+```
 
-后台基础框架采用使用mit开源协议的 `vue-element-admin`
-
-具体可以查看 [vue-element-admin 介绍](https://panjiachen.gitee.io/vue-element-admin-site/zh/guide/)
-
-https://panjiachen.gitee.io/vue-element-admin-site/zh/guide/
+## 目录结构
 
 ```
 ├── build                      # 构建相关
@@ -98,16 +109,14 @@ https://panjiachen.gitee.io/vue-element-admin-site/zh/guide/
 
 ### 后台截图
 
+![image-20231130112350296](doc/img/readme/image-20231130112350296.png)
 
-
-![image-20210705151729559](doc/img/readme/image-20210705151729559.png)
-
-![image-20210705151847270](doc/img/readme/image-20210705151847270.png)
-
-
+![](doc/img/readme/image-20231130112429089.png)
 
 ## 提交反馈
+
 - Mall4j官网 https://www.mall4j.com
+
 - 如需购买商业版源码，请联系商务微信
 
   ![输入图片说明](https://19838323.s21i.faiusr.com/4/4/ABUIABAEGAAgksmNlAYojomK2gIwrAI4rAI!160x160.png)
@@ -118,6 +127,9 @@ https://panjiachen.gitee.io/vue-element-admin-site/zh/guide/
 ![输入图片说明](https://images.gitee.com/uploads/images/2021/1119/134157_dd977d46_5094767.png "微信图片_20211119134107.png")
 
 ## springboot版本商城请点击
+
 https://gitee.com/gz-yami/mall4j
+
+
 
 更多内容请查看 主项目 https://gitee.com/gz-yami/mall4cloud

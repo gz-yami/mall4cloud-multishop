@@ -1,13 +1,18 @@
 <template>
-  <div class="login-container">
+  <div class="page-login">
     <div class="login-frame">
       <div class="login-img">
         <img src="~@/assets/images/login-img.jpg">
       </div>
       <div class="login-info">
-        <div class="title">蓝海商家端管理系统</div>
+        <div class="title">
+          蓝海商家端管理系统
+        </div>
         <div class="input-box">
-          <div class="number inp-item" :class="[selectItem==='username'? 'selected' : '', usernameErrTips? 'err-line' : '']">
+          <div
+            class="number inp-item"
+            :class="[selectItem==='username'? 'selected' : '', usernameErrTips? 'err-line' : '']"
+          >
             <img src="~@/assets/images/number.png">
             <input
               v-model="loginInfo.username"
@@ -16,9 +21,17 @@
               @focus="inputFocus('username')"
               @blur="inputDefocus('username')"
             >
-            <div v-if="usernameErrTips" class="err-tips">请输入正确的用户名</div>
+            <div
+              v-if="usernameErrTips"
+              class="err-tips"
+            >
+              请输入正确的用户名
+            </div>
           </div>
-          <div class="password inp-item" :class="[selectItem==='password'? 'selected' : '', passwordErrTips? 'err-line' : '']">
+          <div
+            class="password inp-item"
+            :class="[selectItem==='password'? 'selected' : '', passwordErrTips? 'err-line' : '']"
+          >
             <img src="~@/assets/images/password.png">
             <input
               v-model="loginInfo.password"
@@ -28,27 +41,52 @@
               @focus="inputFocus('password')"
               @blur="inputDefocus('password')"
             >
-            <div v-if="passwordErrTips" class="err-tips">密码不能少于6位</div>
+            <div
+              v-if="passwordErrTips"
+              class="err-tips"
+            >
+              密码不能少于6位
+            </div>
           </div>
         </div>
-        <div class="login-btn" :loading="loading" @click="handleLogin">登录</div>
+        <div
+          class="login-btn"
+          :loading="loading"
+          @click="handleLogin"
+        >
+          登录
+        </div>
       </div>
       <div class="switch-language">
         <el-dropdown @command="handleSetLanguage">
           <span class="el-dropdown-link">
-            语言<i class="el-icon-caret-bottom el-icon--right" />
+            语言<el-icon><CaretBottom /></el-icon>
           </span>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item :disabled="language==='zh'" command="zh">中文</el-dropdown-item>
-            <el-dropdown-item :disabled="language==='en'" command="en">English</el-dropdown-item>
-          </el-dropdown-menu>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                :disabled="language==='zh'"
+                command="zh"
+              >
+                中文
+              </el-dropdown-item>
+              <el-dropdown-item
+                :disabled="language==='en'"
+                command="en"
+              >
+                English
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
         </el-dropdown>
       </div>
     </div>
-    <div class="bottom">Copyright 2018-2021 广州市蓝海创新科技有限公司</div>
+    <div class="bottom">
+      Copyright 2018-2021 广州市蓝海创新科技有限公司
+    </div>
     <Verify
       v-if="initVerify"
-      ref="verify"
+      ref="verifyRef"
       :captcha-type="'blockPuzzle'"
       :img-size="{width:'400px',height:'200px'}"
       @success="login"
@@ -56,151 +94,108 @@
   </div>
 </template>
 
-<script>
-import { validUsername } from '@/utils/validate'
-import Verify from '@/components/Verifition/Verify'
+<script setup>
+import { useUserStore } from '../../../stores/modules/user'
 
-export default {
-  name: 'Login',
-  components: { Verify },
-  data() {
-    return {
-      selectItem: '', // '':未选中；'username':用户名；'password':密码
-      usernameErrTips: false,
-      passwordErrTips: false,
-      loginInfo: {
-        username: '', // 用户名
-        password: '', // 密码
-        captcha: '' // 验证码
-      },
-      loading: false,
-      initVerify: false,
-      redirect: undefined,
-      otherQuery: {}
-    }
+const Data = reactive({
+  selectItem: '', // '':未选中；'username':用户名；'password':密码
+  usernameErrTips: false,
+  passwordErrTips: false,
+  loginInfo: {
+    username: '', // 用户名
+    password: '', // 密码
+    captcha: '' // 验证码
   },
-  computed: {
-    language() {
-      return this.$store.getters.language
-    }
-  },
-  watch: {
-    $route: {
-      handler: function(route) {
-        const query = route.query
-        if (query) {
-          this.redirect = query.redirect
-          this.otherQuery = this.getOtherQuery(query)
-        }
-      },
-      immediate: true
-    }
-  },
-  methods: {
-    // 切换语言
-    handleSetLanguage(lang) {
-      this.$i18n.locale = lang
-      this.$store.dispatch('app/setLanguage', lang)
-      this.$message({
-        message: 'Switch Language Success',
-        type: 'success'
-      })
-    },
-    // 输入框聚焦监听
-    inputFocus(item) {
-      this.lightOutline(item)
-      if (item === 'username') {
-        this.usernameErrTips = false
-      } else if (item === 'password') {
-        this.passwordErrTips = false
-      }
-    },
-    // 输入框失焦监听
-    inputDefocus(item) {
-      this.lightDisappear()
-      this.judgeMonitorInput(item)
-    },
-    // 底边框换颜色
-    lightOutline(item) {
-      this.selectItem = item
-    },
-    // 底边框恢复成灰色
-    lightDisappear() {
-      this.selectItem = ''
-    },
-    // 判断监听的是哪个输入框
-    judgeMonitorInput(item) {
-      // if (item === 'username') {
-      //   this.userNameVerification()
-      // } else if (item === 'password') {
-      //   this.passwordVerification()
-      // }
-    },
-    // 用户名输入框验证
-    userNameVerification() {
-      const username = this.loginInfo.username
-      if (!validUsername(username)) {
-        this.usernameErrTips = true
-      } else {
-        this.usernameErrTips = false
-      }
-    },
-    // 密码输入框验证
-    passwordVerification() {
-      const password = this.loginInfo.password
-      if (password.length < 6) {
-        this.passwordErrTips = true
-      } else {
-        this.passwordErrTips = false
-      }
-    },
-    handleLogin() {
-      // 验证用户名和密码是否符合规则
-      // this.userNameVerification()
-      // this.passwordVerification()
-      if (this.usernameErrTips === true) {
-        return
-      }
-      if (this.passwordErrTips === true) {
-        return
-      }
-      this.initVerify = true
-      this.$nextTick(() => {
-        this.$refs.verify.show()
-      })
-    },
-    login(verifyResult) {
-      console.log(verifyResult.captchaVerification)
-      this.loading = true
-      this.loginInfo.captcha = verifyResult.captchaVerification
-      this.$store.dispatch('user/login', this.loginInfo)
-        .then(() => {
-          this.$router.push({ path: this.redirect || '/', query: this.otherQuery })
-          this.loading = false
-        })
-        .catch((e) => {
-          console.log(e)
-          this.loading = false
-        })
-    },
-    getOtherQuery(query) {
-      return Object.keys(query).reduce((acc, cur) => {
-        if (cur !== 'redirect') {
-          acc[cur] = query[cur]
-        }
-        return acc
-      }, {})
-    }
+  loading: false,
+  initVerify: false,
+  redirect: undefined,
+  otherQuery: {}
+})
+const { selectItem, usernameErrTips, passwordErrTips, loginInfo, loading, initVerify } = toRefs(Data)
+
+const appStore = useAppStore()
+
+const language = computed(() => appStore.language)
+
+// 切换语言
+const handleSetLanguage = (lang) => {
+  localStorage.setItem('cloudLanguage', lang)
+  appStore.setLanguage(lang)
+  window.location.reload()
+  ElMessage({
+    message: 'Switch Language Success',
+    type: 'success'
+  })
+}
+
+// 输入框聚焦监听
+const inputFocus = (item) => {
+  lightOutline(item)
+  if (item === 'username') {
+    Data.usernameErrTips = false
+  } else if (item === 'password') {
+    Data.passwordErrTips = false
   }
 }
+
+// 输入框失焦监听
+const inputDefocus = (item) => {
+  lightDisappear()
+  judgeMonitorInput(item)
+}
+
+// 底边框换颜色
+const lightOutline = (item) => {
+  Data.selectItem = item
+}
+
+// 底边框恢复成灰色
+const lightDisappear = () => {
+  Data.selectItem = ''
+}
+
+// 判断监听的是哪个输入框
+const judgeMonitorInput = (item) => {
+
+}
+
+const verifyRef = ref()
+const handleLogin = () => {
+  // 验证用户名和密码是否符合规则
+  if (Data.usernameErrTips === true) {
+    return
+  }
+  if (Data.passwordErrTips === true) {
+    return
+  }
+  Data.initVerify = true
+  nextTick(() => {
+    verifyRef.value.show()
+  })
+}
+
+const router = useRouter()
+const login = (verifyResult) => {
+  Data.loading = true
+  Data.loginInfo.captcha = verifyResult.captchaVerification
+  useUserStore().login(Data.loginInfo)
+    .then(() => {
+      router.push({ path: Data.redirect || '/', query: Data.otherQuery })
+      Data.loading = false
+    })
+    .catch((e) => {
+      Data.loading = false
+    })
+}
+
 </script>
 
-<style lang="scss">
-.login-container {
+<style lang="scss" scoped>
+.page-login {
   position: relative;
   width: 100%;
   height: 100vh;
-  background: url(~@/assets/images/login-bg.jpg) no-repeat;
+  background: url(@/assets/images/login-bg.jpg) no-repeat;
   background-size: cover;
   .login-frame {
     position: fixed;
@@ -284,9 +279,16 @@ export default {
       padding: 0 8px;
       border: 1px solid #0076FE;
       .el-dropdown-link {
+        border:none;
+        line-height:20px;
         font-size: 12px;
         color: #0076FE;
         cursor: pointer;
+
+        &:hover{
+        border:none;
+
+        }
       }
     }
   }
