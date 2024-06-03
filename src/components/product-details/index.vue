@@ -5,7 +5,6 @@
         <tiny-mce
           ref="content"
           v-model="setDataForm.detail"
-          :width="850"
         />
       </el-form-item>
     </el-tabs>
